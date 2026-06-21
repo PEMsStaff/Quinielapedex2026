@@ -34,7 +34,8 @@
           <div><strong id="helloUser">Hola, Participante</strong><br><span class="muted" id="userPosition">Posición: por definir</span></div>
         </div>
         <button class="btn btn-outline" onclick="openModal('loginModal')">Iniciar sesión</button>
-        <button class="btn btn-gold" onclick="openModal('registerModal')">Crear cuenta</button>
+        <button class="btn btn-gold" id="registerBtn" onclick="openModal('registerModal')">Crear cuenta</button>
+        <button class="btn btn-outline" id="logoutBtn" onclick="logoutUser()" style="display:none">Salir</button>
         <button class="icon-btn" onclick="toggleMenu()">☰</button>
       </div>
     </div>
@@ -196,6 +197,7 @@
       <p class="muted">Ingresa tu correo para entrar a tu quiniela.</p>
       <div class="form">
         <input id="loginEmail" type="email" placeholder="correo@empresa.com">
+        <input id="loginPassword" type="password" placeholder="Contraseña">
         <button class="btn btn-gold" onclick="loginUser()">Iniciar sesión</button>
         <small>¿No tienes cuenta? <a class="gold" href="#" onclick="closeModal('loginModal');openModal('registerModal')">Crear cuenta</a></small>
       </div>
@@ -210,13 +212,34 @@
       <div class="form">
         <input id="regName" type="text" placeholder="Nombre completo">
         <input id="regEmail" type="email" placeholder="correo@empresa.com">
+        <input id="regPassword" type="password" placeholder="Contraseña mínimo 6 caracteres">
         <button class="btn btn-gold" onclick="registerUser()">Registrarme</button>
-        <small>Esta versión está lista para GitHub Pages y guarda datos localmente. Puedes conectarla a Firebase después.</small>
+        <small>El registro crea tu usuario real en Firebase y te agrega al ranking.</small>
       </div>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, onSnapshot, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDewn58lpNKr7X4hOa52Od5OKBjwEiWYx0",
+      authDomain: "quiniela-pedex-2026.firebaseapp.com",
+      projectId: "quiniela-pedex-2026",
+      storageBucket: "quiniela-pedex-2026.firebasestorage.app",
+      messagingSenderId: "558245358716",
+      appId: "1:558245358716:web:38d197c2abd91014a8edf9",
+      measurementId: "G-6GE2FJ96Z8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+    let currentProfile = null;
+
     const FLAG_BASE = "img/flags/";
 
     const flagMap = {
@@ -1970,21 +1993,58 @@
       `).join("");
     }
 
-    function savePrediction(i){
+    async function savePrediction(i){
+      if(!currentUser){
+        openModal("loginModal");
+        alert("Primero inicia sesión para guardar tu pronóstico.");
+        return;
+      }
+      const match = matches[i];
       const a = document.getElementById(`m${i}a`).value;
       const b = document.getElementById(`m${i}b`).value;
-      localStorage.setItem(`pedex_match_${i}`, JSON.stringify({a,b}));
+      if(a === "" || b === ""){
+        alert("Captura ambos marcadores antes de guardar.");
+        return;
+      }
+      await setDoc(doc(db, "pronosticos", `${currentUser.uid}_${match.id}`), {
+        userId: currentUser.uid,
+        nombre: currentProfile?.nombre || currentUser.email,
+        partidoId: match.id,
+        equipoA: match.home,
+        equipoB: match.away,
+        marcadorA: Number(a),
+        marcadorB: Number(b),
+        puntos: 0,
+        actualizado: serverTimestamp()
+      }, { merge: true });
       const el = document.getElementById(`saved${i}`);
-      el.textContent = "Pronóstico guardado";
+      el.textContent = "Pronóstico guardado en Firebase";
       setTimeout(()=> el.textContent = "", 1800);
       updatePredCount();
     }
 
-    function loadPredictions(){
+    async function loadPredictions(){
       matches.forEach((_,i)=>{
-        const data = JSON.parse(localStorage.getItem(`pedex_match_${i}`) || "{}");
-        if(data.a !== undefined) document.getElementById(`m${i}a`).value = data.a;
-        if(data.b !== undefined) document.getElementById(`m${i}b`).value = data.b;
+        const inputA = document.getElementById(`m${i}a`);
+        const inputB = document.getElementById(`m${i}b`);
+        if(inputA) inputA.value = "";
+        if(inputB) inputB.value = "";
+      });
+      if(!currentUser){
+        updatePredCount();
+        return;
+      }
+      const q = query(collection(db, "pronosticos"), where("userId", "==", currentUser.uid));
+      const snap = await getDocs(q);
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const index = matches.findIndex(m => m.id === data.partidoId);
+        if(index >= 0){
+          const inputA = document.getElementById(`m${index}a`);
+          const inputB = document.getElementById(`m${index}b`);
+          if(inputA) inputA.value = data.marcadorA ?? "";
+          if(inputB) inputB.value = data.marcadorB ?? "";
+        }
       });
       updatePredCount();
     }
@@ -1992,48 +2052,131 @@
     function updatePredCount(){
       let count = 0;
       matches.forEach((_,i)=>{
-        const data = JSON.parse(localStorage.getItem(`pedex_match_${i}`) || "{}");
-        if(data.a !== undefined && data.a !== "" && data.b !== undefined && data.b !== "") count++;
+        const inputA = document.getElementById(`m${i}a`);
+        const inputB = document.getElementById(`m${i}b`);
+        if(inputA && inputB && inputA.value !== "" && inputB.value !== "") count++;
       });
       document.getElementById("predCount").textContent = count;
     }
 
     function renderRanking(){
-      const rows = [
-        ["1°","Participante",0,0,0],["2°","Invitado PEDEX",0,0,0],["3°","Equipo Comercial",0,0,0]
-      ];
-      document.getElementById("rankingBody").innerHTML = rows.map(r=>`<tr><td><strong class="gold">${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join("");
+      const rankingRef = query(collection(db, "usuarios"), orderBy("puntos", "desc"));
+      onSnapshot(rankingRef, (snapshot) => {
+        const rows = [];
+        snapshot.forEach((docSnap) => rows.push({ id: docSnap.id, ...docSnap.data() }));
+        document.getElementById("rankingBody").innerHTML = rows.map((r, index)=>`
+          <tr>
+            <td><strong class="gold">${index + 1}°</strong></td>
+            <td>${r.nombre || r.email || "Participante"}</td>
+            <td>${r.puntos || 0}</td>
+            <td>${r.partidosJugados || 0}</td>
+            <td>${r.aciertos || 0}</td>
+          </tr>
+        `).join("");
+        if(currentUser){
+          const pos = rows.findIndex(r => r.id === currentUser.uid);
+          const el = document.getElementById("userPosition");
+          if(el) el.textContent = pos >= 0 ? `Posición: ${pos + 1}°` : "Posición: por definir";
+        }
+      });
     }
 
     function toggleMenu(){ document.body.classList.toggle("menu-open"); }
     function openModal(id){ document.getElementById(id).classList.add("show"); }
     function closeModal(id){ document.getElementById(id).classList.remove("show"); }
     function updateUserHeader(name){
-      const display = name || localStorage.getItem("pedex_user_name") || "Participante";
+      const display = name || "Participante";
       const hello = document.getElementById("helloUser");
       if(hello) hello.textContent = "Hola, " + display;
       const avatar = document.querySelector(".avatar");
       if(avatar) avatar.textContent = display.charAt(0).toUpperCase();
     }
 
-    function loginUser(){
+    async function loginUser(){
       const email = document.getElementById("loginEmail").value.trim();
-      const savedName = localStorage.getItem("pedex_user_name") || "Participante";
-      if(email) localStorage.setItem("pedex_user_email", email);
-      updateUserHeader(savedName);
-      closeModal("loginModal");
-      alert("Sesión local iniciada. En la siguiente fase conectaremos Firebase.");
+      const password = document.getElementById("loginPassword").value;
+      if(!email || !password){
+        alert("Ingresa correo y contraseña.");
+        return;
+      }
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        closeModal("loginModal");
+      }catch(error){
+        alert("No se pudo iniciar sesión: " + error.message);
+      }
     }
 
-    function registerUser(){
-      const name = document.getElementById("regName").value.trim() || "Participante";
+    async function registerUser(){
+      const name = document.getElementById("regName").value.trim();
       const email = document.getElementById("regEmail").value.trim();
-      localStorage.setItem("pedex_user_name", name);
-      if(email) localStorage.setItem("pedex_user_email", email);
-      updateUserHeader(name);
-      closeModal("registerModal");
-      alert("Cuenta local creada. En la siguiente fase conectaremos Firebase.");
+      const password = document.getElementById("regPassword").value;
+      if(!name || !email || !password){
+        alert("Completa nombre, correo y contraseña.");
+        return;
+      }
+      if(password.length < 6){
+        alert("La contraseña debe tener mínimo 6 caracteres.");
+        return;
+      }
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "usuarios", cred.user.uid), {
+          nombre: name,
+          email,
+          puntos: 0,
+          aciertos: 0,
+          partidosJugados: 0,
+          rol: "jugador",
+          fechaRegistro: serverTimestamp()
+        });
+        closeModal("registerModal");
+        updateUserHeader(name);
+      }catch(error){
+        alert("No se pudo crear la cuenta: " + error.message);
+      }
     }
+
+    async function logoutUser(){ await signOut(auth); }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      const loginButtons = document.querySelectorAll("button[onclick="openModal('loginModal')"]");
+      const registerBtn = document.getElementById("registerBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      if(user){
+        const profileRef = doc(db, "usuarios", user.uid);
+        const profileSnap = await getDoc(profileRef);
+        if(profileSnap.exists()){
+          currentProfile = profileSnap.data();
+        }else{
+          currentProfile = { nombre: user.email, email: user.email, puntos: 0, aciertos: 0, partidosJugados: 0, rol: "jugador" };
+          await setDoc(profileRef, currentProfile, { merge: true });
+        }
+        updateUserHeader(currentProfile.nombre || user.email);
+        loginButtons.forEach(btn => btn.style.display = "none");
+        if(registerBtn) registerBtn.style.display = "none";
+        if(logoutBtn) logoutBtn.style.display = "inline-flex";
+        await loadPredictions();
+      }else{
+        currentProfile = null;
+        updateUserHeader("Participante");
+        loginButtons.forEach(btn => btn.style.display = "inline-flex");
+        if(registerBtn) registerBtn.style.display = "inline-flex";
+        if(logoutBtn) logoutBtn.style.display = "none";
+        await loadPredictions();
+        const position = document.getElementById("userPosition");
+        if(position) position.textContent = "Posición: por definir";
+      }
+    });
+
+    window.toggleMenu = toggleMenu;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.savePrediction = savePrediction;
+    window.loginUser = loginUser;
+    window.registerUser = registerUser;
+    window.logoutUser = logoutUser;
 
     updateUserHeader();
     renderMatches();
