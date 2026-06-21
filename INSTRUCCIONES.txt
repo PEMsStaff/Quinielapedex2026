@@ -1,0 +1,19 @@
+QUINIELA PEDEX 2026 - VERSION V6 BANDERAS RECTANGULARES FIFA MODERNAS
+
+Archivos incluidos:
+- index.html
+- Logo.png
+- img/flags/*.svg
+
+Para subir a GitHub Pages:
+1. Descomprime este ZIP.
+2. En tu repositorio, usa Add file > Upload files.
+3. Arrastra index.html, Logo.png y la carpeta img completa.
+4. Commit changes.
+5. En Settings > Pages usa Deploy from branch, main, /root.
+
+Puntuacion configurada en el reglamento visual:
+- Ganador/empate correcto: 3 puntos.
+- Marcador exacto: 5 puntos adicionales.
+- Fase de grupos como practica.
+- Dieciseisavos reinician puntaje para quiniela definitiva.
