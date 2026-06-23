@@ -80,7 +80,7 @@
       <aside class="hero-card">
         <h2>Fase de grupos</h2>
         <div class="stat"><small>Jornada actual</small><strong>Según base de datos</strong></div>
-        <div class="stat"><small>Partidos pronosticados</small><strong><span id="predCount">0</span> de 16</strong></div>
+        <div class="stat"><small>Partidos pronosticados</small><strong><span id="predCount">0</span> de 32</strong></div>
         <div class="stat"><small>Puntos totales</small><strong>0 pts</strong></div>
         <a class="btn btn-gold" href="#calendario" style="width:100%;margin-top:18px">Ver calendario completo</a>
       </aside>
@@ -94,13 +94,14 @@
           <h2>Grupos y pronósticos</h2>
           <div class="tabs"><button class="tab active">Grupos</button><button class="tab">Dieciseisavos</button></div>
         </div>
-        <p class="muted">Arriba puedes ver la tabla simétrica de cada grupo. Abajo aparecen los dieciseisavos para capturar y guardar tus marcadores.</p>
+        <p class="muted">Arriba puedes ver la tabla simétrica de cada grupo. Abajo cada usuario debe llenar su llave completa: dieciseisavos, octavos, cuartos, semifinales, tercer lugar y final.</p>
         <div class="panel matches">
           <div class="group-tables" id="groupTables"></div>
           <div class="dieciseisavos-title section-head">
-            <h2>Dieciseisavos para pronosticar</h2>
+            <h2>Llave completa para pronosticar</h2>
           </div>
-          <div class="notice-box">Antes de guardar cada marcador aparecerá una confirmación: después de guardar, no podrás modificarlo.</div>
+          <div class="notice-box"><strong>Importante:</strong> antes de que inicien los dieciseisavos, cada usuario deberá llenar todos sus marcadores de dieciseisavos, octavos, cuartos, semifinales, tercer lugar y final. Al guardar, la llave queda bloqueada y ya no podrá modificarse.</div>
+          <div class="section-head" style="margin-top:12px"><h2 style="font-size:16px">Captura de llave</h2><button class="btn btn-gold" onclick="saveFullBracketPredictions()">Guardar toda la llave</button></div>
           <div class="match-grid" id="r32PredictionGrid"></div>
         </div>
       </div>
@@ -183,7 +184,7 @@
         <div class="section-head">
           <h2>Panel administrativo <span class="admin-badge">Sólo admin</span></h2>
         </div>
-        <p class="muted">Administrador único: <strong class="gold">pem250274@gmail.com</strong>. Desde aquí puedes crear jugadores, dar de baja/reactivar perfiles, quitar perfiles del ranking, editar pronósticos de cualquier jugador y corregir marcadores oficiales. Para borrar definitivamente un usuario de Firebase Authentication se requiere Firebase Console o Cloud Functions.</p>
+        <p class="muted">Administrador único: <strong class="gold">pem250274@gmail.com</strong>. Desde aquí puedes crear jugadores, dar de baja/reactivar perfiles, quitar perfiles del ranking, editar pronósticos de cualquier jugador, corregir marcadores oficiales y recalcular la llave completa. Para borrar definitivamente un usuario de Firebase Authentication se requiere Firebase Console o Cloud Functions.</p>
         <div class="admin-grid">
           <div>
             <h3 class="gold">Alta de jugador</h3>
@@ -305,6 +306,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const ADMIN_EMAIL = "pem250274@gmail.com";
     const secondaryApp = initializeApp(firebaseConfig, "adminCreateUserApp");
     const secondaryAuth = getAuth(secondaryApp);
     let currentUser = null;
@@ -312,6 +314,8 @@
     let adminSelectedUser = null;
     let adminPredictionCache = [];
     let refreshScoreTables = null;
+    let localBracketDraft = {};
+    let loadingPredictions = false;
 
     const FLAG_BASE = "img/flags/";
 
@@ -1855,48 +1859,220 @@
       }).join("");
     }
 
+    function knockoutMatches(){
+      return matches
+        .map((m,i)=>({m,i}))
+        .filter(x => isKnockoutMatch(x.m));
+    }
+
+    function matchById(id){ return matches.find(m => Number(m.id) === Number(id)); }
+
+    function matchIndexById(id){ return matches.findIndex(m => Number(m.id) === Number(id)); }
+
+    function draftForIndex(i){
+      const aEl = document.getElementById(`m${i}a`);
+      const bEl = document.getElementById(`m${i}b`);
+      const pEl = document.getElementById(`m${i}p`);
+      if(aEl || bEl || pEl){
+        return {
+          marcadorA: aEl ? aEl.value : (localBracketDraft[i]?.marcadorA ?? ""),
+          marcadorB: bEl ? bEl.value : (localBracketDraft[i]?.marcadorB ?? ""),
+          ganadorPenales: pEl ? pEl.value : (localBracketDraft[i]?.ganadorPenales ?? "")
+        };
+      }
+      return localBracketDraft[i] || { marcadorA:"", marcadorB:"", ganadorPenales:"" };
+    }
+
+    function collectBracketDraft(){
+      knockoutMatches().forEach(({i}) => {
+        const aEl = document.getElementById(`m${i}a`);
+        const bEl = document.getElementById(`m${i}b`);
+        const pEl = document.getElementById(`m${i}p`);
+        if(aEl || bEl || pEl){
+          localBracketDraft[i] = {
+            marcadorA: aEl ? aEl.value : "",
+            marcadorB: bEl ? bEl.value : "",
+            ganadorPenales: pEl ? pEl.value : ""
+          };
+        }
+      });
+    }
+
+    function userWinnerForMatchId(matchId){
+      const index = matchIndexById(matchId);
+      if(index < 0) return null;
+      const match = matches[index];
+      const draft = draftForIndex(index);
+      if(draft.marcadorA === "" || draft.marcadorB === "") return null;
+      const home = resolveUserBracketTeam(match.home) || match.home;
+      const away = resolveUserBracketTeam(match.away) || match.away;
+      const h = Number(draft.marcadorA), a = Number(draft.marcadorB);
+      if(h > a) return home;
+      if(a > h) return away;
+      return draft.ganadorPenales || null;
+    }
+
+    function userLoserForMatchId(matchId){
+      const index = matchIndexById(matchId);
+      if(index < 0) return null;
+      const match = matches[index];
+      const draft = draftForIndex(index);
+      if(draft.marcadorA === "" || draft.marcadorB === "") return null;
+      const home = resolveUserBracketTeam(match.home) || match.home;
+      const away = resolveUserBracketTeam(match.away) || match.away;
+      const winner = userWinnerForMatchId(matchId);
+      if(!winner) return null;
+      if(winner === home) return away;
+      if(winner === away) return home;
+      return null;
+    }
+
+    function resolveUserBracketTeam(team){
+      if(!team) return null;
+      const winner = /^TBD \(Winner of M(\d+)\)$/.exec(team);
+      if(winner) return userWinnerForMatchId(Number(winner[1]));
+      const runner = /^TBD \((Runner-up|Loser of) M(\d+)\)$/.exec(team);
+      if(runner) return userLoserForMatchId(Number(runner[2]));
+      return resolvePlaceholder(team) || null;
+    }
+
+    function displayUserBracketTeam(team){
+      const resolved = resolveUserBracketTeam(team);
+      if(resolved) return displayName[resolved] || resolved;
+      return displayTeamName(team);
+    }
+
+    function flagUserBracketTeam(team){
+      const resolved = resolveUserBracketTeam(team);
+      return FLAG_BASE + (flagMap[resolved || team] || "tbd.svg");
+    }
+
+    function renderBracketPredictionTeam(team){
+      const shown = displayUserBracketTeam(team);
+      return `<div>
+        <img class="flag-img" src="${flagUserBracketTeam(team)}" alt="${shown}" onerror="this.src='${FLAG_BASE}tbd.svg'">
+        <div class="team-name">${shown}</div>
+      </div>`;
+    }
+
+    function penaltySelectForDraft(match, index, homeShown, awayShown){
+      const draft = draftForIndex(index);
+      return `<div class="penalty-box" id="penaltyBox${index}">
+        <span class="penalty-note">Si pronosticas empate, elige ganador en penales:</span>
+        <select id="m${index}p" onchange="handleBracketInput(${index})">
+          <option value="">Ganador en penales</option>
+          <option value="${resolveUserBracketTeam(match.home) || match.home}" ${draft.ganadorPenales === (resolveUserBracketTeam(match.home) || match.home) ? "selected" : ""}>${homeShown}</option>
+          <option value="${resolveUserBracketTeam(match.away) || match.away}" ${draft.ganadorPenales === (resolveUserBracketTeam(match.away) || match.away) ? "selected" : ""}>${awayShown}</option>
+        </select>
+      </div>`;
+    }
+
     function renderMatches(){
       renderGroupTables();
+      renderKnockoutPredictions();
+      if(!loadingPredictions) loadPredictions();
+    }
+
+    function renderKnockoutPredictions(){
       const grid = document.getElementById("r32PredictionGrid");
       if(!grid) return;
-      const dieciseisavos = matches.map((m,i)=>({m,i}))
-        .filter(x => x.m.phase === "Dieciseisavos")
-        .sort((a,b) => {
-          const aKey = `${displayTeamName(a.m.home)} ${displayTeamName(a.m.away)} ${a.m.id}`.toLowerCase();
-          const bKey = `${displayTeamName(b.m.home)} ${displayTeamName(b.m.away)} ${b.m.id}`.toLowerCase();
-          return aKey.localeCompare(bKey, "es");
-        });
-      grid.innerHTML = dieciseisavos.map(({m,i},pos)=>{
+      const byRound = bracketRounds.flatMap(round => round.games.map(game => ({ round:round.title, m:game, i:matches.findIndex(x => x.id === game.id) })));
+      grid.innerHTML = byRound.map(({round,m,i})=>{
+        const draft = draftForIndex(i);
+        const homeShown = displayUserBracketTeam(m.home);
+        const awayShown = displayUserBracketTeam(m.away);
         const hasResult = m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined;
         return `
-        <article class="match ${pos < 4 ? 'featured' : ''} ${hasResult ? 'finalizado' : ''}">
-          ${hasResult ? '<span class="tag">FINAL</span>' : '<span class="tag">ACTIVO</span>'}
+        <article class="match ${round === 'Dieciseisavos' ? 'featured' : ''} ${hasResult ? 'finalizado' : ''}">
+          <span class="tag">${round}</span>
           <div class="round">${m.round}</div>
           <div class="teams">
-            ${renderTeam(m.home)}
+            ${renderBracketPredictionTeam(m.home)}
             <div class="vs">VS</div>
-            ${renderTeam(m.away)}
+            ${renderBracketPredictionTeam(m.away)}
           </div>
           <div class="date">${m.date} · ${m.time}${m.venue ? ' · ' + m.venue : ''}</div>
-          ${hasResult ? `<div class="result-chip">Resultado: ${m.homeScore} - ${m.awayScore}</div>` : ''}
+          ${hasResult ? `<div class="result-chip">Resultado oficial: ${m.homeScore} - ${m.awayScore}</div>` : ''}
           <div class="score-inputs">
-            <input type="number" min="0" max="20" id="m${i}a" aria-label="Marcador ${displayTeamName(m.home)}" oninput="togglePenaltyBox(${i})">
-            <input type="number" min="0" max="20" id="m${i}b" aria-label="Marcador ${displayTeamName(m.away)}" oninput="togglePenaltyBox(${i})">
+            <input type="number" min="0" max="20" id="m${i}a" value="${draft.marcadorA ?? ''}" aria-label="Marcador ${homeShown}" oninput="handleBracketInput(${i})">
+            <input type="number" min="0" max="20" id="m${i}b" value="${draft.marcadorB ?? ''}" aria-label="Marcador ${awayShown}" oninput="handleBracketInput(${i})">
           </div>
-          ${penaltySelect(m,i)}
-          <button class="btn btn-outline" style="width:100%;padding:10px" onclick="savePrediction(${i})">Guardar</button>
+          ${penaltySelectForDraft(m,i,homeShown,awayShown)}
           <div class="saved" id="saved${i}"></div>
         </article>`;
       }).join("");
-      loadPredictions();
+      knockoutMatches().forEach(({i}) => togglePenaltyBox(i));
+    }
+
+    function handleBracketInput(i){
+      collectBracketDraft();
+      renderKnockoutPredictions();
+      updatePredCount();
+    }
+
+    async function saveFullBracketPredictions(){
+      if(!currentUser){
+        openModal("loginModal");
+        alert("Primero inicia sesión para guardar tu llave completa.");
+        return;
+      }
+      collectBracketDraft();
+      const games = knockoutMatches();
+      const missing = [];
+      for(const {m,i} of games){
+        const draft = draftForIndex(i);
+        if(draft.marcadorA === "" || draft.marcadorB === "") missing.push(`#${m.id} ${displayUserBracketTeam(m.home)} vs ${displayUserBracketTeam(m.away)}`);
+        if(draft.marcadorA !== "" && draft.marcadorB !== "" && Number(draft.marcadorA) === Number(draft.marcadorB) && !draft.ganadorPenales){
+          missing.push(`#${m.id} ganador en penales`);
+        }
+      }
+      if(missing.length){
+        alert("Debes llenar todos los marcadores de dieciseisavos, octavos, cuartos, semifinales, tercer lugar y final antes de guardar. Faltan:\n\n" + missing.slice(0,12).join("\n") + (missing.length > 12 ? `\n... y ${missing.length - 12} más.` : ""));
+        return;
+      }
+      const already = [];
+      for(const {m} of games){
+        const existing = await getDoc(doc(db, "pronosticos", `${currentUser.uid}_${m.id}`));
+        if(existing.exists()) already.push(`#${m.id}`);
+      }
+      if(already.length){
+        alert("Tu llave ya tiene pronósticos guardados y bloqueados. No se puede volver a guardar ni modificar: " + already.join(", "));
+        await loadPredictions();
+        return;
+      }
+      if(!confirm("Después de guardar la llave completa, no podrás modificar dieciseisavos, octavos, cuartos, semifinales, tercer lugar ni final. ¿Deseas continuar?")) return;
+      for(const {m,i} of games){
+        const draft = draftForIndex(i);
+        const homeTeam = resolveUserBracketTeam(m.home) || m.home;
+        const awayTeam = resolveUserBracketTeam(m.away) || m.away;
+        const puntos = calculatePoints(m, draft.marcadorA, draft.marcadorB, draft.ganadorPenales || null);
+        await setDoc(doc(db, "pronosticos", `${currentUser.uid}_${m.id}`), {
+          userId: currentUser.uid,
+          nombre: currentProfile?.nombre || currentUser.email,
+          partidoId: m.id,
+          fase: m.phase,
+          equipoA: homeTeam,
+          equipoB: awayTeam,
+          marcadorA: Number(draft.marcadorA),
+          marcadorB: Number(draft.marcadorB),
+          ganadorPenales: draft.ganadorPenales || null,
+          puntos,
+          bloqueado: true,
+          llaveCompleta: true,
+          creado: serverTimestamp(),
+          actualizado: serverTimestamp()
+        });
+      }
+      alert("Llave completa guardada y bloqueada correctamente.");
+      await loadPredictions();
     }
 
     function renderBracketTeam(name){
-      const shown = displayTeamName(name);
+      const shown = displayUserBracketTeam ? displayUserBracketTeam(name) : displayTeamName(name);
       const isPlaceholder = !name || name === "TBD" || name.startsWith("TBD") || name.includes("Winner") || name.includes("Loser") || name.includes("Ganador") || name.includes("Perdedor");
       return `
         <div class="bracket-team ${isPlaceholder ? 'bracket-placeholder' : ''}">
-          <img src="${flagSrc(name)}" alt="${shown}" onerror="this.src='${FLAG_BASE}tbd.svg'">
+          <img src="${flagUserBracketTeam ? flagUserBracketTeam(name) : flagSrc(name)}" alt="${shown}" onerror="this.src='${FLAG_BASE}tbd.svg'">
           <span>${shown}</span>
         </div>
       `;
@@ -2047,6 +2223,8 @@
     }
 
     async function loadPredictions(){
+      loadingPredictions = true;
+      localBracketDraft = {};
       matches.forEach((_,i)=>{
         const inputA = document.getElementById(`m${i}a`);
         const inputB = document.getElementById(`m${i}b`);
@@ -2059,14 +2237,30 @@
       });
 
       if(!currentUser){
+        loadingPredictions = false;
         updatePredCount();
         return;
       }
 
       const q = query(collection(db, "pronosticos"), where("userId", "==", currentUser.uid));
       const snap = await getDocs(q);
-      snap.forEach(docSnap => {
-        const data = docSnap.data();
+      const loaded = [];
+      snap.forEach(docSnap => loaded.push(docSnap.data()));
+
+      loaded.forEach(data => {
+        const index = matches.findIndex(m => m.id === data.partidoId);
+        if(index >= 0){
+          localBracketDraft[index] = {
+            marcadorA: data.marcadorA ?? "",
+            marcadorB: data.marcadorB ?? "",
+            ganadorPenales: data.ganadorPenales || ""
+          };
+        }
+      });
+
+      renderKnockoutPredictions();
+
+      loaded.forEach(data => {
         const index = matches.findIndex(m => m.id === data.partidoId);
         if(index >= 0){
           const inputA = document.getElementById(`m${index}a`);
@@ -2079,6 +2273,7 @@
           bloquearPartido(index);
         }
       });
+      loadingPredictions = false;
       updatePredCount();
     }
 
@@ -2610,6 +2805,8 @@
     window.adminDeleteUserProfile = adminDeleteUserProfile;
     window.adminSaveResult = adminSaveResult;
     window.savePrediction = savePrediction;
+    window.saveFullBracketPredictions = saveFullBracketPredictions;
+    window.handleBracketInput = handleBracketInput;
     window.togglePenaltyBox = togglePenaltyBox;
     window.loginUser = loginUser;
     window.registerUser = registerUser;
