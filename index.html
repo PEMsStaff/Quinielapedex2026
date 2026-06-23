@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiniela Mundialista PEDEX 2026</title>
+  <!-- Versión Firebase-ready: Auth, Firestore, candado de pronósticos y mensajes de diagnóstico -->
   <meta name="description" content="Quiniela Mundialista PEDEX 2026: pronósticos, ranking, calendario, premios y banderas estilo FIFA moderna." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2006,6 +2007,12 @@
           const el = document.getElementById("userPosition");
           if(el) el.textContent = pos >= 0 ? `Posición: ${pos + 1}°` : "Posición: por definir";
         }
+      }, (error) => {
+        console.error("No se pudo leer ranking desde Firestore:", error);
+        const rankingBody = document.getElementById("rankingBody");
+        if(rankingBody){
+          rankingBody.innerHTML = `<tr><td colspan="5">No se pudo cargar el ranking: ${error.code || error.message}</td></tr>`;
+        }
       });
     }
 
@@ -2031,7 +2038,8 @@
         await signInWithEmailAndPassword(auth, email, password);
         closeModal("loginModal");
       }catch(error){
-        alert("No se pudo iniciar sesión: " + error.message);
+        console.error("Error al iniciar sesión en Firebase Auth:", error);
+        alert("No se pudo iniciar sesión. Código: " + (error.code || error.message));
       }
     }
 
@@ -2047,21 +2055,32 @@
         alert("La contraseña debe tener mínimo 6 caracteres.");
         return;
       }
+
       try{
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "usuarios", cred.user.uid), {
-          nombre: name,
-          email,
-          puntos: 0,
-          aciertos: 0,
-          partidosJugados: 0,
-          rol: "jugador",
-          fechaRegistro: serverTimestamp()
-        });
+
+        try{
+          await setDoc(doc(db, "usuarios", cred.user.uid), {
+            nombre: name,
+            email,
+            puntos: 0,
+            aciertos: 0,
+            partidosJugados: 0,
+            rol: "jugador",
+            fechaRegistro: serverTimestamp()
+          }, { merge: true });
+        }catch(dbError){
+          console.error("Firebase Auth creó el usuario, pero Firestore no permitió guardar el perfil:", dbError);
+          alert("Tu usuario se creó en Firebase Auth, pero Firestore no permitió guardar tu perfil. Revisa las reglas de Firestore. Código: " + (dbError.code || dbError.message));
+          return;
+        }
+
         closeModal("registerModal");
         updateUserHeader(name);
+        alert("Cuenta creada correctamente.");
       }catch(error){
-        alert("No se pudo crear la cuenta: " + error.message);
+        console.error("Error al crear usuario en Firebase Auth:", error);
+        alert("No se pudo crear la cuenta. Código: " + (error.code || error.message));
       }
     }
 
@@ -2072,20 +2091,35 @@
       const loginButtons = document.querySelectorAll('button[onclick="openModal(\'loginModal\')"]');
       const registerBtn = document.getElementById("registerBtn");
       const logoutBtn = document.getElementById("logoutBtn");
+
       if(user){
-        const profileRef = doc(db, "usuarios", user.uid);
-        const profileSnap = await getDoc(profileRef);
-        if(profileSnap.exists()){
-          currentProfile = profileSnap.data();
-        }else{
-          currentProfile = { nombre: user.email, email: user.email, puntos: 0, aciertos: 0, partidosJugados: 0, rol: "jugador" };
-          await setDoc(profileRef, currentProfile, { merge: true });
+        currentProfile = { nombre: user.email, email: user.email, puntos: 0, aciertos: 0, partidosJugados: 0, rol: "jugador" };
+
+        try{
+          const profileRef = doc(db, "usuarios", user.uid);
+          const profileSnap = await getDoc(profileRef);
+
+          if(profileSnap.exists()){
+            currentProfile = profileSnap.data();
+          }else{
+            await setDoc(profileRef, currentProfile, { merge: true });
+          }
+        }catch(error){
+          console.error("Sesión iniciada, pero Firestore no permitió leer/crear el perfil:", error);
+          alert("Sesión iniciada, pero Firestore no permitió cargar tu perfil. Revisa las reglas de Firestore. Código: " + (error.code || error.message));
         }
+
         updateUserHeader(currentProfile.nombre || user.email);
         loginButtons.forEach(btn => btn.style.display = "none");
         if(registerBtn) registerBtn.style.display = "none";
         if(logoutBtn) logoutBtn.style.display = "inline-flex";
-        await loadPredictions();
+
+        try{
+          await loadPredictions();
+        }catch(error){
+          console.error("No se pudieron cargar los pronósticos:", error);
+          alert("No se pudieron cargar tus pronósticos. Código: " + (error.code || error.message));
+        }
       }else{
         currentProfile = null;
         updateUserHeader("Participante");
