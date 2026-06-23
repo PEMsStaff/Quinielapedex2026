@@ -132,6 +132,269 @@
       .modal-box{padding:20px;border-radius:18px}
     }
 
+
+
+    /* =========================================================
+       REDISEÑO VISUAL FIFA 2026 + CORRECCIÓN MÓVIL FINAL
+       Se agregan overrides al final para no tocar la lógica Firebase.
+    ========================================================= */
+    :root{
+      --bg:#eef5ff;
+      --panel:#ffffff;
+      --panel2:#f7fbff;
+      --line:rgba(12,35,88,.12);
+      --text:#10213f;
+      --muted:#5f6f89;
+      --gold:#f6b01a;
+      --gold2:#ffd86a;
+      --orange:#ff7a1a;
+      --green:#04b981;
+      --blue:#1457ff;
+      --navy:#071a44;
+      --aqua:#00b8d9;
+      --purple:#6a35ff;
+      --shadow:0 18px 50px rgba(8,28,75,.14);
+      --radius:22px;
+    }
+
+    html{scroll-padding-top:110px}
+    body{
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 8%,rgba(20,87,255,.20),transparent 28%),
+        radial-gradient(circle at 92% 4%,rgba(0,184,217,.18),transparent 30%),
+        radial-gradient(circle at 78% 86%,rgba(246,176,26,.18),transparent 28%),
+        linear-gradient(180deg,#f6f9ff 0%,#eef5ff 44%,#ffffff 100%);
+      min-height:100vh;
+    }
+    body.menu-open{overflow:hidden}
+    .topbar{
+      background:rgba(255,255,255,.88);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(12,35,88,.10);
+      box-shadow:0 12px 34px rgba(8,28,75,.08);
+    }
+    .brand-title{color:var(--navy)}
+    .brand img{filter:drop-shadow(0 10px 16px rgba(20,87,255,.16))}
+    .gold{color:var(--gold)}
+    .muted{color:var(--muted)}
+    .user-mini{
+      background:linear-gradient(135deg,#ffffff,#f3f8ff);
+      border:1px solid rgba(20,87,255,.12);
+      color:var(--navy);
+      box-shadow:0 10px 24px rgba(8,28,75,.08);
+    }
+    .avatar{background:linear-gradient(135deg,var(--blue),var(--aqua));color:#fff}
+    .btn{border-radius:999px;letter-spacing:.2px}
+    .btn-gold{
+      color:#081326;
+      background:linear-gradient(135deg,var(--gold2),var(--gold),var(--orange));
+      box-shadow:0 12px 26px rgba(246,176,26,.28);
+    }
+    .btn-outline{
+      color:var(--blue);
+      background:#fff;
+      border:1px solid rgba(20,87,255,.28);
+      box-shadow:0 10px 24px rgba(8,28,75,.07);
+    }
+    .btn-outline:hover{border-color:var(--blue)}
+    .nav a{color:#253a64}
+    .nav a.active,.nav a:hover{color:var(--blue)}
+
+    .hero{border-bottom:0}
+    .hero:before{
+      background:
+        linear-gradient(100deg,rgba(7,26,68,.88) 0%,rgba(20,87,255,.70) 45%,rgba(0,184,217,.46) 100%),
+        radial-gradient(circle at 80% 20%,rgba(255,216,106,.55),transparent 24%),
+        url('https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=1800&q=80') center/cover;
+      opacity:1;
+    }
+    .hero h1,.hero p{color:#fff;text-shadow:0 10px 28px rgba(0,0,0,.18)}
+    .hero h1 span{
+      background:linear-gradient(135deg,#ffffff,var(--gold2));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .badge{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.20);border-radius:999px;padding:8px 11px;backdrop-filter:blur(10px)}
+    .badge b{color:var(--gold2)}
+    .hero-card{
+      background:rgba(255,255,255,.92);
+      color:var(--navy);
+      border:1px solid rgba(255,255,255,.72);
+      box-shadow:0 24px 70px rgba(5,18,48,.28);
+    }
+    .hero-card h2,.stat strong{color:var(--blue)}
+    .stat{border-bottom:1px solid rgba(12,35,88,.10)}
+    .stat small{color:var(--muted)}
+
+    .panel,.card,.match,.group-card,.bracket-game,.calendar-day{
+      background:rgba(255,255,255,.92)!important;
+      color:var(--text);
+      border:1px solid rgba(12,35,88,.10)!important;
+      box-shadow:var(--shadow);
+    }
+    .section h2,.card h2,.group-card h3,.bracket-round h3,.calendar-day h3,.admin-box h3{color:var(--blue)}
+    .match.featured,.bracket-game.active{border-color:rgba(20,87,255,.35)!important;box-shadow:0 18px 48px rgba(20,87,255,.14)}
+    .round,.date,.filter-note,.alpha-note,.penalty-note,.admin-user-row small,.admin-result-row small{color:var(--muted)!important}
+    .vs{color:var(--blue)}
+    .tag{background:linear-gradient(135deg,var(--blue),var(--aqua));color:#fff}
+    .result-chip{background:rgba(4,185,129,.12);color:#047857}
+    .score-inputs input,.form input,.admin-form input,.admin-form select,.admin-result-inputs input,.admin-pred-inputs input,.admin-pred-inputs select,.admin-filter input,.penalty-box select{
+      background:#fff!important;
+      color:var(--navy)!important;
+      border:1px solid rgba(12,35,88,.18)!important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    .score-inputs input:focus,.form input:focus,.admin-form input:focus,.admin-form select:focus,.admin-result-inputs input:focus,.admin-pred-inputs input:focus,.admin-pred-inputs select:focus,.admin-filter input:focus,.penalty-box select:focus{
+      outline:3px solid rgba(20,87,255,.14);
+      border-color:var(--blue)!important;
+    }
+    .table th,.results-table th,.group-table th{color:#385078}
+    .table td,.table th,.results-table td,.results-table th,.group-table td,.group-table th{border-bottom:1px solid rgba(12,35,88,.09)}
+    .rank-total,.locked-note{color:var(--blue)}
+    .notice-box,.admin-box{
+      background:linear-gradient(135deg,rgba(20,87,255,.07),rgba(0,184,217,.06));
+      border:1px solid rgba(20,87,255,.16)!important;
+      color:var(--text);
+    }
+    .banner{
+      background:linear-gradient(135deg,rgba(20,87,255,.10),rgba(0,184,217,.08),rgba(246,176,26,.10))!important;
+      border-color:rgba(20,87,255,.14)!important;
+    }
+    .footer{border-top:1px solid rgba(12,35,88,.10)}
+    .footer-inner{color:var(--muted)}
+    .modal-box{
+      background:#fff!important;
+      color:var(--text);
+      border:1px solid rgba(20,87,255,.18)!important;
+    }
+    .close{color:var(--navy)}
+    .form small{color:var(--muted)}
+
+    /* Móvil: header cómodo, menú visible y barra inferior estable */
+    @media(max-width:980px){
+      html{scroll-padding-top:92px}
+      body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+      .topbar{z-index:300;background:rgba(255,255,255,.94)}
+      .header{
+        width:min(100% - 18px,1240px);
+        grid-template-columns:1fr;
+        gap:10px;
+        padding:10px 0 12px;
+      }
+      .brand{
+        width:100%;
+        justify-content:center;
+        text-align:center;
+        gap:9px;
+      }
+      .brand img{width:82px;max-height:52px}
+      .brand-title{font-size:18px;line-height:1.03}
+      .actions{
+        width:100%;
+        display:grid;
+        grid-template-columns:1fr 1fr 48px;
+        gap:8px;
+        align-items:center;
+        justify-content:center;
+      }
+      .actions .btn{
+        display:inline-flex!important;
+        min-height:40px;
+        padding:9px 10px;
+        font-size:10px;
+        white-space:nowrap;
+        width:100%;
+      }
+      #logoutBtn{grid-column:1 / 3}
+      .icon-btn{
+        display:grid!important;
+        place-items:center;
+        width:48px;
+        height:40px;
+        min-width:48px;
+        color:#fff;
+        background:linear-gradient(135deg,var(--blue),var(--aqua));
+        border:0;
+        border-radius:999px;
+        box-shadow:0 10px 22px rgba(20,87,255,.24);
+        position:relative;
+        z-index:360;
+      }
+      .nav{
+        z-index:340;
+        background:#fff;
+        color:var(--navy);
+        border-left:1px solid rgba(12,35,88,.10);
+        box-shadow:-20px 0 60px rgba(8,28,75,.18);
+      }
+      .nav a{color:var(--navy);border-bottom:1px solid rgba(12,35,88,.08)}
+      body.menu-open:before{z-index:320;background:rgba(7,26,68,.38)}
+      .hero .container{padding:28px 0 30px}
+      .hero h1{font-size:clamp(34px,10vw,50px)}
+      .hero p{font-size:15px}
+      .hero-buttons .btn{width:100%;min-height:46px}
+      .badges{gap:8px}
+      .badge{font-size:10px;padding:7px 9px}
+      .section{padding:18px 0}
+      .section-head{align-items:flex-start;flex-direction:column}
+      .match-grid{display:grid;grid-template-columns:1fr;overflow:visible;gap:14px}
+      .match{min-width:0;width:100%;padding:15px}
+      .teams{gap:8px}
+      .group-card{overflow:auto}
+      .bracket-panel{padding:12px}
+      .bracket{min-width:1080px;gap:12px}
+      .calendar-day{padding:12px}
+      .calendar-match{grid-template-columns:1fr;gap:4px}
+      .admin-grid{grid-template-columns:1fr}
+      .admin-user-row,.admin-result-row,.admin-pred-row{grid-template-columns:1fr}
+      .admin-result-inputs,.admin-pred-inputs{justify-content:flex-start}
+    }
+
+    @media(max-width:560px){
+      .container{width:min(100% - 18px,1240px)}
+      .brand-title{font-size:16px}
+      .brand img{width:70px}
+      .actions{grid-template-columns:1fr 1fr 44px;gap:7px}
+      .actions .btn{font-size:9.5px;padding:8px 6px;min-height:38px}
+      .icon-btn{width:44px;min-width:44px;height:38px;font-size:22px}
+      .hero h1{font-size:34px}
+      .hero-card{padding:16px}
+      .stat strong{font-size:20px}
+      .flag-img{width:62px;height:40px}
+      .score-inputs input{width:58px;min-height:42px}
+      .mobile-bottom{
+        display:grid!important;
+        grid-template-columns:repeat(5,1fr);
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:0!important;
+        height:calc(64px + env(safe-area-inset-bottom));
+        padding-bottom:env(safe-area-inset-bottom);
+        background:rgba(255,255,255,.96);
+        backdrop-filter:blur(18px);
+        border-top:1px solid rgba(12,35,88,.12);
+        z-index:380;
+        box-shadow:0 -14px 34px rgba(8,28,75,.14);
+      }
+      .mobile-bottom a{
+        display:grid;
+        place-items:center;
+        color:#253a64;
+        font-size:10px;
+        font-weight:900;
+        line-height:1.1;
+        padding:8px 2px;
+        text-align:center;
+      }
+      .mobile-bottom a:hover,.mobile-bottom a.active{color:var(--blue)}
+      .modal{padding:10px}
+      .modal-box{max-height:92dvh;overflow:auto;border-radius:22px}
+      .results-table{min-width:760px}
+    }
+
   </style>
 </head>
 <body>
