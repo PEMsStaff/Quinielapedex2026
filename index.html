@@ -127,9 +127,9 @@ body.logged-in .bottom-nav{display:none}
 
     <section id="sec-admin" class="section admin-only">
       <div class="card" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
-        <h2>Capturar resultados reales y cerrar partidos</h2>
-        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales después de que termine cada partido.</b> Al presionar <b>Cerrar resultado</b>, el partido queda como finalizado, se recalculan los puntos del ranking, se actualizan grupos, mejores terceros y se forman automáticamente los dieciseisavos.</p>
-        <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Cierra resultado. 3) El sistema recalcula ranking, grupos, terceros y llaves. 4) El usuario podrá pronosticar dieciseisavos y su llave avanzará a octavos, cuartos, semifinal y final según sus marcadores.</div>
+        <h2>Capturar resultados reales · Jornada 3 de grupos</h2>
+        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales de los partidos faltantes de la tercera jornada de grupos.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
+        <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Presiona <b>Guardar y cerrar</b>. 3) El partido queda con candado. 4) El sistema recalcula ranking, grupos, mejores terceros y dieciseisavos. 5) A partir de los dieciseisavos, cada usuario podrá poner sus marcadores y su llave avanzará a octavos, cuartos, semifinal y final según sus pronósticos.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
@@ -608,30 +608,32 @@ window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; wind
 
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  const matches=DATA.matches.filter(m=>Number(m.id)<=72).concat(buildOfficialBracket());
-  const unique=[]; const seen=new Set();
-  matches.forEach(m=>{ if(!seen.has(Number(m.id))){seen.add(Number(m.id)); unique.push(m);} });
-  const show=unique.filter(m=>m.status!=='final' || actualResults[Number(m.id)] || Number(m.id)>=47);
+  // Tercera jornada de fase de grupos: partidos 49 al 72, conforme al calendario FIFA.
+  const show=DATA.pending
+    .filter(m=>Number(m.jornada)===3 || (Number(m.id)>=49 && Number(m.id)<=72))
+    .slice()
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
-    const final=real.homeScore!==undefined || String(m.status||'').toLowerCase()==='final';
-    const hs=real.homeScore ?? (m.homeScore ?? '');
-    const as=real.awayScore ?? (m.awayScore ?? '');
-    const phaseLabel=m.phase||('Grupo '+m.group);
-    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.45)':''}">
+    const final=real.homeScore!==undefined || real.marcadorA!==undefined || String(real.status||'').toLowerCase()==='final';
+    const hs=real.homeScore ?? real.marcadorA ?? '';
+    const as=real.awayScore ?? real.marcadorB ?? '';
+    const phaseLabel='Grupo '+(m.group||'');
+    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
-        <small class="muted">${phaseLabel} · ${m.date} · ${m.time} CDMX · ${final?'✅ Resultado cerrado':'⏳ Pendiente de resultado'}${m.homeFrom?` · ${m.homeFrom} vs ${m.awayFrom}`:''}</small>
+        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${final?'🔒 Resultado cerrado':'⏳ Pendiente de resultado'}</small>
       </div>
-      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
-      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
-      <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">${final?'Actualizar resultado':'Cerrar resultado'}</button>
+      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" ${final?'disabled':''}></label>
+      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" ${final?'disabled':''}></label>
+      <button class="btn ${final?'btn-outline':'btn-gold'}" onclick="adminSaveResult(${m.id})" ${final?'disabled':''}>${final?'🔒 Cerrado':'Guardar y cerrar'}</button>
     </div>`;
-  }).join('') || '<p class="muted">No hay partidos disponibles para captura.</p>';
+  }).join('') || '<p class="muted">No hay partidos de tercera jornada disponibles para captura.</p>';
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
   const m=matchById(id) || DATA.matches.find(x=>Number(x.id)===Number(id)) || DATA.bracket.find(x=>Number(x.id)===Number(id));
+  if(actualResults[Number(id)] && (actualResults[Number(id)].homeScore!==undefined || actualResults[Number(id)].marcadorA!==undefined)) return alert('Este resultado ya fue cerrado y tiene candado. Para corregirlo, ajusta manualmente la colección resultados en Firebase o solicita una función de reapertura administrativa.');
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
