@@ -868,6 +868,51 @@ onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
 
+onAuthStateChanged(auth, async user=>{
+  currentUser=user;
+  if(!user){
+    $('loginScreen')?.classList.remove('hidden');
+    $('app')?.classList.add('hidden');
+    document.body.classList.remove('is-admin');
+    document.body.classList.remove('logged-in');
+    return;
+  }
+  $('loginScreen')?.classList.add('hidden');
+  $('app')?.classList.remove('hidden');
+  document.body.classList.add('logged-in');
+  document.body.classList.toggle('is-admin',isAdmin());
+  try{
+    const ref=doc(db,'usuarios',user.uid);
+    let snap=await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true});
+      snap=await getDoc(ref);
+    }
+    currentProfile={id:user.uid,...snap.data()};
+    if(currentProfile.activo===false && !isAdmin()){
+      alert('Tu usuario está dado de baja. Contacta al administrador.');
+      await signOut(auth);
+      return;
+    }
+    $('headerName').textContent=currentProfile.nombre||user.email;
+    applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png');
+    renderProfile();
+    renderHome();
+    renderPredictions();
+    renderGroups();
+    renderRanking();
+    renderBracket();
+    if(isAdmin()){
+      renderAdminDashboard();
+      renderAdminResults();
+      renderAdminUsers();
+    }
+  }catch(e){
+    console.error('Error cargando sesión',e);
+    alert('Entraste, pero no se pudo cargar tu perfil. Detalle: '+(e.message||e));
+  }
+});
+
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
 </script>
 </body>
