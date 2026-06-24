@@ -34,6 +34,8 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
 .admin-create{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin:14px 0 18px}
 .admin-create input,.admin-detail input{width:100%;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:12px}
 .admin-create label,.admin-detail label{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase}.admin-detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.admin-warning{background:rgba(245,196,0,.12);border:1px solid rgba(245,196,0,.35);color:#fff;border-radius:16px;padding:12px;margin:12px 0}.admin-user-card{display:grid;grid-template-columns:54px 1.1fr 1.3fr .7fr .7fr .7fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-user-card img{width:46px;height:46px;border-radius:14px;object-fit:cover}.status-ok{color:#7cffb2}.status-off{color:#ffb4b4}@media(max-width:820px){.admin-create,.admin-user-card{grid-template-columns:1fr}.admin-user-card img{width:58px;height:58px}.admin-detail-actions .btn{width:100%}}
+
+.capture-bar{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;min-width:110px}.capture-fill{height:100%;border-radius:999px;background:var(--gold)}.capture-fill.red{background:var(--red)}.capture-fill.yellow{background:var(--gold)}.capture-fill.blue{background:#5aa8ff}.capture-fill.green{background:var(--green)}.lock-note{font-size:12px;text-align:center;margin-top:8px;font-weight:900}.lock-note.open{color:var(--green)}.lock-note.closed{color:var(--red)}.fifa-link{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.35);background:rgba(245,196,0,.12);color:var(--gold);border-radius:999px;padding:9px 12px;font-weight:900;font-size:12px}.fifa-link:hover{background:rgba(245,196,0,.2)}
 </style>
 </head>
 <body>
@@ -81,7 +83,7 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
   <main class="main">
     <div class="mobile-logo"><img src="assets/logo-pedex.png" alt="PEDEX"></div>
     <header class="topbar">
-      <div><span class="pill">Calendario oficial desde base PEM</span></div>
+      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a></div>
       <div class="user-chip" onclick="goSection('perfil')"><img id="headerPhoto" class="avatar" src="assets/persona-perfil.png"><div><strong id="headerName">Participante</strong><small id="headerRank">Lugar: -- · 0 pts</small></div></div>
     </header>
 
@@ -111,7 +113,7 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
     <section id="sec-admin" class="section admin-only">
       <div class="card">
         <h2>Panel administrativo</h2>
-        <p class="muted">Panel privado de administración. Desde aquí puedes crear jugadores, consultar usuarios, ajustar puntos, dar de baja o eliminar perfiles, y desbloquear pronósticos para que el usuario los vuelva a capturar antes de que inicie el partido.</p>
+        <p class="muted">Panel privado de administración. Desde aquí puedes crear jugadores, consultar usuarios, ver cuántos marcadores capturó cada participante, ajustar puntos, dar de baja o eliminar perfiles, y desbloquear pronósticos únicamente antes de que inicie el partido.</p>
         <div class="admin-warning"><b>Nota importante:</b> desde un HTML público se puede crear usuarios y actualizar datos de Firestore. Cambiar el email/password real o borrar definitivamente usuarios de Firebase Authentication requiere Firebase Console o una Cloud Function con Admin SDK. Este panel permite eliminar al usuario de la quiniela y enviar correo de recuperación de contraseña.</div>
         <h3>Dar de alta jugador</h3>
         <div class="admin-create">
@@ -188,9 +190,48 @@ function calcWinnerOk(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=
 
 function renderHome(){$('kpiPending').textContent=DATA.pending.length; $('homeNext').innerHTML=DATA.pending.slice(0,4).map(matchReadOnly).join(''); $('homeRound32').innerHTML=DATA.bracket.filter(b=>b.phase==='Dieciseisavos').slice(0,4).map(matchReadOnly).join(''); updateUserStats();}
 
-function matchReadOnly(m){return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${m.date} · ${m.time}</span><span>${m.group? 'Grupo '+m.group:m.phase}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div></div>`}
-function renderPredictions(){$('predictionList').innerHTML=DATA.pending.map((m)=>{const p=myPred[m.id]||{};const locked=!!p.bloqueado;return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${m.date} · ${m.time}</span><span>Jornada ${m.jornada||''}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p${m.id}h" value="${p.homeScore??''}" ${locked?'disabled':''}><input type="number" min="0" max="20" id="p${m.id}a" value="${p.awayScore??''}" ${locked?'disabled':''}></div><div style="text-align:center;margin-top:10px"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${locked?'disabled':''}>${locked?'🔒 Guardado':'Guardar pronóstico'}</button></div><div class="saved-note">${locked?'Pronóstico bloqueado. Sólo el administrador puede modificarlo.':''}</div></div>`}).join('');}
-async function savePrediction(id){if(!currentUser)return; const h=$('p'+id+'h').value,a=$('p'+id+'a').value;if(h===''||a==='')return alert('Captura ambos marcadores.'); if(!confirm('Después de guardar este pronóstico no podrás modificarlo, salvo que se lo solicites al administrador. ¿Deseas guardar?'))return; const m=matchById(id); await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${id}`),{userId:currentUser.uid,nombre:currentProfile?.nombre||currentUser.email,email:currentUser.email,partidoId:id,fase:m.phase||'Grupo '+m.group,equipoA:m.home,equipoB:m.away,marcadorA:Number(h),marcadorB:Number(a),homeScore:Number(h),awayScore:Number(a),bloqueado:true,actualizado:serverTimestamp()},{merge:true}); toast('Pronóstico guardado');}
+function matchDateTime(m){
+  if(!m || !m.date || !m.time) return null;
+  // Las horas del archivo están guardadas en hora del centro de México.
+  // Si FIFA cambia un horario, actualiza date/time en DATA.pending/DATA.matches.
+  return new Date(`${m.date}T${m.time}:00-06:00`);
+}
+function hasMatchStarted(m){
+  const kickoff=matchDateTime(m);
+  if(!kickoff || Number.isNaN(kickoff.getTime())) return true;
+  return Date.now() >= kickoff.getTime();
+}
+function isMatchClosed(m){
+  if(!m) return true;
+  if(String(m.status||'').toLowerCase()==='final') return true;
+  return hasMatchStarted(m);
+}
+function formatKickoff(m){return `${m.date} · ${m.time} CDMX`;}
+function captureDeadlineText(m){return isMatchClosed(m)?'🔒 Cerrado por inicio del partido':'Abierto hasta antes del inicio';}
+function matchReadOnly(m){return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${m.group? 'Grupo '+m.group:m.phase}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="lock-note ${isMatchClosed(m)?'closed':'open'}">${captureDeadlineText(m)}</div></div>`}
+function renderPredictions(){
+  $('predictionList').innerHTML=DATA.pending.map((m)=>{
+    const p=myPred[m.id]||{};
+    const alreadySaved=!!p.bloqueado;
+    const closedByKickoff=isMatchClosed(m);
+    const disabled=alreadySaved || closedByKickoff;
+    const note=alreadySaved?'Pronóstico bloqueado. Sólo el administrador puede desbloquearlo antes de que inicie el partido.':(closedByKickoff?'No capturaste antes del inicio. Este partido ya quedó cerrado.':'Captura permitida hasta antes de la hora FIFA del partido.');
+    return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>Jornada ${m.jornada||''}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p${m.id}h" value="${p.homeScore??''}" ${disabled?'disabled':''}><input type="number" min="0" max="20" id="p${m.id}a" value="${p.awayScore??''}" ${disabled?'disabled':''}></div><div style="text-align:center;margin-top:10px"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${disabled?'disabled':''}>${alreadySaved?'🔒 Guardado':(closedByKickoff?'🔒 Cerrado':'Guardar pronóstico')}</button></div><div class="saved-note">${note}</div></div>`
+  }).join('');
+}
+async function savePrediction(id){
+  if(!currentUser)return;
+  const m=matchById(id);
+  if(isMatchClosed(m)) return alert('Este partido ya comenzó o terminó. Ya no se puede capturar marcador.');
+  const existing=myPred[id]||{};
+  if(existing.bloqueado) return alert('Este pronóstico ya está guardado y bloqueado.');
+  const h=$('p'+id+'h').value,a=$('p'+id+'a').value;
+  if(h===''||a==='')return alert('Captura ambos marcadores.');
+  if(!confirm('Después de guardar este pronóstico no podrás modificarlo, salvo que el administrador lo desbloquee antes de que inicie el partido. ¿Deseas guardar?'))return;
+  if(isMatchClosed(m)) return alert('El partido acaba de cerrar por hora de inicio. Ya no se puede guardar.');
+  await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${id}`),{userId:currentUser.uid,nombre:currentProfile?.nombre||currentUser.email,email:currentUser.email,partidoId:id,fase:m.phase||'Grupo '+m.group,equipoA:m.home,equipoB:m.away,marcadorA:Number(h),marcadorB:Number(a),homeScore:Number(h),awayScore:Number(a),bloqueado:true,cerradoPorInicio:false,actualizado:serverTimestamp()},{merge:true});
+  toast('Pronóstico guardado');
+}
 window.savePrediction=savePrediction;
 
 function renderGroups(){const cont=$('groupsContainer');cont.innerHTML=Object.keys(DATA.groups).sort().map(g=>{const rows=DATA.groups[g];return `<div class="card"><h3>Grupo ${g}</h3><div class="table-wrap group-table"><table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.pos}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table></div><div class="mobile-group-cards">${rows.map(r=>`<div class="group-mobile-card"><div class="group-mobile-top"><strong>${r.pos}. ${teamLabel(r.team)}</strong><span class="pill">${r.pts} pts</span></div><div class="stat-grid"><div class="stat-box"><small>PJ</small><b>${r.pj}</b></div><div class="stat-box"><small>PG</small><b>${r.pg}</b></div><div class="stat-box"><small>PE</small><b>${r.pe}</b></div><div class="stat-box"><small>PP</small><b>${r.pp}</b></div><div class="stat-box"><small>GF</small><b>${r.gf}</b></div><div class="stat-box"><small>GC</small><b>${r.gc}</b></div><div class="stat-box"><small>DG</small><b>${r.dg>0?'+':''}${r.dg}</b></div><div class="stat-box pts"><small>PTS</small><b>${r.pts}</b></div></div></div>`).join('')}</div></div>`}).join('');
@@ -198,9 +239,21 @@ $('thirdsContainer').innerHTML=`<table><thead><tr><th>Grupo</th><th>Equipo</th><
 renderBracket();}
 function renderBracket(){const phases=['Dieciseisavos','Octavos','Cuartos','Semifinal','3rd Place','Final']; $('bracketContainer').innerHTML=phases.map(ph=>`<div class="round-col"><h3>${ph==='3rd Place'?'Tercer lugar':ph}</h3>${DATA.bracket.filter(b=>b.phase===ph).map(b=>`<div class="bracket-game"><small>#${b.id} · ${b.date} · ${b.time}</small><div class="bracket-team">${teamLabel(b.home)}</div><div class="bracket-team">${teamLabel(b.away)}</div></div>`).join('')}</div>`).join('');}
 
-function computeRanking(){const map={}; users.forEach(u=>map[u.id]={...u,puntos:Number(u.ajustePuntos||0),aciertos:0,exactos:0,pronosticados:0}); predictions.forEach(p=>{const uid=p.userId; if(!map[uid]) map[uid]={id:uid,nombre:p.nombre||p.email||'Participante',email:p.email||'',puntos:0,aciertos:0,exactos:0,pronosticados:0}; const m=matchById(p.partidoId); const pts=calcPoints(m,p); map[uid].puntos+=pts; map[uid].pronosticados++; if(calcWinnerOk(m,p)) map[uid].aciertos++; if(calcExact(m,p)) map[uid].exactos++;}); ranking=Object.values(map).sort((a,b)=>(b.puntos||0)-(a.puntos||0)||(b.exactos||0)-(a.exactos||0)||(a.nombre||'').localeCompare(b.nombre||'')); renderRanking(); updateUserStats();}
+function capturedCountForUser(uid){
+  const ids=new Set(DATA.pending.map(m=>Number(m.id)));
+  return predictions.filter(p=>p.userId===uid && ids.has(Number(p.partidoId)) && p.homeScore!=null && p.awayScore!=null && p.homeScore!=='' && p.awayScore!=='').length;
+}
+function captureMeta(uid){
+  const total=DATA.pending.length;
+  const captured=capturedCountForUser(uid);
+  const pct=total?Math.round((captured/total)*100):0;
+  const cls=pct>=100?'green':pct>=90?'blue':pct>=50?'yellow':'red';
+  return {captured,total,pct,cls};
+}
+function captureBar(meta){return `<div class="capture-bar"><div class="capture-fill ${meta.cls}" style="width:${meta.pct}%"></div></div>`;}
+function computeRanking(){const map={}; users.forEach(u=>map[u.id]={...u,puntos:Number(u.ajustePuntos||0),aciertos:0,exactos:0,pronosticados:0}); predictions.forEach(p=>{const uid=p.userId; if(!map[uid]) map[uid]={id:uid,nombre:p.nombre||p.email||'Participante',email:p.email||'',puntos:0,aciertos:0,exactos:0,pronosticados:0}; const m=matchById(p.partidoId); const pts=calcPoints(m,p); map[uid].puntos+=pts; map[uid].pronosticados++; if(calcWinnerOk(m,p)) map[uid].aciertos++; if(calcExact(m,p)) map[uid].exactos++;}); ranking=Object.values(map).map(r=>({...r,...captureMeta(r.id)})).sort((a,b)=>(b.puntos||0)-(a.puntos||0)||(b.exactos||0)-(a.exactos||0)||(a.nombre||'').localeCompare(b.nombre||'')); renderRanking(); updateUserStats();}
 function renderRanking(){
-  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Pronósticos</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r,i)=>{
+  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Marcadores capturados</th><th>Avance</th><th>Pronósticos</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r,i)=>{
     const foto=r.fotoURL||r.photoURL||'assets/persona-perfil.png';
     const nombre=r.nombre||'Participante';
     const correo=r.email||'';
@@ -209,6 +262,8 @@ function renderRanking(){
       <td><div class="rank-user"><img class="rank-photo" src="${foto}" onerror="this.src='assets/persona-perfil.png'"><div><b>${nombre}</b><small>${correo}</small></div></div></td>
       <td class="pts">${r.puntos||0}</td>
       <td>${Number(r.ajustePuntos||0)}</td>
+      <td><b>${r.captured||0} / ${r.total||DATA.pending.length}</b></td>
+      <td>${captureBar(r)} ${r.pct||0}%</td>
       <td>${r.pronosticados||0}</td>
       <td>${r.aciertos||0}</td>
       <td>${r.exactos||0}</td>
@@ -259,23 +314,16 @@ window.updateMyProfilePhoto=updateMyProfilePhoto; window.adminUpdateUserPhoto=ad
 
 function renderProfile(){if(!currentUser)return; const photo=currentProfile?.fotoURL||'assets/persona-perfil.png'; $('profileName').textContent=currentProfile?.nombre||currentUser.email; $('profileEmail').textContent=currentProfile?.email||currentUser.email; $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email; const my=predictions.filter(p=>p.userId===currentUser.uid); $('myReport').innerHTML=`<table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody>${my.map(p=>{const m=matchById(p.partidoId)||{home:p.equipoA,away:p.equipoB}; return `<tr><td>${p.partidoId}</td><td class="team-cell">${teamLabel(m.home)} vs ${teamLabel(m.away)}</td><td>${p.homeScore??p.marcadorA} - ${p.awayScore??p.marcadorB}</td><td>${m.homeScore!=null?m.homeScore+' - '+m.awayScore:'Pendiente'}</td><td class="pts">${calcPoints(m,p)}</td></tr>`}).join('')}</tbody></table>`; updateUserStats();}
 
-function renderAdminUsers(){if(!isAdmin())return; const source=ranking.length?ranking:users; $('adminUsers').innerHTML=source.map((u,i)=>`<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><b>Ajuste ${Number(u.ajustePuntos||0)}</b><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`).join('');}
+function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} capturados</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`}).join('');}
 async function adminCreateUser(){if(!isAdmin())return; const name=$('newUserName').value.trim(), email=$('newUserEmail').value.trim(), pass=$('newUserPassword').value; if(!name||!email||!pass)return alert('Completa nombre, email y password inicial.'); if(pass.length<6)return alert('El password debe tener al menos 6 caracteres.'); try{const cred=await createUserWithEmailAndPassword(adminCreateAuth,email,pass); await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,activo:true,puntos:0,ajustePuntos:0,exactos:0,aciertos:0,fotoURL:'assets/persona-perfil.png',creadoPorAdmin:true,fechaRegistro:serverTimestamp()},{merge:true}); await signOut(adminCreateAuth); $('newUserName').value='';$('newUserEmail').value='';$('newUserPassword').value=''; toast('Usuario creado');}catch(e){alert('No se pudo crear usuario: '+e.message)}}
-function matchDateTime(m){
-  if(!m || !m.date || !m.time) return null;
-  // Hora local de Mexico/centro aproximada para validar cierre antes del inicio.
-  return new Date(`${m.date}T${m.time}:00-05:00`);
-}
 function canUnlockPrediction(m){
   if(!m) return false;
-  if(String(m.status||'').toLowerCase()==='final') return false;
-  const kickoff=matchDateTime(m);
-  if(!kickoff || Number.isNaN(kickoff.getTime())) return false;
-  return new Date().getTime() < kickoff.getTime();
+  if(isMatchClosed(m)) return false;
+  return true;
 }
 function unlockStatusText(m,p){
-  if(!p || !p.id) return 'Sin pronóstico guardado';
-  if(!p.bloqueado) return 'Ya está desbloqueado';
+  if(!p || !p.id) return isMatchClosed(m)?'Sin captura y cerrado por inicio':'Sin pronóstico guardado';
+  if(!p.bloqueado) return isMatchClosed(m)?'Desbloqueado, pero cerrado por inicio':'Ya está desbloqueado';
   if(canUnlockPrediction(m)) return 'Disponible para desbloquear';
   return 'No se puede desbloquear: el partido ya empezó o terminó';
 }
@@ -291,7 +339,7 @@ async function openAdminUser(uid){
     <div class="grid3"><label>Nombre<input id="editName" value="${u.nombre||''}"></label><label>Email visible<input id="editEmail" value="${u.email||''}"></label><label>Ajuste manual de puntos<input id="editPoints" type="number" value="${Number(u.ajustePuntos||0)}"></label></div>
     <div class="admin-detail-actions"><button class="btn btn-gold" onclick="saveAdminProfile('${uid}')">Guardar perfil/puntos</button><button class="btn btn-outline" onclick="adminResetPassword('${uid}')">Enviar reset password</button><button class="btn btn-outline" onclick="adminToggleActive('${uid}',${u.activo===false?'true':'false'})">${u.activo===false?'Reactivar usuario':'Dar de baja usuario'}</button><button class="btn btn-outline" onclick="adminDeleteProfile('${uid}')">Eliminar usuario de quiniela</button></div>
     <h3>Desbloqueo de pronósticos</h3>
-    <p class="muted">El administrador ya no cambia marcadores. Sólo puede desbloquear un pronóstico para que el usuario lo vuelva a capturar, siempre que el partido no haya empezado ni terminado.</p>
+    <p class="muted">Marcadores capturados: <b>${captureMeta(uid).captured} / ${captureMeta(uid).total}</b> (${captureMeta(uid).pct}%). El administrador ya no cambia marcadores. Sólo puede desbloquear un pronóstico para que el usuario lo vuelva a capturar, siempre que el partido no haya empezado ni terminado.</p>
     <div class="match-list">${allMatches.map(m=>{const p=preds.find(x=>Number(x.partidoId)===Number(m.id))||{}; const h=p.homeScore??p.marcadorA; const a=p.awayScore??p.marcadorB; const status=unlockStatusText(m,p); const can=!!p.id && !!p.bloqueado && canUnlockPrediction(m); return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${m.date} · ${m.time}</span><span>${m.phase||('Grupo '+m.group)}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="admin-warning" style="margin-top:12px"><b>Pronóstico:</b> ${h!==undefined && h!=='' ? h+' - '+a : 'Sin captura'}<br><b>Estado:</b> ${status}</div><div style="text-align:center;margin-top:10px"><button class="btn btn-outline" onclick="adminUnlockPrediction('${uid}',${m.id})" ${can?'':'disabled'}>${can?'Desbloquear para usuario':'No disponible'}</button></div></div>`}).join('')}</div>`;
   detail.scrollIntoView({behavior:'smooth'});
 }
