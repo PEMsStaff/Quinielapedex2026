@@ -191,9 +191,11 @@ async function logoutUser(){await signOut(auth)}
 window.loginUser=loginUser; window.registerUser=registerUser; window.logoutUser=logoutUser;
 
 function matchById(id){
-  const base=DATA.matches.find(m=>m.id===Number(id))||DATA.pending.find(m=>m.id===Number(id))||DATA.bracket.find(m=>m.id===Number(id));
+  const n=Number(id);
+  const dynamicBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : [];
+  const base=DATA.matches.find(m=>m.id===n)||DATA.pending.find(m=>m.id===n)||dynamicBracket.find(m=>m.id===n)||DATA.bracket.find(m=>m.id===n);
   if(!base) return null;
-  const real=actualResults[Number(id)];
+  const real=actualResults[n];
   return real ? {...base,homeScore:Number(real.homeScore),awayScore:Number(real.awayScore),status:'final',resultadoCerrado:true} : base;
 }
 function resultWinner(h,a,home,away){if(h==null||a==null)return null; h=Number(h); a=Number(a); if(h>a)return home;if(a>h)return away;return 'Empate'}
@@ -247,9 +249,102 @@ async function savePrediction(id){
 }
 window.savePrediction=savePrediction;
 
-function renderGroups(){const cont=$('groupsContainer');cont.innerHTML=Object.keys(DATA.groups).sort().map(g=>{const rows=DATA.groups[g];return `<div class="card"><h3>Grupo ${g}</h3><div class="table-wrap group-table"><table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.pos}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table></div><div class="mobile-group-cards">${rows.map(r=>`<div class="group-mobile-card"><div class="group-mobile-top"><strong>${r.pos}. ${teamLabel(r.team)}</strong><span class="pill">${r.pts} pts</span></div><div class="stat-grid"><div class="stat-box"><small>PJ</small><b>${r.pj}</b></div><div class="stat-box"><small>PG</small><b>${r.pg}</b></div><div class="stat-box"><small>PE</small><b>${r.pe}</b></div><div class="stat-box"><small>PP</small><b>${r.pp}</b></div><div class="stat-box"><small>GF</small><b>${r.gf}</b></div><div class="stat-box"><small>GC</small><b>${r.gc}</b></div><div class="stat-box"><small>DG</small><b>${r.dg>0?'+':''}${r.dg}</b></div><div class="stat-box pts"><small>PTS</small><b>${r.pts}</b></div></div></div>`).join('')}</div></div>`}).join('');
-$('thirdsContainer').innerHTML=`<table><thead><tr><th>Grupo</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th><th>Estado</th></tr></thead><tbody>${DATA.thirds.map(r=>`<tr><td>${r.group}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td><td>${r.estado}</td></tr>`).join('')}</tbody></table>`;
-renderBracket();}
+function groupMatchList(){
+  return DATA.matches.filter(m=>m.group && /^[A-L]$/.test(String(m.group)));
+}
+function effectiveGroupMatches(){
+  return groupMatchList().map(m=>matchById(m.id)||m);
+}
+function emptyTeamRow(group,team,flag){
+  return {group,pos:0,team,flag:flag||'',pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,dg:0,pts:0};
+}
+function sortStandingRows(rows){
+  return rows.sort((a,b)=>(b.pts-a.pts)||(b.dg-a.dg)||(b.gf-a.gf)||(a.gc-b.gc)||(a.team||'').localeCompare(b.team||''));
+}
+function computeLiveGroups(){
+  const groups={};
+  Object.keys(DATA.groups||{}).forEach(g=>{
+    groups[g]=(DATA.groups[g]||[]).map(r=>emptyTeamRow(g,r.team,r.flag));
+  });
+  effectiveGroupMatches().forEach(m=>{
+    const g=m.group;
+    if(!g) return;
+    if(!groups[g]) groups[g]=[];
+    const ensure=(team,flag)=>{
+      let row=groups[g].find(x=>x.team===team);
+      if(!row){ row=emptyTeamRow(g,team,flag); groups[g].push(row); }
+      return row;
+    };
+    const home=ensure(m.home,m.homeFlag);
+    const away=ensure(m.away,m.awayFlag);
+    if(m.homeScore==null || m.awayScore==null || m.homeScore==='' || m.awayScore==='') return;
+    const hs=Number(m.homeScore), as=Number(m.awayScore);
+    if(Number.isNaN(hs) || Number.isNaN(as)) return;
+    home.pj++; away.pj++;
+    home.gf+=hs; home.gc+=as;
+    away.gf+=as; away.gc+=hs;
+    if(hs>as){ home.pg++; away.pp++; home.pts+=3; }
+    else if(as>hs){ away.pg++; home.pp++; away.pts+=3; }
+    else { home.pe++; away.pe++; home.pts++; away.pts++; }
+  });
+  Object.keys(groups).forEach(g=>{
+    sortStandingRows(groups[g]).forEach((r,i)=>{r.pos=i+1; r.dg=r.gf-r.gc;});
+  });
+  return groups;
+}
+function computeLiveThirds(groups=computeLiveGroups()){
+  const thirds=Object.keys(groups).sort().map(g=>groups[g][2]).filter(Boolean)
+    .map(r=>({...r,group:r.group}));
+  sortStandingRows(thirds).forEach((r,i)=>{r.estado=i<8?'Clasifica provisional':'Fuera provisional';});
+  return thirds;
+}
+function getGroupPlace(groups,g,pos){
+  return groups?.[g]?.[pos-1] || null;
+}
+function teamFromRow(row,label){
+  return row ? {team:row.team, flag:row.flag||'', note:''} : {team:label||'Por definir', flag:'', note:'Pendiente'};
+}
+function resolveBestThird(allowed,thirds,usedThirdGroups){
+  const allowedGroups=String(allowed||'').split('/').filter(Boolean);
+  const row=thirds.find(t=>allowedGroups.includes(t.group) && !usedThirdGroups.has(t.group));
+  if(row){ usedThirdGroups.add(row.group); return {team:row.team, flag:row.flag||'', note:'3º Grupo '+row.group}; }
+  return {team:'Por definir', flag:'', note:'Mejor 3º '+allowed};
+}
+function buildOfficialRound32(){
+  const groups=computeLiveGroups();
+  const thirds=computeLiveThirds(groups);
+  const usedThirdGroups=new Set();
+  const slots={
+    73:['2A','2B'], 74:['1C','2F'], 75:['1E','3A/B/C/D/F'], 76:['1F','2C'],
+    77:['2E','2I'], 78:['1I','3C/D/F/G/H'], 79:['1A','3C/E/F/H/I'], 80:['1L','3E/H/I/J/K'],
+    81:['1G','3A/E/H/I/J'], 82:['1D','3B/E/F/I/J'], 83:['1H','2J'], 84:['2K','2L'],
+    85:['1B','3E/F/G/I/J'], 86:['2D','2G'], 87:['1J','2H'], 88:['1K','3D/E/I/J/L']
+  };
+  const resolve=(slot)=>{
+    if(slot.startsWith('1')) return teamFromRow(getGroupPlace(groups,slot.slice(1),1),'1º Grupo '+slot.slice(1));
+    if(slot.startsWith('2')) return teamFromRow(getGroupPlace(groups,slot.slice(1),2),'2º Grupo '+slot.slice(1));
+    if(slot.startsWith('3')) return resolveBestThird(slot.slice(1),thirds,usedThirdGroups);
+    return {team:'Por definir', flag:'', note:slot};
+  };
+  return Object.entries(slots).map(([id,[homeSlot,awaySlot]])=>{
+    const template=DATA.matches.find(m=>Number(m.id)===Number(id))||DATA.bracket.find(m=>Number(m.id)===Number(id))||{};
+    const home=resolve(homeSlot), away=resolve(awaySlot);
+    return {...template,id:Number(id),phase:'Dieciseisavos',home:home.team,homeFlag:home.flag,away:away.team,awayFlag:away.flag,homeFrom:homeSlot,awayFrom:awaySlot,homeNote:home.note,awayNote:away.note};
+  });
+}
+function buildOfficialBracket(){
+  const r32=buildOfficialRound32();
+  const rest=DATA.bracket.filter(m=>Number(m.id)>=89).map(m=>({...m}));
+  return r32.concat(rest);
+}
+function renderGroups(){
+  const liveGroups=computeLiveGroups();
+  const liveThirds=computeLiveThirds(liveGroups);
+  const cont=$('groupsContainer');
+  cont.innerHTML=Object.keys(liveGroups).sort().map(g=>{const rows=liveGroups[g];return `<div class="card"><h3>Grupo ${g}</h3><div class="table-wrap group-table"><table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.pos}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table></div><div class="mobile-group-cards">${rows.map(r=>`<div class="group-mobile-card"><div class="group-mobile-top"><strong>${r.pos}. ${teamLabel(r.team)}</strong><span class="pill">${r.pts} pts</span></div><div class="stat-grid"><div class="stat-box"><small>PJ</small><b>${r.pj}</b></div><div class="stat-box"><small>PG</small><b>${r.pg}</b></div><div class="stat-box"><small>PE</small><b>${r.pe}</b></div><div class="stat-box"><small>PP</small><b>${r.pp}</b></div><div class="stat-box"><small>GF</small><b>${r.gf}</b></div><div class="stat-box"><small>GC</small><b>${r.gc}</b></div><div class="stat-box"><small>DG</small><b>${r.dg>0?'+':''}${r.dg}</b></div><div class="stat-box pts"><small>PTS</small><b>${r.pts}</b></div></div></div>`).join('')}</div></div>`}).join('');
+  $('thirdsContainer').innerHTML=`<table><thead><tr><th>Ranking</th><th>Grupo</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th><th>Estado</th></tr></thead><tbody>${liveThirds.map((r,i)=>`<tr><td>${i+1}</td><td>${r.group}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td><td>${r.estado}</td></tr>`).join('')}</tbody></table>`;
+  renderBracket();
+}
 function predictionForMatch(id){return currentUser ? (myPred[id] || predictions.find(p=>p.userId===currentUser.uid && Number(p.partidoId)===Number(id)) || null) : null;}
 function winnerFromScore(match,p){
   if(!match || !p || p.homeScore==null || p.awayScore==null || p.homeScore==='' || p.awayScore==='') return null;
@@ -266,7 +361,8 @@ function loserFromScore(match,p){
   return {team:match.away, flag:match.awayFlag||'', score:`${h}-${a}`};
 }
 function buildUserBracket(){
-  const byId={}; DATA.bracket.forEach(m=>byId[m.id]={...m});
+  const official=buildOfficialBracket();
+  const byId={}; official.forEach(m=>byId[m.id]={...m});
   const pairMap={89:[73,74],90:[75,76],91:[77,78],92:[79,80],93:[81,82],94:[83,84],95:[85,86],96:[87,88],97:[89,90],98:[91,92],99:[93,94],100:[95,96],101:[97,98],102:[99,100],104:[101,102]};
   Object.entries(pairMap).forEach(([target,sources])=>{
     const a=byId[sources[0]], b=byId[sources[1]];
@@ -286,7 +382,7 @@ function renderBracket(){
   const phases=['Dieciseisavos','Octavos','Cuartos','Semifinal','3rd Place','Final'];
   $('bracketContainer').innerHTML=phases.map(ph=>`<div class="round-col"><h3>${ph==='3rd Place'?'Tercer lugar':ph}</h3>${bracket.filter(b=>b.phase===ph).map(b=>{
     const p=predictionForMatch(b.id); const pred=p && p.homeScore!=null && p.awayScore!=null; const w=winnerFromScore(b,p);
-    return `<div class="bracket-game ${pred?'bracket-predicted':''}"><small>#${b.id} · ${b.date} · ${b.time}</small><div class="bracket-team">${teamLabel(b.home)}</div><div class="bracket-team">${teamLabel(b.away)}</div>${pred?`<div class="bracket-score">Mi marcador: ${p.homeScore} - ${p.awayScore}</div>`:''}${w?`<div class="bracket-winner">Avanza: ${w.team}${w.note?' · '+w.note:''}</div>`:''}</div>`
+    return `<div class="bracket-game ${pred?'bracket-predicted':''}"><small>#${b.id} · ${b.date} · ${b.time}</small><div class="bracket-team">${teamLabel(b.home)}</div><div class="bracket-team">${teamLabel(b.away)}</div>${(b.homeNote||b.awayNote)?`<div class="bracket-score">${b.homeFrom||''}${b.homeNote?' · '+b.homeNote:''} vs ${b.awayFrom||''}${b.awayNote?' · '+b.awayNote:''}</div>`:''}${pred?`<div class="bracket-score">Mi marcador: ${p.homeScore} - ${p.awayScore}</div>`:''}${w?`<div class="bracket-winner">Avanza: ${w.team}${w.note?' · '+w.note:''}</div>`:''}</div>`
   }).join('')}</div>`).join('');
 }
 
@@ -417,7 +513,7 @@ window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; wind
 
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  const matches=DATA.matches.filter(m=>Number(m.id)<=104).concat(DATA.bracket.filter(m=>Number(m.id)>=73));
+  const matches=DATA.matches.filter(m=>Number(m.id)<=72).concat(buildOfficialBracket());
   const unique=[]; const seen=new Set();
   matches.forEach(m=>{ if(!seen.has(Number(m.id))){seen.add(Number(m.id)); unique.push(m);} });
   const show=unique.filter(m=>m.status!=='final' || actualResults[Number(m.id)] || Number(m.id)>=47);
@@ -426,7 +522,7 @@ function renderAdminResults(){
     const final=real.homeScore!==undefined || String(m.status||'').toLowerCase()==='final';
     const hs=real.homeScore ?? (m.homeScore ?? '');
     const as=real.awayScore ?? (m.awayScore ?? '');
-    return `<div class="admin-result-card"><div><b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br><small class="muted">${m.phase||('Grupo '+m.group)} · ${m.date} · ${m.time} CDMX · ${final?'Cerrado':'Pendiente'}</small></div><label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}"></label><label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}"></label><button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Cerrar resultado</button></div>`;
+    return `<div class="admin-result-card"><div><b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br><small class="muted">${m.phase||('Grupo '+m.group)} · ${m.date} · ${m.time} CDMX · ${final?'Cerrado':'Pendiente'}${m.homeFrom?` · ${m.homeFrom} vs ${m.awayFrom}`:''}</small></div><label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}"></label><label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}"></label><button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Cerrar resultado</button></div>`;
   }).join('');
 }
 async function adminSaveResult(id){
@@ -443,7 +539,7 @@ window.adminSaveResult=adminSaveResult;
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
-onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderAdminResults(); renderProfile();});
+onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderProfile();});
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults();
 </script>
