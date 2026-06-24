@@ -121,7 +121,7 @@ body.logged-in .bottom-nav{display:none}
     </section>
 
     <section id="sec-partidos" class="section">
-      <div class="card"><h2>Grupos · Primera fase</h2><p class="muted">Tabla oficial de tu base con PJ, PG, PE, PP, GF, GC, DG y PTS.</p><div id="groupsContainer"></div></div>
+      <div class="card"><h2>Grupos · Primera fase</h2><p class="muted">Tabla dinámica: se recalcula automáticamente con cada resultado real que el administrador capture y cierre.</p><div id="groupsContainer"></div></div>
       <div class="card"><h2>Mejores terceros provisionales</h2><div id="thirdsContainer" class="table-wrap"></div></div>
       <div class="card"><h2>Llave provisional</h2><div id="bracketContainer" class="bracket"></div></div>
     </section>
@@ -138,6 +138,7 @@ body.logged-in .bottom-nav{display:none}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
+          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
         </div>
         <div id="adminResults" class="admin-results-grid"></div>
       </div>
@@ -277,9 +278,19 @@ function isMatchClosed(m){
 function formatKickoff(m){return `${m.date} · ${m.time} CDMX`;}
 function captureDeadlineText(m){return isMatchClosed(m)?'🔒 Cerrado por inicio del partido':'Abierto hasta antes del inicio';}
 function matchReadOnly(m){return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${m.group? 'Grupo '+m.group:m.phase}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="lock-note ${isMatchClosed(m)?'closed':'open'}">${captureDeadlineText(m)}</div></div>`}
+function getJornada3PronosticoMatches(){
+  // Jornada 3 de fase de grupos, partidos 49 al 72 según el calendario FIFA.
+  // Se toma primero DATA.matches y después DATA.pending para que nunca desaparezcan de la vista del usuario.
+  const byId=new Map();
+  (DATA.matches||[]).forEach(m=>{ if(Number(m.id)>=49 && Number(m.id)<=72) byId.set(Number(m.id),m); });
+  (DATA.pending||[]).forEach(m=>{ if(Number(m.id)>=49 && Number(m.id)<=72) byId.set(Number(m.id),{...(byId.get(Number(m.id))||{}),...m}); });
+  return Array.from(byId.values()).sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
+}
+function isPronosticableMatch(m){
+  return !!(m && Number(m.id)>=49 && Number(m.id)<=104);
+}
 function renderPredictions(){
-  // Marcadores disponibles para usuarios: Jornada 3 de grupos y, después, llaves dinámicas.
-  const groupStage = DATA.pending.filter(m=>Number(m.jornada)===3 || (Number(m.id)>=49 && Number(m.id)<=72)).map(m=>matchById(m.id)||m);
+  const groupStage = getJornada3PronosticoMatches();
   const knockout = (typeof buildUserBracket==='function' ? buildUserBracket() : DATA.bracket)
     .filter(m=>Number(m.id)>=73)
     .filter(m=>{
@@ -290,7 +301,7 @@ function renderPredictions(){
   const all=[]; const seen=new Set();
   groupStage.concat(knockout).forEach(m=>{ if(m && !seen.has(Number(m.id))){seen.add(Number(m.id)); all.push(m);} });
   if(!all.length){
-    $('predictionList').innerHTML='<div class="admin-warning">Aún no hay partidos disponibles para pronosticar. Los dieciseisavos aparecerán automáticamente cuando se cierren los grupos y se formen las posiciones.</div>';
+    $('predictionList').innerHTML='<div class="admin-warning">No se encontraron partidos de Jornada 3 para pronosticar. Revisa que el archivo incluya los partidos 49 al 72.</div>';
     return;
   }
   $('predictionList').innerHTML=all.map((m)=>{
@@ -305,7 +316,8 @@ function renderPredictions(){
 }
 async function savePrediction(id){
   if(!currentUser)return;
-  const m=matchById(id);
+  const m=matchById(id) || getJornada3PronosticoMatches().find(x=>Number(x.id)===Number(id));
+  if(!isPronosticableMatch(m)) return alert('Este partido no está disponible para pronosticar.');
   if(isMatchClosed(m)) return alert('Este partido ya comenzó o terminó. Ya no se puede capturar marcador.');
   const existing=myPred[id]||{};
   if(existing.bloqueado) return alert('Este pronóstico ya está guardado y bloqueado.');
@@ -319,10 +331,31 @@ async function savePrediction(id){
 window.savePrediction=savePrediction;
 
 function groupMatchList(){
-  return DATA.matches.filter(m=>m.group && /^[A-L]$/.test(String(m.group)));
+  const byId=new Map();
+  (DATA.matches||[]).forEach(m=>{
+    if(m.group && /^[A-L]$/.test(String(m.group))) byId.set(Number(m.id),{...m});
+  });
+  (DATA.pending||[]).forEach(m=>{
+    if(m.group && /^[A-L]$/.test(String(m.group))) byId.set(Number(m.id),{...(byId.get(Number(m.id))||{}),...m});
+  });
+  return Array.from(byId.values()).sort((a,b)=>Number(a.id)-Number(b.id));
 }
 function effectiveGroupMatches(){
-  return groupMatchList().map(m=>matchById(m.id)||m);
+  // Importante: NO usar matchById aquí, porque matchById arma llaves y las llaves dependen de grupos.
+  // Esto evita ciclos y permite que Partidos > Grupos se actualice en vivo con los resultados reales del Admin.
+  return groupMatchList().map(m=>{
+    const real=actualResults[Number(m.id)];
+    if(real && (real.homeScore!==undefined || real.marcadorA!==undefined)){
+      return {
+        ...m,
+        homeScore:Number(real.homeScore ?? real.marcadorA),
+        awayScore:Number(real.awayScore ?? real.marcadorB),
+        status:'final',
+        resultadoCerrado:true
+      };
+    }
+    return {...m};
+  });
 }
 function emptyTeamRow(group,team,flag){
   return {group,pos:0,team,flag:flag||'',pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,dg:0,pts:0};
@@ -442,7 +475,8 @@ function renderGroups(){
   const liveGroups=computeLiveGroups();
   const liveThirds=computeLiveThirds(liveGroups);
   const cont=$('groupsContainer');
-  cont.innerHTML=Object.keys(liveGroups).sort().map(g=>{const rows=liveGroups[g];return `<div class="card"><h3>Grupo ${g}</h3><div class="table-wrap group-table"><table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.pos}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table></div><div class="mobile-group-cards">${rows.map(r=>`<div class="group-mobile-card"><div class="group-mobile-top"><strong>${r.pos}. ${teamLabel(r.team)}</strong><span class="pill">${r.pts} pts</span></div><div class="stat-grid"><div class="stat-box"><small>PJ</small><b>${r.pj}</b></div><div class="stat-box"><small>PG</small><b>${r.pg}</b></div><div class="stat-box"><small>PE</small><b>${r.pe}</b></div><div class="stat-box"><small>PP</small><b>${r.pp}</b></div><div class="stat-box"><small>GF</small><b>${r.gf}</b></div><div class="stat-box"><small>GC</small><b>${r.gc}</b></div><div class="stat-box"><small>DG</small><b>${r.dg>0?'+':''}${r.dg}</b></div><div class="stat-box pts"><small>PTS</small><b>${r.pts}</b></div></div></div>`).join('')}</div></div>`}).join('');
+  const closedCount=Object.values(actualResults||{}).filter(r=>r && (r.homeScore!==undefined || r.marcadorA!==undefined)).length;
+  cont.innerHTML=`<div class="admin-warning"><b>Grupos en vivo:</b> estas tablas se recalculan con los marcadores reales cerrados por el administrador. Resultados reales cerrados: ${closedCount}.</div>` + Object.keys(liveGroups).sort().map(g=>{const rows=liveGroups[g];return `<div class="card"><h3>Grupo ${g}</h3><div class="table-wrap group-table"><table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.pos}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table></div><div class="mobile-group-cards">${rows.map(r=>`<div class="group-mobile-card"><div class="group-mobile-top"><strong>${r.pos}. ${teamLabel(r.team)}</strong><span class="pill">${r.pts} pts</span></div><div class="stat-grid"><div class="stat-box"><small>PJ</small><b>${r.pj}</b></div><div class="stat-box"><small>PG</small><b>${r.pg}</b></div><div class="stat-box"><small>PE</small><b>${r.pe}</b></div><div class="stat-box"><small>PP</small><b>${r.pp}</b></div><div class="stat-box"><small>GF</small><b>${r.gf}</b></div><div class="stat-box"><small>GC</small><b>${r.gc}</b></div><div class="stat-box"><small>DG</small><b>${r.dg>0?'+':''}${r.dg}</b></div><div class="stat-box pts"><small>PTS</small><b>${r.pts}</b></div></div></div>`).join('')}</div></div>`}).join('');
   $('thirdsContainer').innerHTML=`<table><thead><tr><th>Ranking</th><th>Grupo</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th><th>Estado</th></tr></thead><tbody>${liveThirds.map((r,i)=>`<tr><td>${i+1}</td><td>${r.group}</td><td class="team-cell">${teamLabel(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td><td>${r.estado}</td></tr>`).join('')}</tbody></table>`;
   renderBracket();
 }
@@ -610,15 +644,25 @@ async function adminUnlockPrediction(uid,id){
 async function adminResetPassword(uid){const u=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid); if(!u?.email)return alert('Este usuario no tiene email.'); try{await sendPasswordResetEmail(auth,u.email); toast('Correo de recuperación enviado');}catch(e){alert('No se pudo enviar reset: '+e.message)}}
 async function adminToggleActive(uid,active){await setDoc(doc(db,'usuarios',uid),{activo:!!active,actualizadoAdmin:serverTimestamp()},{merge:true}); toast(active?'Usuario reactivado':'Usuario dado de baja');}
 async function adminDeleteProfile(uid){if(!confirm('Esto elimina el perfil visible y sus pronósticos en Firestore. No elimina el usuario de Firebase Authentication. ¿Continuar?'))return; try{const related=predictions.filter(p=>p.userId===uid); for(const p of related){await deleteDoc(doc(db,'pronosticos',p.id));} await deleteDoc(doc(db,'usuarios',uid)); $('adminDetail').classList.add('hidden'); toast('Perfil y pronósticos eliminados');}catch(e){alert('No se pudo eliminar: '+e.message)}}
-window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; window.saveAdminProfile=saveAdminProfile; window.adminUnlockPrediction=adminUnlockPrediction; window.adminResetPassword=adminResetPassword; window.adminToggleActive=adminToggleActive; window.adminDeleteProfile=adminDeleteProfile;
+window.adminClearJornada3Predictions=adminClearJornada3Predictions; window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; window.saveAdminProfile=saveAdminProfile; window.adminUnlockPrediction=adminUnlockPrediction; window.adminResetPassword=adminResetPassword; window.adminToggleActive=adminToggleActive; window.adminDeleteProfile=adminDeleteProfile;
 
+async function adminClearJornada3Predictions(){
+  if(!isAdmin()) return;
+  const ids=new Set(getJornada3PronosticoMatches().map(m=>Number(m.id)));
+  const related=predictions.filter(p=>ids.has(Number(p.partidoId)));
+  if(!related.length){ alert('No hay pronósticos previos de Jornada 3 para limpiar.'); return; }
+  if(!confirm(`Se eliminarán ${related.length} pronósticos previos de Jornada 3 capturados antes de esta corrección. Esta acción no elimina usuarios ni resultados oficiales. ¿Continuar?`)) return;
+  try{
+    for(const p of related){ await deleteDoc(doc(db,'pronosticos',p.id)); }
+    toast('Pronósticos previos de Jornada 3 eliminados');
+  }catch(e){
+    console.error('No se pudieron limpiar pronósticos Jornada 3',e);
+    alert('No se pudieron eliminar los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
+  }
+}
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  // Tercera jornada de fase de grupos: partidos 49 al 72, conforme al calendario FIFA.
-  const show=DATA.pending
-    .filter(m=>Number(m.jornada)===3 || (Number(m.id)>=49 && Number(m.id)<=72))
-    .slice()
-    .sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
+  const show=getJornada3PronosticoMatches();
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
     const final=real.homeScore!==undefined || real.marcadorA!==undefined || String(real.status||'').toLowerCase()==='final';
@@ -628,11 +672,11 @@ function renderAdminResults(){
     return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
-        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${final?'🔒 Resultado cerrado':'⏳ Pendiente de resultado'}</small>
+        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${final?'🔒 Resultado real cerrado':'⏳ Pendiente de resultado real'}</small>
       </div>
       <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" ${final?'disabled':''}></label>
       <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" ${final?'disabled':''}></label>
-      <button class="btn ${final?'btn-outline':'btn-gold'}" onclick="adminSaveResult(${m.id})" ${final?'disabled':''}>${final?'🔒 Cerrado':'Guardar y cerrar'}</button>
+      <button class="btn ${final?'btn-outline':'btn-gold'}" onclick="adminSaveResult(${m.id})" ${final?'disabled':''}>${final?'🔒 Cerrado':'Guardar resultado real y cerrar'}</button>
     </div>`;
   }).join('') || '<p class="muted">No hay partidos de tercera jornada disponibles para captura.</p>';
 }
