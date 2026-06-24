@@ -98,7 +98,7 @@ body.logged-in .bottom-nav{display:none}
   <main class="main">
     <div class="mobile-logo"><img src="assets/logo-pedex.png" alt="PEDEX"></div>
     <header class="topbar">
-      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a></div>
+      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a> <button class="btn btn-outline admin-only" style="padding:9px 12px" onclick="goSection('admin');setTimeout(()=>document.getElementById('adminResultadosCard')?.scrollIntoView({behavior:'smooth'}),100)">Capturar resultados</button></div>
       <div class="user-chip" onclick="goSection('perfil')"><img id="headerPhoto" class="avatar" src="assets/persona-perfil.png"><div><strong id="headerName">Participante</strong><small id="headerRank">Lugar: -- · 0 pts</small></div></div>
     </header>
 
@@ -126,9 +126,20 @@ body.logged-in .bottom-nav{display:none}
     <section id="sec-perfil" class="section"><div class="card"><div class="profile-top"><img id="profilePhoto" class="profile-photo" src="assets/persona-perfil.png"><div><h2 id="profileName">Participante</h2><p class="muted" id="profileEmail">correo</p><div class="photo-tools"><input id="profilePhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="updateMyProfilePhoto()">Cambiar foto</button><small>La foto se actualizará arriba, en móvil, desktop y en Mi Perfil.</small></div><div class="kpis"><div class="kpi"><small>Lugar</small><strong id="profilePlace">--</strong></div><div class="kpi"><small>Puntos</small><strong id="profilePoints">0</strong></div><div class="kpi"><small>Pronósticos</small><strong id="profilePredCount">0</strong></div><div class="kpi"><small>Exactos</small><strong id="profileExactos">0</strong></div></div></div></div></div><div class="card"><h2>Mi reporte de pronósticos</h2><div id="myReport" class="table-wrap"></div></div></section>
 
     <section id="sec-admin" class="section admin-only">
+      <div class="card" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
+        <h2>Capturar resultados reales y cerrar partidos</h2>
+        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales después de que termine cada partido.</b> Al presionar <b>Cerrar resultado</b>, el partido queda como finalizado, se recalculan los puntos del ranking, se actualizan grupos, mejores terceros y se forman automáticamente los dieciseisavos.</p>
+        <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Cierra resultado. 3) El sistema recalcula ranking, grupos, terceros y llaves. 4) El usuario podrá pronosticar dieciseisavos y su llave avanzará a octavos, cuartos, semifinal y final según sus marcadores.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
+          <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
+          <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
+        </div>
+        <div id="adminResults" class="admin-results-grid"></div>
+      </div>
+
       <div class="card">
         <h2>Panel administrativo</h2>
-        <p class="muted">Panel privado de administración. Desde aquí puedes crear jugadores, consultar usuarios, capturar resultados reales para cerrar partidos, recalcular puntos, actualizar grupos, ordenar mejores terceros y formar automáticamente los dieciseisavos. También puedes desbloquear pronósticos únicamente antes de que inicie el partido.</p>
+        <p class="muted">Panel privado de administración. Desde aquí puedes crear jugadores, consultar usuarios, ver avance de captura, ajustar puntos, dar de baja perfiles y desbloquear pronósticos únicamente antes de que inicie el partido.</p>
         <div class="admin-warning"><b>Nota importante:</b> desde un HTML público se puede crear usuarios y actualizar datos de Firestore. Cambiar el email/password real o borrar definitivamente usuarios de Firebase Authentication requiere Firebase Console o una Cloud Function con Admin SDK. Este panel permite eliminar al usuario de la quiniela y enviar correo de recuperación de contraseña.</div>
         <h3>Dar de alta jugador</h3>
         <div class="admin-create">
@@ -139,11 +150,6 @@ body.logged-in .bottom-nav{display:none}
         </div>
         <h3>Usuarios registrados</h3>
         <div id="adminUsers" class="admin-user-grid"></div>
-      </div>
-      <div class="card">
-        <h2>Captura de resultados reales</h2>
-        <p class="muted">Cuando termine un partido, captura aquí el marcador oficial. Al guardarlo se cierra el partido, se recalcula el puntaje y se actualiza el ranking automáticamente. Para validar horarios/calendario usa el enlace oficial de FIFA en la parte superior.</p>
-        <div id="adminResults" class="admin-results-grid"></div>
       </div>
       <div id="adminDetail" class="card hidden admin-detail"></div>
     </section>
@@ -611,8 +617,17 @@ function renderAdminResults(){
     const final=real.homeScore!==undefined || String(m.status||'').toLowerCase()==='final';
     const hs=real.homeScore ?? (m.homeScore ?? '');
     const as=real.awayScore ?? (m.awayScore ?? '');
-    return `<div class="admin-result-card"><div><b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br><small class="muted">${m.phase||('Grupo '+m.group)} · ${m.date} · ${m.time} CDMX · ${final?'Cerrado':'Pendiente'}${m.homeFrom?` · ${m.homeFrom} vs ${m.awayFrom}`:''}</small></div><label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}"></label><label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}"></label><button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Cerrar resultado</button></div>`;
-  }).join('');
+    const phaseLabel=m.phase||('Grupo '+m.group);
+    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.45)':''}">
+      <div>
+        <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
+        <small class="muted">${phaseLabel} · ${m.date} · ${m.time} CDMX · ${final?'✅ Resultado cerrado':'⏳ Pendiente de resultado'}${m.homeFrom?` · ${m.homeFrom} vs ${m.awayFrom}`:''}</small>
+      </div>
+      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
+      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+      <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">${final?'Actualizar resultado':'Cerrar resultado'}</button>
+    </div>`;
+  }).join('') || '<p class="muted">No hay partidos disponibles para captura.</p>';
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
