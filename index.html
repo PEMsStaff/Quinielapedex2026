@@ -105,14 +105,19 @@ body.logged-in .bottom-nav{display:none}
     <section id="sec-inicio" class="section active">
       <div class="hero-dash">
         <div class="hero-card"><h2>Jornada pendiente<br><span>antes de 16vos</span></h2><p>Pronostica únicamente los partidos pendientes del 24 al 27 de junio y consulta cómo se está formando la llave provisional.</p><img class="ball" src="assets/ball.png" alt="Balón"></div>
-        <div class="stat-card"><h3>Regla de puntos</h3><p><b class="pts">5 pts</b> marcador exacto</p><p><b class="pts">3 pts</b> ganador correcto</p><p><b>0 pts</b> si no acierta ganador ni marcador</p><button class="btn btn-gold" onclick="goSection('pronosticos')">Ir a pronosticar</button></div>
+        <div class="stat-card"><h3>Regla de puntos</h3><p><b class="pts">5 pts</b> marcador exacto</p><p><b class="pts">3 pts</b> ganador correcto</p><p><b>0 pts</b> si no acierta ganador ni marcador</p><button class="btn btn-gold" onclick="goSection('pronosticos')">Capturar mis marcadores</button></div>
       </div>
       <div class="kpis"><div class="kpi"><small>Partidos pendientes</small><strong id="kpiPending">0</strong></div><div class="kpi"><small>Mis pronósticos</small><strong id="kpiMine">0</strong></div><div class="kpi"><small>Mis puntos</small><strong id="kpiPoints">0</strong></div><div class="kpi"><small>Mi lugar</small><strong id="kpiPlace">--</strong></div></div>
       <div class="grid2"><div class="card"><h2>Próximos partidos</h2><div id="homeNext" class="match-list"></div></div><div class="card"><h2>Dieciseisavos provisionales</h2><div id="homeRound32" class="match-list"></div></div></div>
     </section>
 
     <section id="sec-pronosticos" class="section">
-      <div class="card"><h2>Pronósticos · Partidos pendientes</h2><p class="muted">Guarda cada marcador una sola vez. Después de guardar queda bloqueado, salvo que el administrador lo edite.</p><div id="predictionList" class="match-list"></div></div>
+      <div class="card" id="usuariosJornada3Card" style="border-color:rgba(245,196,0,.38)">
+        <h2>Mis marcadores · Jornada 3 de grupos</h2>
+        <p class="muted"><b>Esta sección es para todos los participantes.</b> Aquí cada usuario puede capturar sus marcadores de los partidos faltantes de la tercera jornada. Al guardar un marcador queda con candado y ya no se puede modificar, salvo desbloqueo del administrador antes del inicio del partido.</p>
+        <div class="admin-warning"><b>Importante:</b> El cierre automático se aplica por hora de inicio del partido. Si el partido ya comenzó, el usuario ya no podrá capturarlo.</div>
+        <div id="predictionList" class="match-list"></div>
+      </div>
     </section>
 
     <section id="sec-partidos" class="section">
@@ -273,7 +278,8 @@ function formatKickoff(m){return `${m.date} · ${m.time} CDMX`;}
 function captureDeadlineText(m){return isMatchClosed(m)?'🔒 Cerrado por inicio del partido':'Abierto hasta antes del inicio';}
 function matchReadOnly(m){return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${m.group? 'Grupo '+m.group:m.phase}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="lock-note ${isMatchClosed(m)?'closed':'open'}">${captureDeadlineText(m)}</div></div>`}
 function renderPredictions(){
-  const groupStage = DATA.pending.map(m=>matchById(m.id)||m);
+  // Marcadores disponibles para usuarios: Jornada 3 de grupos y, después, llaves dinámicas.
+  const groupStage = DATA.pending.filter(m=>Number(m.jornada)===3 || (Number(m.id)>=49 && Number(m.id)<=72)).map(m=>matchById(m.id)||m);
   const knockout = (typeof buildUserBracket==='function' ? buildUserBracket() : DATA.bracket)
     .filter(m=>Number(m.id)>=73)
     .filter(m=>{
@@ -292,7 +298,7 @@ function renderPredictions(){
     const alreadySaved=!!p.bloqueado;
     const closedByKickoff=isMatchClosed(m);
     const disabled=alreadySaved || closedByKickoff;
-    const phaseLabel=m.group?`Grupo ${m.group}`:(m.phase||'Llave');
+    const phaseLabel=m.group?`Grupo ${m.group} · Jornada ${m.jornada||3}`:(m.phase||'Llave');
     const note=alreadySaved?'Pronóstico bloqueado. Sólo el administrador puede desbloquearlo antes de que inicie el partido.':(closedByKickoff?'No capturaste antes del inicio. Este partido ya quedó cerrado.':'Captura permitida hasta antes de la hora FIFA del partido.');
     return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p${m.id}h" value="${p.homeScore??''}" ${disabled?'disabled':''}><input type="number" min="0" max="20" id="p${m.id}a" value="${p.awayScore??''}" ${disabled?'disabled':''}></div><div style="text-align:center;margin-top:10px"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${disabled?'disabled':''}>${alreadySaved?'🔒 Guardado':(closedByKickoff?'🔒 Cerrado':'Guardar pronóstico')}</button></div><div class="saved-note">${note}</div></div>`
   }).join('');
