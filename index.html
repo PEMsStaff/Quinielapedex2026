@@ -38,6 +38,19 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
 .capture-bar{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;min-width:110px}.capture-fill{height:100%;border-radius:999px;background:var(--gold)}.capture-fill.red{background:var(--red)}.capture-fill.yellow{background:var(--gold)}.capture-fill.blue{background:#5aa8ff}.capture-fill.green{background:var(--green)}.lock-note{font-size:12px;text-align:center;margin-top:8px;font-weight:900}.lock-note.open{color:var(--green)}.lock-note.closed{color:var(--red)}.fifa-link{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.35);background:rgba(245,196,0,.12);color:var(--gold);border-radius:999px;padding:9px 12px;font-weight:900;font-size:12px}.fifa-link:hover{background:rgba(245,196,0,.2)}
 .admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input{width:76px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(6,1fr)!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
 
+
+/* FIX MOVIL LOGIN: oculta nav inferior hasta iniciar sesion y evita overlays sobre login */
+body:not(.logged-in) .bottom-nav{display:none!important}
+body.logged-in .bottom-nav{display:none}
+.login-screen{position:relative;z-index:1000}
+@media(max-width:920px){
+  body:not(.logged-in){padding-bottom:0!important}
+  .login-screen{min-height:100dvh;align-items:start;overflow:auto;padding:14px 14px 28px}
+  .login-card{margin:0 auto}
+  .auth-panel{position:relative;z-index:1001}
+  .form input,.form button{font-size:16px}
+  body.logged-in .bottom-nav{display:grid!important}
+}
 </style>
 </head>
 <body>
@@ -54,14 +67,14 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
       <div id="loginForm" class="form">
         <input id="loginEmail" type="email" placeholder="correo@empresa.com">
         <input id="loginPassword" type="password" placeholder="Contraseña">
-        <button class="btn btn-gold" onclick="loginUser()">Entrar</button>
+        <button type="button" class="btn btn-gold" onclick="loginUser()">Entrar</button>
         <p class="small">Sistema administrado por PEDEX 2026.</p>
       </div>
       <div id="registerForm" class="form hidden">
         <input id="regName" type="text" placeholder="Nombre completo">
         <input id="regEmail" type="email" placeholder="correo@empresa.com">
         <input id="regPassword" type="password" placeholder="Contraseña mínimo 6 caracteres">
-        <button class="btn btn-gold" onclick="registerUser()">Crear mi cuenta</button>
+        <button type="button" class="btn btn-gold" onclick="registerUser()">Crear mi cuenta</button>
         <p class="small">Después de registrarte podrás guardar tus pronósticos.</p>
       </div>
     </div>
@@ -185,10 +198,32 @@ function goSection(section){
 window.showAuth=showAuth; window.goSection=goSection;
 document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.section==='admin' && !isAdmin()) return alert('La zona administrativa es exclusiva del administrador.'); goSection(b.dataset.section); }));
 
-async function loginUser(){try{await signInWithEmailAndPassword(auth,$('loginEmail').value.trim(),$('loginPassword').value);}catch(e){alert('No se pudo iniciar sesión: '+e.message)}}
+async function loginUser(){
+  const email=$('loginEmail')?.value?.trim();
+  const pass=$('loginPassword')?.value;
+  if(!email||!pass) return alert('Captura correo y contraseña.');
+  const btn=document.querySelector('#loginForm button');
+  try{
+    if(btn){btn.disabled=true;btn.textContent='Ingresando...';}
+    await signInWithEmailAndPassword(auth,email,pass);
+  }catch(e){
+    alert('No se pudo iniciar sesión: '+(e?.message||e));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Entrar';}
+  }
+}
 async function registerUser(){const name=$('regName').value.trim(),email=$('regEmail').value.trim(),pass=$('regPassword').value;if(!name||!email||!pass)return alert('Completa nombre, correo y contraseña.');try{const cred=await createUserWithEmailAndPassword(auth,email,pass);await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,puntos:0,exactos:0,aciertos:0,fechaRegistro:serverTimestamp(),activo:true,fotoURL:'assets/persona-perfil.png'});}catch(e){alert('No se pudo crear cuenta: '+e.message)}}
 async function logoutUser(){await signOut(auth)}
 window.loginUser=loginUser; window.registerUser=registerUser; window.logoutUser=logoutUser;
+
+['loginEmail','loginPassword'].forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('keydown',e=>{if(e.key==='Enter') loginUser();});
+});
+['regName','regEmail','regPassword'].forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('keydown',e=>{if(e.key==='Enter') registerUser();});
+});
 
 function matchById(id){
   const n=Number(id);
@@ -203,7 +238,13 @@ function calcPoints(match,p){if(!match||p.homeScore==null||p.awayScore==null||ma
 function calcExact(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore));}
 function calcWinnerOk(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&resultWinner(p.homeScore,p.awayScore,match.home,match.away)===resultWinner(match.homeScore,match.awayScore,match.home,match.away));}
 
-function renderHome(){$('kpiPending').textContent=DATA.pending.length; $('homeNext').innerHTML=DATA.pending.slice(0,4).map(matchReadOnly).join(''); $('homeRound32').innerHTML=DATA.bracket.filter(b=>b.phase==='Dieciseisavos').slice(0,4).map(matchReadOnly).join(''); updateUserStats();}
+function renderHome(){
+  const officialBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : DATA.bracket;
+  $('kpiPending').textContent=DATA.pending.length;
+  $('homeNext').innerHTML=DATA.pending.slice(0,4).map(m=>matchReadOnly(matchById(m.id)||m)).join('');
+  $('homeRound32').innerHTML=officialBracket.filter(b=>b.phase==='Dieciseisavos').slice(0,4).map(matchReadOnly).join('');
+  updateUserStats();
+}
 
 function matchDateTime(m){
   if(!m || !m.date || !m.time) return null;
@@ -530,13 +571,26 @@ async function adminSaveResult(id){
   const m=matchById(id) || DATA.matches.find(x=>Number(x.id)===Number(id)) || DATA.bracket.find(x=>Number(x.id)===Number(id));
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
+  if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
   if(!confirm(`Se cerrará el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'}. ¿Continuar?`)) return;
-  await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),status:'final',cerrado:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:true});
-  toast('Resultado oficial guardado y ranking recalculado');
+  const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),status:'final',cerrado:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
+  try{
+    await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
+    actualResults[Number(id)]={...payload,id:String(id)};
+    computeRanking();
+    renderGroups();
+    renderHome();
+    renderBracket();
+    renderAdminResults();
+    toast('Resultado oficial guardado. Grupos, terceros, llaves y ranking recalculados.');
+  }catch(e){
+    console.error('Error guardando resultado oficial',e);
+    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en la colección resultados al administrador. Detalle: '+(e.message||e));
+  }
 }
 window.adminSaveResult=adminSaveResult;
 
-onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
+onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderProfile();});
