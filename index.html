@@ -39,23 +39,6 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
 .admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input{width:76px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}.bottom-nav button.admin-only{display:none!important}body.is-admin.logged-in .bottom-nav button.admin-only{display:grid!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
 
 
-/* === ADMIN ORGANIZADO EN PANELES === */
-.admin-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
-.admin-tab{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:999px;padding:11px 14px;font-weight:900}
-.admin-tab.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#071A3A}
-.admin-panel{display:none}
-.admin-panel.active{display:block}
-.admin-dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
-.admin-mini-card{border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.07);padding:16px}
-.admin-mini-card b{display:block;color:var(--gold);font-size:26px;margin-top:6px}
-.admin-match-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.admin-result-card.open-admin{border-color:rgba(245,196,0,.55);background:rgba(245,196,0,.08)}
-.admin-edit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.admin-edit-grid label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}
-.admin-edit-grid input{width:100%;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px}
-@media(max-width:920px){.admin-dashboard-grid,.admin-edit-grid{grid-template-columns:1fr}.admin-match-actions{justify-content:stretch}.admin-match-actions .btn{width:100%}}
-
-
 /* FIX MOVIL LOGIN: oculta nav inferior hasta iniciar sesion y evita overlays sobre login */
 body:not(.logged-in) .bottom-nav{display:none!important}
 body.logged-in .bottom-nav{display:none}
@@ -93,6 +76,21 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
   body.logged-in #app{display:block!important;}
   body.logged-in .bottom-nav{display:grid!important;z-index:300!important;}
 }
+
+
+/* === ADMIN PANEL SEPARADO - FIX SEGURO === */
+.admin-tabs-panel{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.admin-tabs-panel button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:12px 16px;font-weight:900}
+.admin-tabs-panel button.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#071A3A;border-color:transparent}
+.admin-panel-block{display:none}
+.admin-panel-block.active{display:block}
+.admin-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px}
+.admin-mini-card{border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.07);padding:16px}
+.admin-mini-card small{display:block;color:var(--muted);font-weight:900;text-transform:uppercase;font-size:11px}
+.admin-mini-card b{display:block;font-size:26px;color:var(--gold);margin-top:6px}
+.admin-result-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.admin-result-actions .btn{padding:10px 12px;font-size:12px}
+@media(max-width:920px){.admin-mini-grid{grid-template-columns:1fr}.admin-result-actions .btn{width:100%}}
 
 </style>
 </head>
@@ -141,7 +139,7 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
   <main class="main">
     <div class="mobile-logo"><img src="assets/logo-pedex.png" alt="PEDEX"></div>
     <header class="topbar">
-      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a> <button class="btn btn-outline admin-only" style="padding:9px 12px" onclick="goSection('admin');adminShowPanel('partidos');setTimeout(()=>document.getElementById('adminResultadosCard')?.scrollIntoView({behavior:'smooth'}),100)">Capturar resultados</button></div>
+      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a> <button class="btn btn-outline admin-only" style="padding:9px 12px" onclick="goSection('admin');setTimeout(()=>document.getElementById('adminResultadosCard')?.scrollIntoView({behavior:'smooth'}),100)">Capturar resultados</button></div>
       <div class="user-chip" onclick="goSection('perfil')"><img id="headerPhoto" class="avatar" src="assets/persona-perfil.png"><div><strong id="headerName">Participante</strong><small id="headerRank">Lugar: -- · 0 pts</small></div></div>
     </header>
 
@@ -174,55 +172,53 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
     <section id="sec-perfil" class="section"><div class="card"><div class="profile-top"><img id="profilePhoto" class="profile-photo" src="assets/persona-perfil.png"><div><h2 id="profileName">Participante</h2><p class="muted" id="profileEmail">correo</p><div class="photo-tools"><input id="profilePhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="updateMyProfilePhoto()">Cambiar foto</button><small>La foto se actualizará arriba, en móvil, desktop y en Mi Perfil.</small></div><div class="kpis"><div class="kpi"><small>Lugar</small><strong id="profilePlace">--</strong></div><div class="kpi"><small>Puntos</small><strong id="profilePoints">0</strong></div><div class="kpi"><small>Pronósticos capturados</small><strong id="profilePredCount">0</strong></div><div class="kpi"><small>Exactos</small><strong id="profileExactos">0</strong></div></div></div></div></div><div class="card"><h2>Mi reporte de pronósticos</h2><div id="myReport" class="table-wrap"></div></div></section>
 
     <section id="sec-admin" class="section admin-only">
-      <div class="card" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
-        <h2>Administración PEDEX 2026</h2>
-        <p class="muted">Panel separado para que no tengas que buscar todo en una sola pantalla.</p>
-        <div class="admin-tabs">
-          <button class="admin-tab active" id="adminTabDashboard" onclick="adminShowPanel('dashboard')">🏠 Dashboard</button>
-          <button class="admin-tab" id="adminTabPartidos" onclick="adminShowPanel('partidos')">⚽ Partidos reales</button>
-          <button class="admin-tab" id="adminTabUsuarios" onclick="adminShowPanel('usuarios')">👥 Usuarios</button>
+      <div class="admin-tabs-panel">
+        <button type="button" class="active" data-admin-panel-tab="dashboard" onclick="adminSwitchPanel('dashboard')">🏠 Dashboard</button>
+        <button type="button" data-admin-panel-tab="partidos" onclick="adminSwitchPanel('partidos')">⚽ Partidos reales</button>
+        <button type="button" data-admin-panel-tab="usuarios" onclick="adminSwitchPanel('usuarios')">👥 Usuarios</button>
+      </div>
+
+      <div class="card admin-panel-block active" data-admin-panel="dashboard">
+        <h2>Dashboard administrativo</h2>
+        <p class="muted">Entrada rápida para administrar la quiniela sin tener todo revuelto en una sola pantalla.</p>
+        <div class="admin-mini-grid">
+          <div class="admin-mini-card"><small>Usuarios</small><b id="adminDashUsers">0</b></div>
+          <div class="admin-mini-card"><small>Pronósticos</small><b id="adminDashPreds">0</b></div>
+          <div class="admin-mini-card"><small>Resultados reales</small><b id="adminDashResults">0</b></div>
         </div>
-        <div id="adminPanelDashboard" class="admin-panel active">
-          <div class="admin-dashboard-grid">
-            <div class="admin-mini-card"><small class="muted">Usuarios</small><b id="adminDashUsers">0</b></div>
-            <div class="admin-mini-card"><small class="muted">Pronósticos capturados</small><b id="adminDashPreds">0</b></div>
-            <div class="admin-mini-card"><small class="muted">Resultados reales cerrados</small><b id="adminDashResults">0</b></div>
-          </div>
-          <div class="admin-warning"><b>Uso recomendado:</b> entra a <b>Partidos reales</b> para capturar/corregir resultados. Usa <b>Abrir resultado y pronósticos</b> sólo cuando necesites que los usuarios corrijan marcadores de ese partido por una situación excepcional.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-gold" onclick="adminShowPanel('partidos')">Ir a Partidos reales</button><button class="btn btn-outline" onclick="adminShowPanel('usuarios')">Ir a Usuarios</button></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="adminSwitchPanel('partidos')">Ir a Partidos reales</button>
+          <button class="btn btn-outline" onclick="adminSwitchPanel('usuarios')">Ir a Usuarios</button>
         </div>
       </div>
 
-      <div id="adminPanelPartidos" class="admin-panel">
-        <div class="card" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45)">
-          <h2>Panel de Partidos reales</h2>
-          <p class="muted">Captura, corrige, abre o cierra resultados reales. Cuando abras un partido con la opción completa, también se abren los pronósticos de usuarios de ese partido para corrección.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
-            <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
-            <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
-            <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
-          </div>
-          <div id="adminResults" class="admin-results-grid"></div>
+      <div class="card admin-panel-block" data-admin-panel="partidos" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
+        <h2>Capturar resultados reales · Jornada 3 de grupos</h2>
+        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales de los partidos faltantes de la tercera jornada de grupos.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
+        <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Presiona <b>Guardar y cerrar</b>. 3) El partido queda con candado. 4) El sistema recalcula ranking, grupos, mejores terceros y dieciseisavos. 5) A partir de los dieciseisavos, cada usuario podrá poner sus marcadores y su llave avanzará a octavos, cuartos, semifinal y final según sus pronósticos.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
+          <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
+          <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
+          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
         </div>
+        <div id="adminResults" class="admin-results-grid"></div>
       </div>
 
-      <div id="adminPanelUsuarios" class="admin-panel">
-        <div class="card">
-          <h2>Panel de Usuarios</h2>
-          <p class="muted">Alta de jugadores, fichas, avance de captura, puntos manuales, baja/reactivación y desbloqueo individual de pronósticos.</p>
-          <div class="admin-warning"><b>Nota importante:</b> desde un HTML público se puede crear usuarios y actualizar datos de Firestore. Cambiar el email/password real o borrar definitivamente usuarios de Firebase Authentication requiere Firebase Console o una Cloud Function con Admin SDK.</div>
-          <h3>Dar de alta jugador</h3>
-          <div class="admin-create">
-            <label>Nombre<input id="newUserName" placeholder="Nombre completo"></label>
-            <label>Email<input id="newUserEmail" type="email" placeholder="correo@empresa.com"></label>
-            <label>Password inicial<input id="newUserPassword" type="password" placeholder="mínimo 6 caracteres"></label>
-            <button class="btn btn-gold" onclick="adminCreateUser()">Crear usuario</button>
-          </div>
-          <h3>Usuarios registrados</h3>
-          <div id="adminUsers" class="admin-user-grid"></div>
+      <div class="card admin-panel-block" data-admin-panel="usuarios">
+        <h2>Panel de usuarios</h2>
+        <p class="muted">Panel privado de administración. Desde aquí puedes crear jugadores, consultar usuarios, ver avance de captura, ajustar puntos, dar de baja perfiles y desbloquear pronósticos únicamente antes de que inicie el partido.</p>
+        <div class="admin-warning"><b>Nota importante:</b> desde un HTML público se puede crear usuarios y actualizar datos de Firestore. Cambiar el email/password real o borrar definitivamente usuarios de Firebase Authentication requiere Firebase Console o una Cloud Function con Admin SDK. Este panel permite eliminar al usuario de la quiniela y enviar correo de recuperación de contraseña.</div>
+        <h3>Dar de alta jugador</h3>
+        <div class="admin-create">
+          <label>Nombre<input id="newUserName" placeholder="Nombre completo"></label>
+          <label>Email<input id="newUserEmail" type="email" placeholder="correo@empresa.com"></label>
+          <label>Password inicial<input id="newUserPassword" type="password" placeholder="mínimo 6 caracteres"></label>
+          <button class="btn btn-gold" onclick="adminCreateUser()">Crear usuario</button>
         </div>
-        <div id="adminDetail" class="card hidden admin-detail"></div>
+        <h3>Usuarios registrados</h3>
+        <div id="adminUsers" class="admin-user-grid"></div>
       </div>
+      <div id="adminDetail" class="card hidden admin-detail"></div>
     </section>
   </main>
 </div>
@@ -352,8 +348,10 @@ function hasMatchStarted(m){
 }
 function isMatchClosed(m){
   if(!m) return true;
-  const real=actualResults && actualResults[Number(m.id)];
-  if(real && real.pronosticosAbiertos===true) return false;
+  const real=actualResults && actualResults[Number(m.id)] ? actualResults[Number(m.id)] : null;
+  // Apertura excepcional del administrador: permite que usuarios corrijan pronósticos aunque el partido ya haya iniciado o tenga resultado.
+  if(real && real.adminPronosticosAbiertos===true) return false;
+  if(real && String(real.status||'').toLowerCase()==='open') return false;
   if(String(m.status||'').toLowerCase()==='final') return true;
   return hasMatchStarted(m);
 }
@@ -678,32 +676,12 @@ window.updateMyProfilePhoto=updateMyProfilePhoto; window.adminUpdateUserPhoto=ad
 
 function renderProfile(){if(!currentUser)return; const photo=currentProfile?.fotoURL||'assets/persona-perfil.png'; $('profileName').textContent=currentProfile?.nombre||currentUser.email; $('profileEmail').textContent=currentProfile?.email||currentUser.email; $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email; const my=predictions.filter(p=>p.userId===currentUser.uid); $('myReport').innerHTML=`<table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody>${my.map(p=>{const m=matchById(p.partidoId)||{home:p.equipoA,away:p.equipoB}; return `<tr><td>${p.partidoId}</td><td class="team-cell">${teamLabel(m.home)} vs ${teamLabel(m.away)}</td><td>${p.homeScore??p.marcadorA} - ${p.awayScore??p.marcadorB}</td><td>${m.homeScore!=null?m.homeScore+' - '+m.awayScore:'Pendiente'}</td><td class="pts">${calcPoints(m,p)}</td></tr>`}).join('')}</tbody></table>`; updateUserStats();}
 
-function adminShowPanel(panel){
-  if(!isAdmin()) return;
-  ['dashboard','partidos','usuarios'].forEach(name=>{
-    const p=$('adminPanel'+name.charAt(0).toUpperCase()+name.slice(1));
-    const t=$('adminTab'+name.charAt(0).toUpperCase()+name.slice(1));
-    if(p) p.classList.toggle('active', name===panel);
-    if(t) t.classList.toggle('active', name===panel);
-  });
-  renderAdminDashboard();
-  if(panel==='partidos') renderAdminResults();
-  if(panel==='usuarios') renderAdminUsers();
-}
-function renderAdminDashboard(){
-  if(!isAdmin()) return;
-  if($('adminDashUsers')) $('adminDashUsers').textContent=users.length;
-  if($('adminDashPreds')) $('adminDashPreds').textContent=predictions.length;
-  if($('adminDashResults')) $('adminDashResults').textContent=Object.values(actualResults||{}).filter(r=>r.homeScore!==undefined || r.marcadorA!==undefined || String(r.status||'').toLowerCase()==='final').length;
-}
-window.adminShowPanel=adminShowPanel;
-
 function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`}).join('');}
 async function adminCreateUser(){if(!isAdmin())return; const name=$('newUserName').value.trim(), email=$('newUserEmail').value.trim(), pass=$('newUserPassword').value; if(!name||!email||!pass)return alert('Completa nombre, email y password inicial.'); if(pass.length<6)return alert('El password debe tener al menos 6 caracteres.'); try{const cred=await createUserWithEmailAndPassword(adminCreateAuth,email,pass); await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,activo:true,puntos:0,ajustePuntos:0,exactos:0,aciertos:0,fotoURL:'assets/persona-perfil.png',creadoPorAdmin:true,fechaRegistro:serverTimestamp()},{merge:true}); await signOut(adminCreateAuth); $('newUserName').value='';$('newUserEmail').value='';$('newUserPassword').value=''; toast('Usuario creado');}catch(e){alert('No se pudo crear usuario: '+e.message)}}
 function canUnlockPrediction(m){
   if(!m) return false;
-  const real=actualResults && actualResults[Number(m.id)];
-  if(real && real.pronosticosAbiertos===true) return true;
+  const real=actualResults && actualResults[Number(m.id)] ? actualResults[Number(m.id)] : null;
+  if(real && real.adminPronosticosAbiertos===true) return true;
   if(isMatchClosed(m)) return false;
   return true;
 }
@@ -764,154 +742,99 @@ async function adminClearJornada3Predictions(){
     alert('No se pudieron eliminar los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
   }
 }
+function adminSwitchPanel(panel){
+  document.querySelectorAll('[data-admin-panel]').forEach(el=>el.classList.toggle('active',el.dataset.adminPanel===panel));
+  document.querySelectorAll('[data-admin-panel-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminPanelTab===panel));
+  if(panel==='partidos') renderAdminResults();
+  if(panel==='usuarios') renderAdminUsers();
+  renderAdminDashboard();
+}
+function renderAdminDashboard(){
+  if(!isAdmin()) return;
+  const u=$('adminDashUsers'), p=$('adminDashPreds'), r=$('adminDashResults');
+  if(u) u.textContent=users.length || 0;
+  if(p) p.textContent=predictions.length || 0;
+  if(r) r.textContent=Object.keys(actualResults||{}).length || 0;
+}
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  renderAdminDashboard();
   const show=getJornada3PronosticoMatches();
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
     const hasScore=real.homeScore!==undefined || real.marcadorA!==undefined;
-    const final=hasScore && (real.cerrado!==false) && String(real.status||'final').toLowerCase()!=='abierto';
-    const open=real.cerrado===false || real.pronosticosAbiertos===true || String(real.status||'').toLowerCase()==='abierto';
+    const final=hasScore && String(real.status||'').toLowerCase()!=='open';
+    const openUsers=real.adminPronosticosAbiertos===true;
     const hs=real.homeScore ?? real.marcadorA ?? '';
     const as=real.awayScore ?? real.marcadorB ?? '';
-    const homeName=real.home || real.equipoA || m.home || '';
-    const awayName=real.away || real.equipoB || m.away || '';
-    const dateVal=real.date || m.date || '';
-    const timeVal=real.time || m.time || '';
-    const groupVal=real.group || m.group || '';
-    const phaseLabel='Grupo '+(groupVal||'');
-    const countPred=predictions.filter(p=>Number(p.partidoId)===Number(m.id)).length;
-    return `<div class="admin-result-card ${open?'open-admin':''}" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
+    const phaseLabel='Grupo '+(m.group||'');
+    const statusText=openUsers ? '🔓 Resultado y pronósticos abiertos por admin' : (final ? '🔒 Resultado real cerrado' : (String(real.status||'').toLowerCase()==='open' ? '🔓 Resultado abierto para editar' : '⏳ Pendiente de resultado real'));
+    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
-        <b>#${m.id} · ${teamLabel(homeName)} vs ${teamLabel(awayName)}</b><br>
-        <small class="muted">${phaseLabel} · Jornada 3 · ${dateVal} · ${timeVal} CDMX · ${final?'🔒 Resultado cerrado':(open?'🔓 Abierto para corrección':'⏳ Pendiente')} · ${countPred} pronósticos</small>
-        <div class="admin-edit-grid">
-          <label>Local<input id="match${m.id}home" value="${homeName}"></label>
-          <label>Visitante<input id="match${m.id}away" value="${awayName}"></label>
-          <label>Fecha<input id="match${m.id}date" type="date" value="${dateVal}"></label>
-          <label>Hora<input id="match${m.id}time" type="time" value="${timeVal}"></label>
-        </div>
+        <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
+        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${statusText}</small>
       </div>
-      <label>Goles local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
-      <label>Goles visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
-      <div class="admin-match-actions">
+      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
+      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+      <div class="admin-result-actions">
         <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado real y cerrar</button>
-        <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir sólo resultado</button>
-        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Abrir resultado y pronósticos</button>
+        <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir solo resultado</button>
+        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Abrir resultado + pronósticos</button>
       </div>
     </div>`;
   }).join('') || '<p class="muted">No hay partidos de tercera jornada disponibles para captura.</p>';
-}
-function adminMatchPayload(id){
-  const m=matchById(id) || getJornada3PronosticoMatches().find(x=>Number(x.id)===Number(id)) || {};
-  return {
-    partidoId:Number(id),
-    home:($('match'+id+'home')?.value || m.home || '').trim(),
-    away:($('match'+id+'away')?.value || m.away || '').trim(),
-    equipoA:($('match'+id+'home')?.value || m.home || '').trim(),
-    equipoB:($('match'+id+'away')?.value || m.away || '').trim(),
-    date:$('match'+id+'date')?.value || m.date || '',
-    time:$('match'+id+'time')?.value || m.time || '',
-    group:m.group || '',
-    phase:m.phase || ('Grupo '+(m.group||'')),
-    actualizado:serverTimestamp(),
-    actualizadoPor:currentUser?.email || 'admin'
-  };
+  renderAdminDashboard();
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
+  const m=matchById(id) || DATA.matches.find(x=>Number(x.id)===Number(id)) || DATA.bracket.find(x=>Number(x.id)===Number(id));
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
-  const info=adminMatchPayload(id);
-  if(!confirm(`Se guardará y cerrará el resultado oficial de #${id}: ${info.home||'Local'} ${h} - ${a} ${info.away||'Visitante'}. También se volverá a cerrar la captura de usuarios para este partido. ¿Continuar?`)) return;
-  const payload={...info,homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),status:'final',cerrado:true,pronosticosAbiertos:false,cerradoAt:serverTimestamp()};
+  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'} y se cerrarán los pronósticos de usuarios. ¿Continuar?`)) return;
+  const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),status:'final',cerrado:true,adminPronosticosAbiertos:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
   try{
     await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
     actualResults[Number(id)]={...payload,id:String(id)};
-    computeRanking(); renderGroups(); renderHome(); renderBracket(); renderPredictions(); renderAdminResults(); renderProfile();
-    toast('Resultado oficial guardado y cerrado. Ranking recalculado.');
+    computeRanking();
+    renderGroups();
+    renderHome();
+    renderBracket();
+    renderPredictions();
+    renderAdminResults();
+    renderAdminDashboard();
+    toast('Resultado oficial guardado/corregido. Pronósticos cerrados y ranking recalculado.');
   }catch(e){
     console.error('Error guardando resultado oficial',e);
-    alert('No se pudo guardar el resultado oficial. Revisa reglas de Firebase. Detalle: '+(e.message||e));
+    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en resultados al administrador. Detalle: '+(e.message||e));
   }
 }
 async function adminOpenResultOnly(id){
   if(!isAdmin()) return;
-  if(!confirm('Se abrirá el resultado real para corregirlo, pero los usuarios seguirán sin poder modificar sus pronósticos. ¿Continuar?')) return;
+  if(!confirm('Se abrirá únicamente la edición del resultado real. Los usuarios NO podrán modificar pronósticos. ¿Continuar?')) return;
   try{
-    await setDoc(doc(db,'resultados',String(id)),{...adminMatchPayload(id),status:'abierto',cerrado:false,pronosticosAbiertos:false,abiertoResultadoAt:serverTimestamp()},{merge:true});
-    toast('Resultado real abierto para corrección');
-    renderAdminResults();
-  }catch(e){alert('No se pudo abrir el resultado: '+(e.message||e));}
+    await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:false,abiertoResultadoAt:serverTimestamp(),abiertoResultadoPor:currentUser.email},{merge:true});
+    toast('Resultado real abierto para edición');
+  }catch(e){alert('No se pudo abrir el resultado. Detalle: '+(e.message||e));}
 }
 async function adminOpenResultAndPredictions(id){
   if(!isAdmin()) return;
-  const related=predictions.filter(p=>Number(p.partidoId)===Number(id));
-  if(!confirm(`Se abrirá el resultado real y también ${related.length} pronóstico(s) de usuarios para que puedan corregir este partido. Úsalo sólo para correcciones excepcionales. ¿Continuar?`)) return;
+  if(!confirm('Esto permitirá que los usuarios vuelvan a editar sus marcadores de este partido. Úsalo sólo para corrección excepcional. ¿Continuar?')) return;
   try{
-    await setDoc(doc(db,'resultados',String(id)),{...adminMatchPayload(id),status:'abierto',cerrado:false,pronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp()},{merge:true});
-    for(const p of related){
-      await setDoc(doc(db,'pronosticos',`${p.userId}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoMotivo:'Apertura administrativa del partido real',desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
+    const docs=predictions.filter(p=>Number(p.partidoId)===Number(id));
+    for(const p of docs){
+      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
     }
+    renderPredictions();
     toast('Resultado y pronósticos abiertos para corrección');
-    renderPredictions(); renderAdminResults();
-  }catch(e){
-    console.error('No se pudo abrir resultado y pronósticos',e);
-    alert('No se pudo abrir resultado y pronósticos. Revisa permisos de Firestore. Detalle: '+(e.message||e));
-  }
+  }catch(e){alert('No se pudo abrir resultado y pronósticos. Detalle: '+(e.message||e));}
 }
-window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminDashboard=renderAdminDashboard;
+window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions;
 
+onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
-
-onAuthStateChanged(auth, async user=>{
-  currentUser=user;
-  if(!user){
-    $('loginScreen')?.classList.remove('hidden');
-    $('app')?.classList.add('hidden');
-    document.body.classList.remove('is-admin');
-    document.body.classList.remove('logged-in');
-    return;
-  }
-  $('loginScreen')?.classList.add('hidden');
-  $('app')?.classList.remove('hidden');
-  document.body.classList.add('logged-in');
-  document.body.classList.toggle('is-admin',isAdmin());
-  try{
-    const ref=doc(db,'usuarios',user.uid);
-    let snap=await getDoc(ref);
-    if(!snap.exists()){
-      await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true});
-      snap=await getDoc(ref);
-    }
-    currentProfile={id:user.uid,...snap.data()};
-    if(currentProfile.activo===false && !isAdmin()){
-      alert('Tu usuario está dado de baja. Contacta al administrador.');
-      await signOut(auth);
-      return;
-    }
-    $('headerName').textContent=currentProfile.nombre||user.email;
-    applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png');
-    renderProfile();
-    renderHome();
-    renderPredictions();
-    renderGroups();
-    renderRanking();
-    renderBracket();
-    if(isAdmin()){
-      renderAdminDashboard();
-      renderAdminResults();
-      renderAdminUsers();
-    }
-  }catch(e){
-    console.error('Error cargando sesión',e);
-    alert('Entraste, pero no se pudo cargar tu perfil. Detalle: '+(e.message||e));
-  }
-});
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
 </script>
