@@ -36,7 +36,7 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
 .admin-create label,.admin-detail label{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase}.admin-detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.admin-warning{background:rgba(245,196,0,.12);border:1px solid rgba(245,196,0,.35);color:#fff;border-radius:16px;padding:12px;margin:12px 0}.admin-user-card{display:grid;grid-template-columns:54px 1.1fr 1.3fr .7fr .7fr .7fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-user-card img{width:46px;height:46px;border-radius:14px;object-fit:cover}.status-ok{color:#7cffb2}.status-off{color:#ffb4b4}@media(max-width:820px){.admin-create,.admin-user-card{grid-template-columns:1fr}.admin-user-card img{width:58px;height:58px}.admin-detail-actions .btn{width:100%}}
 
 .capture-bar{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;min-width:110px}.capture-fill{height:100%;border-radius:999px;background:var(--gold)}.capture-fill.red{background:var(--red)}.capture-fill.yellow{background:var(--gold)}.capture-fill.blue{background:#5aa8ff}.capture-fill.green{background:var(--green)}.lock-note{font-size:12px;text-align:center;margin-top:8px;font-weight:900}.lock-note.open{color:var(--green)}.lock-note.closed{color:var(--red)}.fifa-link{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.35);background:rgba(245,196,0,.12);color:var(--gold);border-radius:999px;padding:9px 12px;font-weight:900;font-size:12px}.fifa-link:hover{background:rgba(245,196,0,.2)}
-.admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input{width:76px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}.bottom-nav button.admin-only{display:none!important}body.is-admin.logged-in .bottom-nav button.admin-only{display:grid!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
+.admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input,.admin-result-card select{width:100%;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}.bottom-nav button.admin-only{display:none!important}body.is-admin.logged-in .bottom-nav button.admin-only{display:grid!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
 
 
 /* FIX MOVIL LOGIN: oculta nav inferior hasta iniciar sesion y evita overlays sobre login */
@@ -158,12 +158,13 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
 
     <section id="sec-admin" class="section admin-only">
       <div class="card" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
-        <h2>Capturar resultados reales · Jornada 3 de grupos</h2>
-        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales de los partidos faltantes de la tercera jornada de grupos.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
+        <h2>Administrar partidos y resultados reales</h2>
+        <p class="muted"><b>Esta sección permite abrir, cerrar, editar partidos oficiales y corregir resultados reales.</b> Los cambios se guardan en Firebase y recalculan ranking, grupos, mejores terceros y llave.</p>
         <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Presiona <b>Guardar y cerrar</b>. 3) El partido queda con candado. 4) El sistema recalcula ranking, grupos, mejores terceros y dieciseisavos. 5) A partir de los dieciseisavos, cada usuario podrá poner sus marcadores y su llave avanzará a octavos, cuartos, semifinal y final según sus pronósticos.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
+          <button class="btn btn-outline" onclick="adminToggleAllMatches()" id="adminToggleMatchesBtn">Ver todos los partidos</button>
           <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
         </div>
         <div id="adminResults" class="admin-results-grid"></div>
@@ -223,7 +224,7 @@ const firebaseConfig = {apiKey:"AIzaSyDewn58lpNKr7X4hOa52Od5OKBjwEiWYx0",authDom
 const ADMIN_EMAIL = "pem250274@gmail.com";
 const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 const adminCreateApp = initializeApp(firebaseConfig, 'admin-create-app'); const adminCreateAuth = getAuth(adminCreateApp);
-let currentUser=null,currentProfile=null,users=[],predictions=[],myPred={},ranking=[],actualResults={};
+let currentUser=null,currentProfile=null,users=[],predictions=[],myPred={},ranking=[],actualResults={},adminMatchEdits={},adminShowAllMatches=false;
 
 function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
@@ -284,8 +285,10 @@ function matchById(id){
   const dynamicBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : [];
   const base=DATA.matches.find(m=>m.id===n)||DATA.pending.find(m=>m.id===n)||dynamicBracket.find(m=>m.id===n)||DATA.bracket.find(m=>m.id===n);
   if(!base) return null;
+  const edit=adminMatchEdits[n]||{};
+  const merged={...base,...edit,id:n};
   const real=actualResults[n];
-  return real ? {...base,homeScore:Number(real.homeScore),awayScore:Number(real.awayScore),status:'final',resultadoCerrado:true} : base;
+  return real ? {...merged,homeScore:Number(real.homeScore),awayScore:Number(real.awayScore),status:(real.status||'final'),resultadoCerrado:!!real.cerrado} : merged;
 }
 function resultWinner(h,a,home,away){if(h==null||a==null)return null; h=Number(h); a=Number(a); if(h>a)return home;if(a>h)return away;return 'Empate'}
 function calcPoints(match,p){if(!match||p.homeScore==null||p.awayScore==null||match.homeScore==null||match.awayScore==null)return 0;const exact=Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore); if(exact)return 5; return resultWinner(p.homeScore,p.awayScore,match.home,match.away)===resultWinner(match.homeScore,match.awayScore,match.home,match.away)?3:0}
@@ -325,7 +328,7 @@ function getJornada3PronosticoMatches(){
   const byId=new Map();
   (DATA.matches||[]).forEach(m=>{ if(Number(m.id)>=49 && Number(m.id)<=72) byId.set(Number(m.id),m); });
   (DATA.pending||[]).forEach(m=>{ if(Number(m.id)>=49 && Number(m.id)<=72) byId.set(Number(m.id),{...(byId.get(Number(m.id))||{}),...m}); });
-  return Array.from(byId.values()).sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
+  return Array.from(byId.values()).map(m=>matchById(m.id)||m).sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
 }
 function isPronosticableMatch(m){
   return !!(m && Number(m.id)>=49 && Number(m.id)<=104);
@@ -701,55 +704,100 @@ async function adminClearJornada3Predictions(){
     alert('No se pudieron eliminar los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
   }
 }
+function getAdminMatchList(){
+  const source=adminShowAllMatches ? [...(DATA.matches||[]),...(DATA.pending||[]),...(DATA.bracket||[])] : getJornada3PronosticoMatches();
+  const byId=new Map();
+  source.forEach(m=>{ if(m && m.id!=null) byId.set(Number(m.id),matchById(m.id)||m); });
+  return Array.from(byId.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+function adminToggleAllMatches(){adminShowAllMatches=!adminShowAllMatches; renderAdminResults();}
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  const show=getJornada3PronosticoMatches();
+  const btn=$('adminToggleMatchesBtn'); if(btn) btn.textContent=adminShowAllMatches?'Ver solo Jornada 3':'Ver todos los partidos';
+  const show=getAdminMatchList();
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
-    const final=real.homeScore!==undefined || real.marcadorA!==undefined || String(real.status||'').toLowerCase()==='final';
-    const hs=real.homeScore ?? real.marcadorA ?? '';
-    const as=real.awayScore ?? real.marcadorB ?? '';
-    const phaseLabel='Grupo '+(m.group||'');
-    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
+    const final=real.homeScore!==undefined || real.marcadorA!==undefined || String(real.status||m.status||'').toLowerCase()==='final';
+    const closed=real.cerrado===true || final;
+    const hs=real.homeScore ?? real.marcadorA ?? m.homeScore ?? '';
+    const as=real.awayScore ?? real.marcadorB ?? m.awayScore ?? '';
+    const phaseLabel=m.group ? 'Grupo '+m.group : (m.phase||'Partido');
+    return `<div class="admin-result-card" style="grid-template-columns:1.2fr repeat(6,.75fr) auto;${closed?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
-        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${final?'🔒 Resultado real cerrado':'⏳ Pendiente de resultado real'}</small>
+        <small class="muted">${phaseLabel} · J${m.jornada||'-'} · ${m.date||''} · ${m.time||''} CDMX · ${closed?'🔒 Cerrado':'🔓 Abierto'}</small>
       </div>
-      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" ${final?'disabled':''}></label>
-      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" ${final?'disabled':''}></label>
-      <button class="btn ${final?'btn-outline':'btn-gold'}" onclick="adminSaveResult(${m.id})" ${final?'disabled':''}>${final?'🔒 Cerrado':'Guardar resultado real y cerrar'}</button>
+      <label>Fecha<input type="date" id="adm${m.id}date" value="${m.date||''}"></label>
+      <label>Hora<input type="time" id="adm${m.id}time" value="${m.time||''}"></label>
+      <label>Local<input id="adm${m.id}home" value="${String(m.home||'').replace(/"/g,'&quot;')}"></label>
+      <label>Visitante<input id="adm${m.id}away" value="${String(m.away||'').replace(/"/g,'&quot;')}"></label>
+      <label>Goles L<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
+      <label>Goles V<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+      <div style="display:grid;gap:8px">
+        <button class="btn btn-outline" onclick="adminSaveMatch(${m.id})">Guardar partido</button>
+        <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado</button>
+        <button class="btn btn-outline" onclick="adminReopenResult(${m.id})">Abrir</button>
+      </div>
     </div>`;
-  }).join('') || '<p class="muted">No hay partidos de tercera jornada disponibles para captura.</p>';
+  }).join('') || '<p class="muted">No hay partidos disponibles para administrar.</p>';
+}
+async function adminSaveMatch(id){
+  if(!isAdmin()) return;
+  const base=matchById(id) || {};
+  const payload={
+    partidoId:Number(id),
+    date:$('adm'+id+'date')?.value || base.date || '',
+    time:$('adm'+id+'time')?.value || base.time || '',
+    home:$('adm'+id+'home')?.value?.trim() || base.home || 'Local',
+    away:$('adm'+id+'away')?.value?.trim() || base.away || 'Visitante',
+    phase:base.phase||'', group:base.group||'', jornada:base.jornada||null,
+    actualizado:serverTimestamp(), actualizadoPor:currentUser.email
+  };
+  try{
+    await setDoc(doc(db,'partidos',String(id)),payload,{merge:true});
+    adminMatchEdits[Number(id)]={...payload,id:Number(id)};
+    renderPredictions(); renderGroups(); renderHome(); renderAdminResults();
+    toast('Partido oficial actualizado.');
+  }catch(e){alert('No se pudo guardar el partido. Revisa permisos de Firestore en la colección partidos. Detalle: '+(e.message||e));}
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
   const m=matchById(id) || DATA.matches.find(x=>Number(x.id)===Number(id)) || DATA.bracket.find(x=>Number(x.id)===Number(id));
-  if(actualResults[Number(id)] && (actualResults[Number(id)].homeScore!==undefined || actualResults[Number(id)].marcadorA!==undefined)) return alert('Este resultado ya fue cerrado y tiene candado. Para corregirlo, ajusta manualmente la colección resultados en Firebase o solicita una función de reapertura administrativa.');
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
-  if(!confirm(`Se cerrará el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'}. ¿Continuar?`)) return;
+  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'}. ¿Continuar?`)) return;
   const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),status:'final',cerrado:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
   try{
     await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
     actualResults[Number(id)]={...payload,id:String(id)};
-    computeRanking();
-    renderGroups();
-    renderHome();
-    renderBracket();
-    renderAdminResults();
-    toast('Resultado oficial guardado. Grupos, terceros, llaves y ranking recalculados.');
+    computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderBracket(); renderAdminResults(); renderProfile();
+    toast('Resultado oficial guardado/corregido. Ranking y tablas recalculados.');
   }catch(e){
     console.error('Error guardando resultado oficial',e);
-    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en la colección resultados al administrador. Detalle: '+(e.message||e));
+    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en resultados al administrador. Detalle: '+(e.message||e));
   }
 }
+async function adminReopenResult(id){
+  if(!isAdmin()) return;
+  if(!confirm('Se abrirá este partido para poder corregir su resultado. El marcador se conserva, pero quedará marcado como abierto. ¿Continuar?')) return;
+  const real=actualResults[Number(id)]||{};
+  const payload={partidoId:Number(id),homeScore:real.homeScore??real.marcadorA??null,awayScore:real.awayScore??real.marcadorB??null,marcadorA:real.homeScore??real.marcadorA??null,marcadorB:real.awayScore??real.marcadorB??null,status:'open',cerrado:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
+  try{
+    await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
+    actualResults[Number(id)]={...payload,id:String(id)};
+    renderAdminResults(); renderPredictions(); renderHome(); renderGroups(); computeRanking(); renderProfile();
+    toast('Partido abierto para corrección.');
+  }catch(e){alert('No se pudo abrir el partido. Detalle: '+(e.message||e));}
+}
+window.adminToggleAllMatches=adminToggleAllMatches; window.adminSaveMatch=adminSaveMatch; window.adminSaveResult=adminSaveResult; window.adminReopenResult=adminReopenResult;
 window.adminSaveResult=adminSaveResult;
 
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderProfile();});
+onSnapshot(collection(db,'partidos'), snap=>{adminMatchEdits={};snap.forEach(d=>{const r=d.data(); adminMatchEdits[Number(r.partidoId||d.id)]={id:Number(r.partidoId||d.id),...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderProfile();});
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults();
 </script>
