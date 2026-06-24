@@ -41,6 +41,14 @@
     @media(min-width:861px){.profile-mobile{display:none!important}}
 
 
+    /* Ranking y grupos */
+    .groups-section,.ranking-section{margin-top:18px}
+    .section-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.section-title-row h2{margin:0;font-size:24px}.section-title-row span{color:var(--muted);font-size:14px}
+    .groups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.group-card{background:linear-gradient(145deg,rgba(8,38,83,.95),rgba(3,18,43,.92));border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 52px rgba(0,0,0,.22)}.group-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:rgba(255,196,0,.12);border-bottom:1px solid var(--line)}.group-head b{color:var(--gold);font-size:18px}.group-table{width:100%;border-collapse:collapse}.group-table th,.group-table td{padding:10px 8px;border-bottom:1px solid rgba(96,172,255,.16);font-size:12px;text-align:center;color:#fff}.group-table th{color:var(--gold);font-weight:900;background:rgba(3,18,43,.5)}.group-table td:first-child,.group-table th:first-child{text-align:left}.team-cell{display:flex;align-items:center;gap:8px;min-width:130px;color:#fff!important;font-weight:900}.team-cell img{width:26px;height:18px;border-radius:3px;object-fit:cover;background:#fff}.pts-cell{color:var(--gold)!important;font-weight:900;font-size:15px!important}
+    .ranking-table-wrap{overflow:auto;border-radius:18px;border:1px solid var(--line)}.ranking-table{width:100%;border-collapse:collapse;min-width:760px;background:linear-gradient(145deg,rgba(8,38,83,.95),rgba(3,18,43,.92))}.ranking-table th,.ranking-table td{padding:13px 12px;border-bottom:1px solid rgba(96,172,255,.16);text-align:left;color:#fff;font-size:14px}.ranking-table th{color:var(--gold);font-weight:900;background:rgba(3,18,43,.65)}.rank-pos{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(255,196,0,.15);color:var(--gold);font-weight:900}.rank-user{display:flex;align-items:center;gap:10px}.rank-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.35)}.phase-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.phase-tab{border:1px solid var(--line);background:rgba(3,18,43,.48);color:#fff;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.phase-tab.active,.phase-tab:hover{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#051a3c}.knockout-placeholder{margin-top:16px;padding:18px;border:1px dashed rgba(255,196,0,.45);border-radius:16px;color:var(--muted);background:rgba(255,196,0,.06)}
+    @media(max-width:860px){.groups-grid{grid-template-columns:1fr}.groups-section,.ranking-section{margin-top:14px}.section-title-row{display:block}.group-table thead{display:none}.group-table,.group-table tbody,.group-table tr,.group-table td{display:block;width:100%}.group-table tr{padding:12px;border-bottom:1px solid rgba(96,172,255,.2)}.group-table td{border:0;padding:4px 0;text-align:left!important}.group-table td:first-child{padding-bottom:8px}.group-table td:not(:first-child){display:inline-flex;width:24%;font-size:12px;color:#dbeafe;gap:4px}.group-table td:nth-child(2)::before{content:'PJ ';color:var(--gold);font-weight:900}.group-table td:nth-child(3)::before{content:'PG ';color:var(--gold);font-weight:900}.group-table td:nth-child(4)::before{content:'PE ';color:var(--gold);font-weight:900}.group-table td:nth-child(5)::before{content:'PP ';color:var(--gold);font-weight:900}.group-table td:nth-child(6)::before{content:'GF ';color:var(--gold);font-weight:900}.group-table td:nth-child(7)::before{content:'GC ';color:var(--gold);font-weight:900}.group-table td:nth-child(8)::before{content:'DG ';color:var(--gold);font-weight:900}.group-table td:nth-child(9)::before{content:'PTS ';color:var(--gold);font-weight:900}.ranking-table{min-width:650px}.profile-mobile{margin-bottom:14px}}
+
+
     /* Login / Auth */
     .auth-screen{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 65% 15%,rgba(255,196,0,.22),transparent 28%),linear-gradient(135deg,#020916,#051b3f 55%,#020916)}
     .auth-card{width:min(1050px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:stretch}
@@ -51,6 +59,27 @@
     .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.auth-tab{border:1px solid var(--line);background:rgba(255,255,255,.05);color:#fff;border-radius:14px;padding:14px 12px;font-weight:900;cursor:pointer}.auth-tab.active{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#051a3c;border-color:transparent}.auth-form{display:none}.auth-form.active{display:grid;gap:14px}.auth-panel h2{font-size:32px;margin:8px 0 4px;color:#fff}.auth-panel p{color:var(--muted);margin:0 0 20px}.field{display:grid;gap:8px}.field label{font-size:13px;text-transform:uppercase;color:#d9e8ff;font-weight:900}.field input{width:100%;border:1px solid var(--line);background:rgba(2,12,30,.64);color:#fff;border-radius:13px;padding:15px 14px;font:inherit;outline:none}.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,196,0,.16)}.auth-error{min-height:22px;color:#ff9c9c;font-size:13px;font-weight:800}.app-shell{display:none}.app-shell.show{display:block}.auth-screen.hide{display:none}.btn-line{border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer}.top-actions{display:flex;align-items:center;gap:12px}.logout-btn{width:auto;margin-top:0;font-size:14px;padding:11px 15px}.admin-panel{display:none;margin-top:18px}.admin-panel.show{display:block}.admin-list{display:grid;gap:10px}.admin-row{display:grid;grid-template-columns:1.1fr 1fr .5fr .45fr auto;gap:10px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(3,18,43,.48)}.admin-row strong{color:#fff}.admin-row span{color:var(--muted);font-size:13px}.admin-pill{color:var(--gold);font-weight:900}.admin-edit{border:0;border-radius:10px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#051a3c;font-weight:900;padding:10px 12px;cursor:pointer}.admin-detail{display:none;margin-top:14px}.admin-detail.show{display:block}.admin-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.pred-edit-row{display:grid;grid-template-columns:1fr 70px 70px auto;gap:10px;align-items:center;padding:10px;border-bottom:1px solid rgba(96,172,255,.18)}.pred-edit-row input{background:rgba(2,12,30,.6);border:1px solid var(--line);border-radius:8px;color:#fff;padding:9px;width:100%;text-align:center}.save-small{border:0;border-radius:9px;background:var(--gold);color:#051a3c;font-weight:900;padding:9px 10px;cursor:pointer}
     @media(max-width:860px){.auth-screen{padding:14px}.auth-card{display:block}.auth-hero{min-height:auto;padding:24px 20px;margin-bottom:14px;text-align:center;align-items:center}.auth-hero:after{width:170px;height:170px;right:-25px;bottom:-35px;opacity:.5}.auth-logo{width:116px;height:116px}.auth-hero h1{font-size:46px}.auth-hero p{font-size:15px}.auth-panel{padding:20px}.top-actions{display:none}.admin-row{grid-template-columns:1fr;gap:4px}.admin-detail-grid{grid-template-columns:1fr}.pred-edit-row{grid-template-columns:1fr 55px 55px;gap:8px}.pred-edit-row .save-small{grid-column:1 / -1}.mobile-user-actions{display:flex!important;justify-content:center;gap:10px;margin-top:12px}.mobile-logout{width:auto;font-size:13px;padding:10px 13px;margin:0}}
     .mobile-user-actions{display:none}
+
+
+    .predictions-section{overflow:hidden}
+    .rules-box{margin:12px 0 18px;padding:14px 16px;border:1px solid rgba(245,196,0,.32);background:rgba(245,196,0,.08);border-radius:18px;color:var(--text);line-height:1.45}
+    .prediction-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .prediction-card{border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));border-radius:20px;padding:16px;box-shadow:0 12px 32px rgba(0,0,0,.20)}
+    .prediction-card.locked{border-color:rgba(245,196,0,.42);background:linear-gradient(180deg,rgba(245,196,0,.12),rgba(255,255,255,.035))}
+    .prediction-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;color:var(--muted);font-size:12px}
+    .prediction-phase{font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+    .prediction-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;text-align:center;margin-bottom:14px}
+    .prediction-team img{width:42px;height:30px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:white}
+    .prediction-team b{display:block;color:#fff;font-size:13px;margin-top:5px;line-height:1.1}
+    .prediction-vs{font-weight:900;color:var(--gold);font-size:16px}
+    .prediction-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+    .prediction-inputs input{width:100%;border:1px solid rgba(255,255,255,.14);background:#071637;color:#fff;border-radius:14px;padding:12px;text-align:center;font-weight:900;font-size:16px}
+    .prediction-actions{display:flex;gap:10px;align-items:center}
+    .prediction-actions button{flex:1}
+    .pred-status{font-size:12px;color:var(--gold);min-height:18px;margin-top:8px;font-weight:800}
+    .save-pred-btn{border:0;border-radius:14px;background:linear-gradient(135deg,var(--gold),#FFD84D);color:#081637;padding:12px;font-weight:900;cursor:pointer}
+    .save-pred-btn:disabled{opacity:.55;cursor:not-allowed}
+    @media(max-width:760px){.prediction-grid{grid-template-columns:1fr}.prediction-card{padding:14px;border-radius:18px}.prediction-teams{gap:7px}.prediction-team b{font-size:12px}.prediction-actions{display:block}.save-pred-btn{width:100%;margin-top:4px}}
 
   </style>
 </head>
@@ -168,13 +197,41 @@
           </section>
         </div>
 
-        <section class="panel activity" id="pronosticos">
-          <h2>Actividad Reciente</h2>
-          <div class="activity-row"><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/br.png">Brasil</div><div class="score">2 - 1</div><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/rs.png">Serbia</div><div class="tag-ok">✓ Acierto</div><div class="pts">+10 pts</div><div class="date">10 Jun</div></div>
-          <div class="activity-row"><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/es.png">España</div><div class="score">1 - 1</div><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/de.png">Alemania</div><div class="tag-ok">✓ Acierto</div><div class="pts">+10 pts</div><div class="date">10 Jun</div></div>
-          <div class="activity-row"><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/mx.png">México</div><div class="score">0 - 0</div><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/pl.png">Polonia</div><div class="tag-exact">◎ Exacto</div><div class="pts">+20 pts</div><div class="date">09 Jun</div></div>
-          <div class="activity-row"><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/jp.png">Japón</div><div class="score">1 - 2</div><div class="team-mini"><img class="flag-mini" src="https://flagcdn.com/w80/hr.png">Croacia</div><div class="tag-fail">✖ Fallo</div><div class="pts">0 pts</div><div class="date">09 Jun</div></div>
+        <section class="panel predictions-section" id="pronosticos">
+          <div class="section-title-row">
+            <h2>Pronósticos · Jornada de mañana al cierre de grupos</h2>
+            <span>Partidos del 24 al 27 de junio, antes de dieciseisavos.</span>
+          </div>
+          <div class="rules-box">
+            <strong>Regla de puntuación:</strong> ganador correcto = <b>3 pts</b>; ganador + marcador exacto = <b>5 pts</b>; sin acierto = <b>0 pts</b>.
+          </div>
+          <div id="exercisePredictionsGrid" class="prediction-grid"></div>
         </section>
+
+
+        <section class="panel groups-section" id="grupos">
+          <div class="section-title-row"><h2>Grupos · Primera Fase</h2><span>Tabla calculada con resultados oficiales capturados.</span></div>
+          <div class="groups-grid" id="groupsGrid"></div>
+        </section>
+
+        <section class="panel" id="eliminatorias">
+          <div class="section-title-row"><h2>Eliminatorias</h2><span>Lista para cargar 16vos, 8vos, 4tos, semifinales, tercer lugar y final desde tu base.</span></div>
+          <div class="phase-tabs" id="phaseTabs">
+            <button class="phase-tab active" data-phase="Dieciseisavos">Dieciseisavos</button>
+            <button class="phase-tab" data-phase="Octavos">Octavos</button>
+            <button class="phase-tab" data-phase="Cuartos">Cuartos</button>
+            <button class="phase-tab" data-phase="Semifinal">Semifinal</button>
+            <button class="phase-tab" data-phase="Tercer lugar">Tercer lugar</button>
+            <button class="phase-tab" data-phase="Final">Final</button>
+          </div>
+          <div class="knockout-placeholder" id="knockoutBox">Pásame la base de datos de eliminatorias y aquí se renderizarán los partidos por fase para pronósticos.</div>
+        </section>
+
+        <section class="panel ranking-section" id="ranking">
+          <div class="section-title-row"><h2>Ranking General</h2><span>Ordenado del primero al último lugar.</span></div>
+          <div class="ranking-table-wrap"><table class="ranking-table"><thead><tr><th>POS</th><th>Participante</th><th>Correo</th><th>PTS</th><th>Partidos correctos</th><th>Marcadores exactos</th><th>PJ</th></tr></thead><tbody id="rankingBody"><tr><td colspan="7">Cargando ranking...</td></tr></tbody></table></div>
+        </section>
+
 
         <section class="panel admin-panel" id="adminPanel">
           <h2>Panel administrativo</h2>
@@ -229,17 +286,1389 @@
     let currentProfile = null;
     let rankingRows = [];
     let selectedAdminUserId = null;
+    let myPredictionsCache = {};
 
-    const sampleMatches = [
-      { id:1, home:"Mexico", away:"South Africa", homeScore:2, awayScore:0 },
-      { id:2, home:"South Korea", away:"Czechia", homeScore:2, awayScore:1 },
-      { id:3, home:"Canada", away:"Bosnia and Herzegovina", homeScore:1, awayScore:1 },
-      { id:73, home:"2° Grupo A", away:"2° Grupo B", homeScore:null, awayScore:null },
-      { id:74, home:"1° Grupo C", away:"2° Grupo F", homeScore:null, awayScore:null }
-    ];
+    const matches = [
+      {
+            "id": 1,
+            "date": "2026-06-11",
+            "time": "13:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 1 · Partido 1",
+            "home": "Mexico",
+            "away": "South Africa",
+            "homeScore": 2,
+            "awayScore": 0
+      },
+      {
+            "id": 2,
+            "date": "2026-06-11",
+            "time": "20:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 1 · Partido 2",
+            "home": "South Korea",
+            "away": "Czechia",
+            "homeScore": 2,
+            "awayScore": 1
+      },
+      {
+            "id": 3,
+            "date": "2026-06-12",
+            "time": "13:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 1 · Partido 3",
+            "home": "Canada",
+            "away": "Bosnia and Herzegovina",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 4,
+            "date": "2026-06-12",
+            "time": "19:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 1 · Partido 4",
+            "home": "United States",
+            "away": "Paraguay",
+            "homeScore": 4,
+            "awayScore": 1
+      },
+      {
+            "id": 5,
+            "date": "2026-06-13",
+            "time": "13:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 1 · Partido 5",
+            "home": "Qatar",
+            "away": "Switzerland",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 6,
+            "date": "2026-06-13",
+            "time": "16:00",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 1 · Partido 6",
+            "home": "Brazil",
+            "away": "Morocco",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 7,
+            "date": "2026-06-13",
+            "time": "19:00",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 1 · Partido 7",
+            "home": "Haiti",
+            "away": "Scotland",
+            "homeScore": 0,
+            "awayScore": 1
+      },
+      {
+            "id": 8,
+            "date": "2026-06-13",
+            "time": "22:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 1 · Partido 8",
+            "home": "Australia",
+            "away": "Turkey",
+            "homeScore": 2,
+            "awayScore": 0
+      },
+      {
+            "id": 9,
+            "date": "2026-06-14",
+            "time": "11:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 1 · Partido 9",
+            "home": "Germany",
+            "away": "Curacao",
+            "homeScore": 7,
+            "awayScore": 1
+      },
+      {
+            "id": 10,
+            "date": "2026-06-14",
+            "time": "14:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 1 · Partido 10",
+            "home": "Netherlands",
+            "away": "Japan",
+            "homeScore": 2,
+            "awayScore": 2
+      },
+      {
+            "id": 11,
+            "date": "2026-06-14",
+            "time": "17:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 1 · Partido 11",
+            "home": "Ivory Coast",
+            "away": "Ecuador",
+            "homeScore": 1,
+            "awayScore": 0
+      },
+      {
+            "id": 12,
+            "date": "2026-06-14",
+            "time": "20:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 1 · Partido 12",
+            "home": "Sweden",
+            "away": "Tunisia",
+            "homeScore": 5,
+            "awayScore": 1
+      },
+      {
+            "id": 13,
+            "date": "2026-06-15",
+            "time": "10:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 1 · Partido 13",
+            "home": "Spain",
+            "away": "Cape Verde",
+            "homeScore": 0,
+            "awayScore": 0
+      },
+      {
+            "id": 14,
+            "date": "2026-06-15",
+            "time": "13:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 1 · Partido 14",
+            "home": "Belgium",
+            "away": "Egypt",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 15,
+            "date": "2026-06-15",
+            "time": "16:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 1 · Partido 15",
+            "home": "Saudi Arabia",
+            "away": "Uruguay",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 16,
+            "date": "2026-06-15",
+            "time": "19:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 1 · Partido 16",
+            "home": "Iran",
+            "away": "New Zealand",
+            "homeScore": 2,
+            "awayScore": 2
+      },
+      {
+            "id": 17,
+            "date": "2026-06-16",
+            "time": "13:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 1 · Partido 17",
+            "home": "France",
+            "away": "Senegal",
+            "homeScore": 3,
+            "awayScore": 1
+      },
+      {
+            "id": 18,
+            "date": "2026-06-16",
+            "time": "16:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 1 · Partido 18",
+            "home": "Iraq",
+            "away": "Norway",
+            "homeScore": 1,
+            "awayScore": 4
+      },
+      {
+            "id": 19,
+            "date": "2026-06-16",
+            "time": "19:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 1 · Partido 19",
+            "home": "Argentina",
+            "away": "Algeria",
+            "homeScore": 3,
+            "awayScore": 0
+      },
+      {
+            "id": 20,
+            "date": "2026-06-16",
+            "time": "22:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 1 · Partido 20",
+            "home": "Austria",
+            "away": "Jordan",
+            "homeScore": 3,
+            "awayScore": 1
+      },
+      {
+            "id": 21,
+            "date": "2026-06-17",
+            "time": "11:00",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 1 · Partido 21",
+            "home": "Portugal",
+            "away": "DR Congo",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 22,
+            "date": "2026-06-17",
+            "time": "14:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 1 · Partido 22",
+            "home": "England",
+            "away": "Croatia",
+            "homeScore": 4,
+            "awayScore": 2
+      },
+      {
+            "id": 23,
+            "date": "2026-06-17",
+            "time": "17:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 1 · Partido 23",
+            "home": "Ghana",
+            "away": "Panama",
+            "homeScore": 1,
+            "awayScore": 0
+      },
+      {
+            "id": 24,
+            "date": "2026-06-17",
+            "time": "20:00",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 1 · Partido 24",
+            "home": "Uzbekistan",
+            "away": "Colombia",
+            "homeScore": 1,
+            "awayScore": 3
+      },
+      {
+            "id": 25,
+            "date": "2026-06-18",
+            "time": "10:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 2 · Partido 25",
+            "home": "Czechia",
+            "away": "South Africa",
+            "homeScore": 1,
+            "awayScore": 1
+      },
+      {
+            "id": 26,
+            "date": "2026-06-18",
+            "time": "13:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 2 · Partido 26",
+            "home": "Switzerland",
+            "away": "Bosnia and Herzegovina",
+            "homeScore": 4,
+            "awayScore": 1
+      },
+      {
+            "id": 27,
+            "date": "2026-06-18",
+            "time": "16:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 2 · Partido 27",
+            "home": "Canada",
+            "away": "Qatar",
+            "homeScore": 6,
+            "awayScore": 0
+      },
+      {
+            "id": 28,
+            "date": "2026-06-18",
+            "time": "19:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 2 · Partido 28",
+            "home": "Mexico",
+            "away": "South Korea",
+            "homeScore": 1,
+            "awayScore": 0
+      },
+      {
+            "id": 29,
+            "date": "2026-06-19",
+            "time": "13:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 2 · Partido 29",
+            "home": "United States",
+            "away": "Australia",
+            "homeScore": 2,
+            "awayScore": 0
+      },
+      {
+            "id": 30,
+            "date": "2026-06-19",
+            "time": "16:00",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 2 · Partido 30",
+            "home": "Scotland",
+            "away": "Morocco",
+            "homeScore": 0,
+            "awayScore": 1
+      },
+      {
+            "id": 31,
+            "date": "2026-06-19",
+            "time": "18:30",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 2 · Partido 31",
+            "home": "Brazil",
+            "away": "Haiti",
+            "homeScore": 3,
+            "awayScore": 0
+      },
+      {
+            "id": 32,
+            "date": "2026-06-19",
+            "time": "21:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 2 · Partido 32",
+            "home": "Turkey",
+            "away": "Paraguay",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 33,
+            "date": "2026-06-20",
+            "time": "11:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 2 · Partido 33",
+            "home": "Netherlands",
+            "away": "Sweden",
+            "homeScore": 5,
+            "awayScore": 1
+      },
+      {
+            "id": 34,
+            "date": "2026-06-20",
+            "time": "14:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 2 · Partido 34",
+            "home": "Germany",
+            "away": "Ivory Coast",
+            "homeScore": 2,
+            "awayScore": 1
+      },
+      {
+            "id": 35,
+            "date": "2026-06-20",
+            "time": "18:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 2 · Partido 35",
+            "home": "Ecuador",
+            "away": "Curacao",
+            "homeScore": 0,
+            "awayScore": 0
+      },
+      {
+            "id": 36,
+            "date": "2026-06-20",
+            "time": "22:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 2 · Partido 36",
+            "home": "Tunisia",
+            "away": "Japan",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 37,
+            "date": "2026-06-21",
+            "time": "10:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 2 · Partido 37",
+            "home": "Spain",
+            "away": "Saudi Arabia",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 38,
+            "date": "2026-06-21",
+            "time": "13:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 2 · Partido 38",
+            "home": "Belgium",
+            "away": "Iran",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 39,
+            "date": "2026-06-21",
+            "time": "16:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 2 · Partido 39",
+            "home": "Uruguay",
+            "away": "Cape Verde",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 40,
+            "date": "2026-06-21",
+            "time": "19:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 2 · Partido 40",
+            "home": "New Zealand",
+            "away": "Egypt",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 41,
+            "date": "2026-06-22",
+            "time": "11:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 2 · Partido 41",
+            "home": "Argentina",
+            "away": "Austria",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 42,
+            "date": "2026-06-22",
+            "time": "15:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 2 · Partido 42",
+            "home": "France",
+            "away": "Iraq",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 43,
+            "date": "2026-06-22",
+            "time": "18:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 2 · Partido 43",
+            "home": "Norway",
+            "away": "Senegal",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 44,
+            "date": "2026-06-22",
+            "time": "21:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 2 · Partido 44",
+            "home": "Jordan",
+            "away": "Algeria",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 45,
+            "date": "2026-06-23",
+            "time": "11:00",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 2 · Partido 45",
+            "home": "Portugal",
+            "away": "Uzbekistan",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 46,
+            "date": "2026-06-23",
+            "time": "14:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 2 · Partido 46",
+            "home": "England",
+            "away": "Ghana",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 47,
+            "date": "2026-06-23",
+            "time": "17:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 2 · Partido 47",
+            "home": "Panama",
+            "away": "Croatia",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 48,
+            "date": "2026-06-23",
+            "time": "20:00",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 2 · Partido 48",
+            "home": "Colombia",
+            "away": "DR Congo",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 49,
+            "date": "2026-06-24",
+            "time": "13:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 3 · Partido 49",
+            "home": "Switzerland",
+            "away": "Canada",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 50,
+            "date": "2026-06-24",
+            "time": "13:00",
+            "phase": "Grupo B",
+            "group": "B",
+            "round": "Grupo B · Jornada 3 · Partido 50",
+            "home": "Bosnia and Herzegovina",
+            "away": "Qatar",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 51,
+            "date": "2026-06-24",
+            "time": "16:00",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 3 · Partido 51",
+            "home": "Scotland",
+            "away": "Brazil",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 52,
+            "date": "2026-06-24",
+            "time": "16:00",
+            "phase": "Grupo C",
+            "group": "C",
+            "round": "Grupo C · Jornada 3 · Partido 52",
+            "home": "Morocco",
+            "away": "Haiti",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 53,
+            "date": "2026-06-24",
+            "time": "19:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 3 · Partido 53",
+            "home": "Czechia",
+            "away": "Mexico",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 54,
+            "date": "2026-06-24",
+            "time": "19:00",
+            "phase": "Grupo A",
+            "group": "A",
+            "round": "Grupo A · Jornada 3 · Partido 54",
+            "home": "South Africa",
+            "away": "South Korea",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 55,
+            "date": "2026-06-25",
+            "time": "14:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 3 · Partido 55",
+            "home": "Ecuador",
+            "away": "Germany",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 56,
+            "date": "2026-06-25",
+            "time": "14:00",
+            "phase": "Grupo E",
+            "group": "E",
+            "round": "Grupo E · Jornada 3 · Partido 56",
+            "home": "Curacao",
+            "away": "Ivory Coast",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 57,
+            "date": "2026-06-25",
+            "time": "17:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 3 · Partido 57",
+            "home": "Tunisia",
+            "away": "Netherlands",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 58,
+            "date": "2026-06-25",
+            "time": "17:00",
+            "phase": "Grupo F",
+            "group": "F",
+            "round": "Grupo F · Jornada 3 · Partido 58",
+            "home": "Japan",
+            "away": "Sweden",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 59,
+            "date": "2026-06-25",
+            "time": "20:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 3 · Partido 59",
+            "home": "Turkey",
+            "away": "United States",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 60,
+            "date": "2026-06-25",
+            "time": "20:00",
+            "phase": "Grupo D",
+            "group": "D",
+            "round": "Grupo D · Jornada 3 · Partido 60",
+            "home": "Paraguay",
+            "away": "Australia",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 61,
+            "date": "2026-06-26",
+            "time": "13:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 3 · Partido 61",
+            "home": "Norway",
+            "away": "France",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 62,
+            "date": "2026-06-26",
+            "time": "13:00",
+            "phase": "Grupo I",
+            "group": "I",
+            "round": "Grupo I · Jornada 3 · Partido 62",
+            "home": "Senegal",
+            "away": "Iraq",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 63,
+            "date": "2026-06-26",
+            "time": "18:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 3 · Partido 63",
+            "home": "Uruguay",
+            "away": "Spain",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 64,
+            "date": "2026-06-26",
+            "time": "18:00",
+            "phase": "Grupo H",
+            "group": "H",
+            "round": "Grupo H · Jornada 3 · Partido 64",
+            "home": "Cape Verde",
+            "away": "Saudi Arabia",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 65,
+            "date": "2026-06-26",
+            "time": "21:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 3 · Partido 65",
+            "home": "New Zealand",
+            "away": "Belgium",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 66,
+            "date": "2026-06-26",
+            "time": "21:00",
+            "phase": "Grupo G",
+            "group": "G",
+            "round": "Grupo G · Jornada 3 · Partido 66",
+            "home": "Egypt",
+            "away": "Iran",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 67,
+            "date": "2026-06-27",
+            "time": "15:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 3 · Partido 67",
+            "home": "Panama",
+            "away": "England",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 68,
+            "date": "2026-06-27",
+            "time": "15:00",
+            "phase": "Grupo L",
+            "group": "L",
+            "round": "Grupo L · Jornada 3 · Partido 68",
+            "home": "Croatia",
+            "away": "Ghana",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 69,
+            "date": "2026-06-27",
+            "time": "17:30",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 3 · Partido 69",
+            "home": "Colombia",
+            "away": "Portugal",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 70,
+            "date": "2026-06-27",
+            "time": "17:30",
+            "phase": "Grupo K",
+            "group": "K",
+            "round": "Grupo K · Jornada 3 · Partido 70",
+            "home": "DR Congo",
+            "away": "Uzbekistan",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 71,
+            "date": "2026-06-27",
+            "time": "20:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 3 · Partido 71",
+            "home": "Jordan",
+            "away": "Argentina",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 72,
+            "date": "2026-06-27",
+            "time": "20:00",
+            "phase": "Grupo J",
+            "group": "J",
+            "round": "Grupo J · Jornada 3 · Partido 72",
+            "home": "Algeria",
+            "away": "Austria",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 73,
+            "date": "2026-06-28",
+            "time": "13:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 73",
+            "home": "TBD (2nd Group A)",
+            "away": "TBD (2nd Group B)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 74,
+            "date": "2026-06-29",
+            "time": "11:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 74",
+            "home": "TBD (1st Group C)",
+            "away": "TBD (2nd Group F)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 75,
+            "date": "2026-06-29",
+            "time": "14:30",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 75",
+            "home": "TBD (1st Group E)",
+            "away": "TBD (3rd Group A/B/C/D/F)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 76,
+            "date": "2026-06-29",
+            "time": "19:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 76",
+            "home": "TBD (1st Group F)",
+            "away": "TBD (2nd Group C)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 77,
+            "date": "2026-06-30",
+            "time": "11:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 77",
+            "home": "TBD (2nd Group E)",
+            "away": "TBD (2nd Group I)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 78,
+            "date": "2026-06-30",
+            "time": "15:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 78",
+            "home": "TBD (1st Group I)",
+            "away": "TBD (3rd Group C/D/F/G/H)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 79,
+            "date": "2026-06-30",
+            "time": "19:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 79",
+            "home": "TBD (1st Group A)",
+            "away": "TBD (3rd Group C/E/F/H/I)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 80,
+            "date": "2026-07-01",
+            "time": "10:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 80",
+            "home": "TBD (1st Group L)",
+            "away": "TBD (3rd Group E/H/I/J/K)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 81,
+            "date": "2026-07-01",
+            "time": "14:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 81",
+            "home": "TBD (1st Group G)",
+            "away": "TBD (3rd Group A/E/H/I/J)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 82,
+            "date": "2026-07-01",
+            "time": "18:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 82",
+            "home": "TBD (1st Group D)",
+            "away": "TBD (3rd Group B/E/F/I/J)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 83,
+            "date": "2026-07-02",
+            "time": "13:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 83",
+            "home": "TBD (1st Group H)",
+            "away": "TBD (2nd Group J)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 84,
+            "date": "2026-07-02",
+            "time": "17:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 84",
+            "home": "TBD (2nd Group K)",
+            "away": "TBD (2nd Group L)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 85,
+            "date": "2026-07-02",
+            "time": "21:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 85",
+            "home": "TBD (1st Group B)",
+            "away": "TBD (3rd Group E/F/G/I/J)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 86,
+            "date": "2026-07-03",
+            "time": "12:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 86",
+            "home": "TBD (2nd Group D)",
+            "away": "TBD (2nd Group G)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 87,
+            "date": "2026-07-03",
+            "time": "16:00",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 87",
+            "home": "TBD (1st Group J)",
+            "away": "TBD (2nd Group H)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 88,
+            "date": "2026-07-03",
+            "time": "19:30",
+            "phase": "Dieciseisavos",
+            "group": "",
+            "round": "Dieciseisavos · Partido 88",
+            "home": "TBD (1st Group K)",
+            "away": "TBD (3rd Group D/E/I/J/L)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 89,
+            "date": "2026-07-04",
+            "time": "11:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 89",
+            "home": "TBD (Winner of R32-1)",
+            "away": "TBD (Winner of R32-4)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 90,
+            "date": "2026-07-04",
+            "time": "15:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 90",
+            "home": "TBD (Winner of R32-3)",
+            "away": "TBD (Winner of R32-6)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 91,
+            "date": "2026-07-05",
+            "time": "14:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 91",
+            "home": "TBD (Winner of R32-2)",
+            "away": "TBD (Winner of R32-5)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 92,
+            "date": "2026-07-05",
+            "time": "18:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 92",
+            "home": "TBD (Winner of R32-7)",
+            "away": "TBD (Winner of R32-8)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 93,
+            "date": "2026-07-06",
+            "time": "13:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 93",
+            "home": "TBD (Winner of R32-12)",
+            "away": "TBD (Winner of R32-11)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 94,
+            "date": "2026-07-06",
+            "time": "18:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 94",
+            "home": "TBD (Winner of R32-10)",
+            "away": "TBD (Winner of R32-9)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 95,
+            "date": "2026-07-07",
+            "time": "10:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 95",
+            "home": "TBD (Winner of R32-15)",
+            "away": "TBD (Winner of R32-14)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 96,
+            "date": "2026-07-07",
+            "time": "14:00",
+            "phase": "Round Of 16",
+            "group": "",
+            "round": "Round Of 16 · Partido 96",
+            "home": "TBD (Winner of R32-13)",
+            "away": "TBD (Winner of R32-16)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 97,
+            "date": "2026-07-09",
+            "time": "14:00",
+            "phase": "Cuartos",
+            "group": "",
+            "round": "Cuartos · Partido 97",
+            "home": "TBD (Winner of R16-2)",
+            "away": "TBD (Winner of R16-1)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 98,
+            "date": "2026-07-10",
+            "time": "13:00",
+            "phase": "Cuartos",
+            "group": "",
+            "round": "Cuartos · Partido 98",
+            "home": "TBD (Winner of R16-5)",
+            "away": "TBD (Winner of R16-6)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 99,
+            "date": "2026-07-11",
+            "time": "15:00",
+            "phase": "Cuartos",
+            "group": "",
+            "round": "Cuartos · Partido 99",
+            "home": "TBD (Winner of R16-3)",
+            "away": "TBD (Winner of R16-4)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 100,
+            "date": "2026-07-11",
+            "time": "19:00",
+            "phase": "Cuartos",
+            "group": "",
+            "round": "Cuartos · Partido 100",
+            "home": "TBD (Winner of R16-7)",
+            "away": "TBD (Winner of R16-8)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 101,
+            "date": "2026-07-14",
+            "time": "13:00",
+            "phase": "Semifinal",
+            "group": "",
+            "round": "Semifinal · Partido 101",
+            "home": "TBD (Winner of QF-1)",
+            "away": "TBD (Winner of QF-2)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 102,
+            "date": "2026-07-15",
+            "time": "13:00",
+            "phase": "Semifinal",
+            "group": "",
+            "round": "Semifinal · Partido 102",
+            "home": "TBD (Winner of QF-3)",
+            "away": "TBD (Winner of QF-4)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 103,
+            "date": "2026-07-18",
+            "time": "15:00",
+            "phase": "Tercer lugar",
+            "group": "",
+            "round": "Tercer lugar · Partido 103",
+            "home": "TBD (Loser of SF-1)",
+            "away": "TBD (Loser of SF-2)",
+            "homeScore": null,
+            "awayScore": null
+      },
+      {
+            "id": 104,
+            "date": "2026-07-19",
+            "time": "13:00",
+            "phase": "Final",
+            "group": "",
+            "round": "Final · Partido 104",
+            "home": "TBD (Winner of SF-1)",
+            "away": "TBD (Winner of SF-2)",
+            "homeScore": null,
+            "awayScore": null
+      }
+];
+
+    // Partidos habilitados para pronóstico: jornada del 24 al 27 de junio, antes de dieciseisavos.
+    const exerciseMatches = matches
+      .filter(m => String(m.phase || '').startsWith('Grupo') && m.date >= '2026-06-24' && m.date <= '2026-06-27')
+      .sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+    const sampleMatches = exerciseMatches;
 
     function $(id){ return document.getElementById(id); }
     function isAdmin(){ return currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
+
+    const teamCodeMap = {Mexico:'mx','South Africa':'za','South Korea':'kr',Czechia:'cz',Canada:'ca','Bosnia and Herzegovina':'ba',Qatar:'qa',Switzerland:'ch',Brazil:'br',Morocco:'ma',Haiti:'ht',Scotland:'gb-sct','United States':'us',USA:'us',Paraguay:'py',Australia:'au',Turkey:'tr',Germany:'de',Curacao:'cw','Ivory Coast':'ci',Ecuador:'ec',Netherlands:'nl',Japan:'jp',Sweden:'se',Tunisia:'tn',Belgium:'be',Egypt:'eg',Iran:'ir','New Zealand':'nz',Spain:'es','Cape Verde':'cv','Saudi Arabia':'sa',Uruguay:'uy',France:'fr',Senegal:'sn',Iraq:'iq',Norway:'no',Argentina:'ar',Algeria:'dz',Austria:'at',Jordan:'jo',Portugal:'pt','DR Congo':'cd',Uzbekistan:'uz',Colombia:'co',England:'gb-eng',Croatia:'hr',Ghana:'gh',Panama:'pa'};
+    const displayNameMap = {Mexico:'México','South Africa':'Sudáfrica','South Korea':'Corea del Sur',Czechia:'Chequia',Canada:'Canadá','Bosnia and Herzegovina':'Bosnia',Qatar:'Qatar',Switzerland:'Suiza',Brazil:'Brasil',Morocco:'Marruecos',Haiti:'Haití',Scotland:'Escocia','United States':'Estados Unidos',USA:'Estados Unidos',Paraguay:'Paraguay',Australia:'Australia',Turkey:'Turquía',Germany:'Alemania',Curacao:'Curazao','Ivory Coast':'Costa de Marfil',Ecuador:'Ecuador',Netherlands:'Países Bajos',Japan:'Japón',Sweden:'Suecia',Tunisia:'Túnez',Belgium:'Bélgica',Egypt:'Egipto',Iran:'Irán','New Zealand':'N. Zelanda',Spain:'España','Cape Verde':'Cabo Verde','Saudi Arabia':'Arabia Saudita',Uruguay:'Uruguay',France:'Francia',Senegal:'Senegal',Iraq:'Irak',Norway:'Noruega',Argentina:'Argentina',Algeria:'Argelia',Austria:'Austria',Jordan:'Jordania',Portugal:'Portugal','DR Congo':'Congo',Uzbekistan:'Uzbekistán',Colombia:'Colombia',England:'Inglaterra',Croatia:'Croacia',Ghana:'Ghana',Panama:'Panamá'};
+    function teamName(t){ return displayNameMap[t] || t; }
+    function flagUrl(t){ const c = teamCodeMap[t]; return c ? `https://flagcdn.com/w80/${c}.png` : 'assets/ball.png'; }
+    function matchWinner(scoreA, scoreB, home, away){
+      if(scoreA === '' || scoreB === '' || scoreA === null || scoreB === null || scoreA === undefined || scoreB === undefined) return null;
+      const a = Number(scoreA), b = Number(scoreB);
+      if(a > b) return home;
+      if(b > a) return away;
+      return 'EMPATE';
+    }
+
+    function calculatePredictionPoints(match, predA, predB){
+      if(!match || match.homeScore === null || match.homeScore === undefined || match.awayScore === null || match.awayScore === undefined) return 0;
+      const exact = Number(predA) === Number(match.homeScore) && Number(predB) === Number(match.awayScore);
+      if(exact) return 5;
+      const predictedWinner = matchWinner(predA, predB, match.home, match.away);
+      const officialWinner = matchWinner(match.homeScore, match.awayScore, match.home, match.away);
+      return predictedWinner && officialWinner && predictedWinner === officialWinner ? 3 : 0;
+    }
+
+    function renderPredictionCards(){
+      const box = $('exercisePredictionsGrid');
+      if(!box) return;
+      box.innerHTML = exerciseMatches.map(m => {
+        const saved = myPredictionsCache[m.id] || {};
+        const locked = !!saved.bloqueado;
+        return `<article class="prediction-card ${locked ? 'locked' : ''}">
+          <div class="prediction-top"><span class="prediction-phase">${m.round || m.phase}</span><span>${m.date} · ${m.time}</span></div>
+          <div class="prediction-teams">
+            <div class="prediction-team"><img src="${flagUrl(m.home)}" onerror="this.src='assets/ball.png'"><b>${teamName(m.home)}</b></div>
+            <div class="prediction-vs">VS</div>
+            <div class="prediction-team"><img src="${flagUrl(m.away)}" onerror="this.src='assets/ball.png'"><b>${teamName(m.away)}</b></div>
+          </div>
+          <div class="prediction-inputs">
+            <input id="my_pred_${m.id}_a" type="number" min="0" max="30" placeholder="${teamName(m.home)}" value="${saved.marcadorA ?? ''}" ${locked ? 'disabled' : ''}>
+            <input id="my_pred_${m.id}_b" type="number" min="0" max="30" placeholder="${teamName(m.away)}" value="${saved.marcadorB ?? ''}" ${locked ? 'disabled' : ''}>
+          </div>
+          <div class="prediction-actions">
+            <button class="save-pred-btn" onclick="saveExercisePrediction(${m.id})" ${locked ? 'disabled' : ''}>${locked ? '🔒 Guardado' : 'Guardar pronóstico'}</button>
+          </div>
+          <div class="pred-status" id="my_pred_${m.id}_status">${locked ? 'Pronóstico bloqueado. Si necesitas cambio, solicítalo al administrador.' : 'Pendiente de guardar.'}</div>
+        </article>`;
+      }).join('');
+    }
+
+    async function loadMyExercisePredictions(){
+      myPredictionsCache = {};
+      if(!currentUser){ renderPredictionCards(); return; }
+      try{
+        const snap = await getDocs(query(collection(db, 'pronosticos')));
+        snap.forEach(d => {
+          const p = d.data();
+          if(p.userId === currentUser.uid) myPredictionsCache[p.partidoId] = { id:d.id, ...p };
+        });
+      }catch(error){ console.warn('No se pudieron cargar pronósticos:', error); }
+      renderPredictionCards();
+    }
+
+    window.saveExercisePrediction = async function(matchId){
+      if(!currentUser) return alert('Primero inicia sesión para guardar tu pronóstico.');
+      const match = exerciseMatches.find(m => m.id === matchId) || matches.find(m => m.id === matchId);
+      const a = $(`my_pred_${matchId}_a`).value;
+      const b = $(`my_pred_${matchId}_b`).value;
+      if(a === '' || b === '') return alert('Captura ambos marcadores antes de guardar.');
+      const ok = confirm('Después de guardar este pronóstico no podrás modificarlo. Si necesitas cambio, deberás solicitarlo al administrador. ¿Deseas guardar?');
+      if(!ok) return;
+      const puntos = calculatePredictionPoints(match, a, b);
+      try{
+        await setDoc(doc(db, 'pronosticos', `${currentUser.uid}_${matchId}`), {
+          userId:currentUser.uid,
+          nombre:currentProfile?.nombre || currentUser.email,
+          partidoId:matchId,
+          fase:match.phase,
+          jornada:match.round || match.phase,
+          equipoA:match.home,
+          equipoB:match.away,
+          marcadorA:Number(a),
+          marcadorB:Number(b),
+          puntos,
+          reglaPuntos:'Ganador correcto 3 pts; marcador exacto 5 pts; sin acierto 0 pts',
+          bloqueado:true,
+          creado:serverTimestamp(),
+          actualizado:serverTimestamp()
+        }, { merge:true });
+        myPredictionsCache[matchId] = { marcadorA:Number(a), marcadorB:Number(b), puntos, bloqueado:true };
+        renderPredictionCards();
+      }catch(error){ alert(friendlyError(error)); }
+    }
+
+    function calculateGroupStandings(){
+      const table = {};
+      matches.filter(m => String(m.phase||'').startsWith('Grupo')).forEach(m => {
+        const g = m.group || (String(m.phase).split(' ')[1] || '');
+        if(!table[g]) table[g] = {};
+        [m.home,m.away].forEach(team => { if(!table[g][team]) table[g][team] = {team,pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,dg:0,pts:0}; });
+        if(m.homeScore === null || m.homeScore === undefined || m.awayScore === null || m.awayScore === undefined) return;
+        const h=table[g][m.home], a=table[g][m.away];
+        const hs=Number(m.homeScore), as=Number(m.awayScore);
+        h.pj++; a.pj++; h.gf+=hs; h.gc+=as; a.gf+=as; a.gc+=hs;
+        if(hs>as){h.pg++;h.pts+=3;a.pp++;} else if(hs<as){a.pg++;a.pts+=3;h.pp++;} else {h.pe++;a.pe++;h.pts++;a.pts++;}
+        h.dg=h.gf-h.gc; a.dg=a.gf-a.gc;
+      });
+      Object.values(table).forEach(group => Object.values(group).forEach(t => t.dg=t.gf-t.gc));
+      return Object.fromEntries(Object.entries(table).map(([g,teams]) => [g, Object.values(teams).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf||teamName(a.team).localeCompare(teamName(b.team),'es'))]));
+    }
+    function renderGroups(){
+      const box = $('groupsGrid'); if(!box) return;
+      const standings = calculateGroupStandings();
+      const letters = 'ABCDEFGHIJKL'.split('');
+      box.innerHTML = letters.map(g => {
+        const rows = standings[g] || [];
+        return `<article class="group-card"><div class="group-head"><b>Grupo ${g}</b><span>${rows.length} selecciones</span></div><table class="group-table"><thead><tr><th>País</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows.map(t=>`<tr><td><div class="team-cell"><img src="${flagUrl(t.team)}" onerror="this.src='assets/ball.png'">${teamName(t.team)}</div></td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pe}</td><td>${t.pp}</td><td>${t.gf}</td><td>${t.gc}</td><td>${t.dg>0?'+':''}${t.dg}</td><td class="pts-cell">${t.pts}</td></tr>`).join('')}</tbody></table></article>`;
+      }).join('');
+    }
+    function renderRankingTable(){
+      const body = $('rankingBody'); if(!body) return;
+      body.innerHTML = rankingRows.map((u,idx)=>`<tr><td><span class="rank-pos">${idx+1}</span></td><td><div class="rank-user"><img class="rank-avatar" src="${u.fotoPerfil || 'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><strong>${u.nombre || 'Participante'}</strong></div></td><td>${u.email || ''}</td><td class="pts-cell">${u.puntos || 0}</td><td>${u.aciertos || 0}</td><td>${u.exactos || 0}</td><td>${u.partidosJugados || 0}</td></tr>`).join('') || '<tr><td colspan="7">Aún no hay participantes.</td></tr>';
+    }
+
 
     window.switchAuth = function(mode){
       $('loginTab').classList.toggle('active', mode === 'login');
@@ -309,6 +1738,7 @@
         rankingRows = [];
         snap.forEach(d => rankingRows.push({ id:d.id, ...d.data() }));
         updateHeader();
+        renderRankingTable();
         renderAdminUsers();
       });
     }
@@ -330,6 +1760,7 @@
       }
       showApp(true);
       updateHeader();
+      await loadMyExercisePredictions();
       $('adminPanel')?.classList.toggle('show', isAdmin());
       if(isAdmin()) renderAdminUsers();
     });
@@ -404,6 +1835,8 @@
           equipoB:away,
           marcadorA:Number(a),
           marcadorB:Number(b),
+          puntos:calculatePredictionPoints(matches.find(m => m.id === matchId), a, b),
+          reglaPuntos:'Ganador correcto 3 pts; marcador exacto 5 pts; sin acierto 0 pts',
           editadoPorAdmin:true,
           bloqueado:true,
           actualizado:serverTimestamp()
@@ -412,6 +1845,8 @@
       }catch(error){ alert(friendlyError(error)); }
     }
 
+    renderGroups();
+    renderPredictionCards();
     listenRanking();
   </script>
 </body>
