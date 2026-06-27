@@ -363,6 +363,13 @@ body.logged-in #pedexFinalFloat16{
   </main>
 </div>
 
+<!-- Botón flotante PEDEX: guardar y ver avance de 16vos -->
+<div id="pedexFinalFloat16" aria-label="Guardar pronósticos de dieciseisavos">
+  <div id="pedexFinalCircle16"><span id="pedexFinalPct16">0%</span></div>
+  <div id="pedexFinalText16"><b>Dieciseisavos</b><span id="pedexFinalStatus16">0 / 16 capturados</span></div>
+  <button id="pedexFinalBtn16" type="button" onclick="pedexFinalSave16vos()">Guardar<small>pronósticos</small></button>
+</div>
+
 <nav class="bottom-nav">
   <button class="active" data-section="inicio"><img src="assets/icon-inicio.png"><span>Inicio</span></button>
   <button data-section="pronosticos"><img src="assets/icon-pronosticos.png"><span>Pron.</span></button>
@@ -1018,6 +1025,222 @@ async function adminOpenResultAndPredictions(id){
   }catch(e){alert('No se pudo abrir resultado y pronósticos. Detalle: '+(e.message||e));}
 }
 window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions;
+
+
+
+/* =========================
+   PEDEX FIX APLICADO EN MODULO
+   Posiciones tipo golf + boton flotante 16vos
+   ========================= */
+(function pedexModuleGolfAndFloat(){
+  const byId = (id)=>document.getElementById(id);
+
+  function golfBadge(label){
+    const tied = String(label||"").startsWith("T");
+    return `<span class="pedex-golf-badge ${tied?'tie':''}">${label||'--'}</span>`;
+  }
+
+  function assignGolfRanks(){
+    if(!Array.isArray(ranking)) return [];
+    const arr = ranking.map((r,i)=>({source:r,index:i,id:r.id||'',name:r.nombre||r.email||'Participante',email:r.email||'',points:Number(r.puntos||0)}));
+    let prev = null, rank = 0;
+    arr.forEach((x,i)=>{
+      if(prev === null || x.points !== prev){ rank = i + 1; prev = x.points; }
+      x.rank = rank;
+    });
+    const counts = {};
+    arr.forEach(x=>counts[x.rank]=(counts[x.rank]||0)+1);
+    arr.forEach(x=>{
+      x.tied = counts[x.rank] > 1;
+      x.label = x.tied ? `T${x.rank}` : `${x.rank}`;
+      x.source.golfRank = x.rank;
+      x.source.golfLabel = x.label;
+      x.source.golfTied = x.tied;
+    });
+    return arr;
+  }
+
+  function myGolfData(){
+    const data = assignGolfRanks();
+    if(!currentUser) return null;
+    return data.find(x=>x.id===currentUser.uid) || data.find(x=>x.email===currentUser.email) || null;
+  }
+
+  function patchRankingTableGolf(){
+    const data = assignGolfRanks();
+    const table = byId('rankingTable')?.querySelector('table');
+    if(!table || !data.length) return;
+    Array.from(table.querySelectorAll('tbody tr')).forEach(tr=>{
+      const txt = tr.textContent || '';
+      const item = data.find(x=>(x.email && txt.includes(x.email)) || (x.name && txt.includes(x.name)));
+      if(item && tr.children[0]) tr.children[0].innerHTML = golfBadge(item.label);
+    });
+  }
+
+  function patchHeaderProfileGolf(){
+    const me = myGolfData();
+    if(!me) return;
+    if(byId('kpiPlace')) byId('kpiPlace').innerHTML = golfBadge(me.label);
+    if(byId('profilePlace')) byId('profilePlace').innerHTML = golfBadge(me.label);
+    if(byId('headerRank')) byId('headerRank').innerHTML = `Lugar: ${golfBadge(me.label)} · ${me.points||0} pts`;
+  }
+
+  function patchAdminGolf(){
+    const data = assignGolfRanks();
+    if(!data.length) return;
+    document.querySelectorAll('.admin-user-card,.admin-row').forEach(card=>{
+      const txt = card.textContent || '';
+      const item = data.find(x=>(x.email && txt.includes(x.email)) || (x.name && txt.includes(x.name)));
+      if(!item) return;
+      let holder = card.querySelector('.pedex-admin-golf-holder');
+      if(!holder){
+        holder = document.createElement('span');
+        holder.className = 'pedex-admin-golf-holder';
+        const img = card.querySelector('img');
+        if(img) img.insertAdjacentElement('afterend', holder); else card.insertBefore(holder, card.firstChild);
+      }
+      holder.innerHTML = golfBadge(item.label);
+      const openBtn = Array.from(card.querySelectorAll('button')).find(b=>(b.textContent||'').toLowerCase().includes('abrir ficha'));
+      if(openBtn){ openBtn.style.marginLeft='auto'; card.appendChild(openBtn); }
+    });
+  }
+
+  function patchAllGolf(){
+    patchRankingTableGolf();
+    patchHeaderProfileGolf();
+    patchAdminGolf();
+  }
+
+  const oldComputeRanking = computeRanking;
+  computeRanking = function(){ const r = oldComputeRanking.apply(this, arguments); setTimeout(patchAllGolf, 60); return r; };
+
+  const oldRenderRanking = renderRanking;
+  renderRanking = function(){ const r = oldRenderRanking.apply(this, arguments); setTimeout(patchAllGolf, 60); return r; };
+
+  const oldUpdateUserStats = updateUserStats;
+  updateUserStats = function(){ const r = oldUpdateUserStats.apply(this, arguments); setTimeout(patchHeaderProfileGolf, 60); return r; };
+
+  const oldRenderAdminUsers = renderAdminUsers;
+  renderAdminUsers = function(){ const r = oldRenderAdminUsers.apply(this, arguments); setTimeout(patchAdminGolf, 60); return r; };
+
+  function get16Matches(){
+    const arr=[];
+    try{ if(typeof buildUserBracket === 'function') arr.push(...buildUserBracket()); }catch(e){}
+    try{ if(DATA && Array.isArray(DATA.bracket)) arr.push(...DATA.bracket); }catch(e){}
+    const map = new Map();
+    arr.forEach(m=>{
+      const id = Number(m.id);
+      const phase = String(m.phase||m.fase||'').toLowerCase();
+      const looks16 = (id>=73 && id<=88) || phase.includes('dieciseis');
+      if(looks16 && m.home && m.away && m.home !== 'Por definir' && m.away !== 'Por definir' && !String(m.home).startsWith('TBD') && !String(m.away).startsWith('TBD')) map.set(id,m);
+    });
+    return Array.from(map.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+  }
+
+  function ensurePenaltySelectors(){
+    get16Matches().forEach(m=>{
+      const h = byId('p'+m.id+'h');
+      const a = byId('p'+m.id+'a');
+      if(!h || !a) return;
+      let box = byId('pedexFinalPen'+m.id);
+      if(!box){
+        box = document.createElement('div');
+        box.id = 'pedexFinalPen'+m.id;
+        box.className = 'pedex-final-penalty';
+        box.innerHTML = `<select id="pedexFinalPenSel${m.id}"><option value="">Empate: ¿quién avanza por penales?</option><option value="${m.home}">${m.home}</option><option value="${m.away}">${m.away}</option></select>`;
+        const card = h.closest('.match-card');
+        const note = card?.querySelector('.saved-note');
+        if(note) card.insertBefore(box,note); else card?.appendChild(box);
+        box.querySelector('select')?.addEventListener('change', updateFloat16);
+      }
+      const draw = h.value !== '' && a.value !== '' && Number(h.value) === Number(a.value);
+      box.classList.toggle('show', draw);
+      if(!h.dataset.pedexFinalBind){ h.dataset.pedexFinalBind='1'; h.addEventListener('input',()=>{ensurePenaltySelectors(); updateFloat16();}); }
+      if(!a.dataset.pedexFinalBind){ a.dataset.pedexFinalBind='1'; a.addEventListener('input',()=>{ensurePenaltySelectors(); updateFloat16();}); }
+    });
+  }
+
+  function complete16(m){
+    if(myPred && myPred[m.id] && myPred[m.id].bloqueado) return true;
+    const h = byId('p'+m.id+'h');
+    const a = byId('p'+m.id+'a');
+    if(!h || !a || h.value==='' || a.value==='') return false;
+    if(Number(h.value) === Number(a.value)) return !!byId('pedexFinalPenSel'+m.id)?.value;
+    return true;
+  }
+
+  function updateFloat16(){
+    const float = byId('pedexFinalFloat16');
+    if(!float) return;
+    const appVisible = byId('app') && !byId('app').classList.contains('hidden');
+    float.style.display = (currentUser && appVisible) ? 'flex' : 'none';
+    const matches = get16Matches();
+    const total = matches.length || 16;
+    const completed = matches.length ? matches.filter(complete16).length : 0;
+    const pct = total ? Math.round((completed/total)*100) : 0;
+    byId('pedexFinalCircle16')?.style.setProperty('--p', pct);
+    if(byId('pedexFinalPct16')) byId('pedexFinalPct16').textContent = pct + '%';
+    if(byId('pedexFinalStatus16')) byId('pedexFinalStatus16').textContent = `${completed} / ${total} capturados`;
+  }
+
+  window.pedexFinalSave16vos = async function(){
+    if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
+    const matches = get16Matches().filter(m=>!(myPred && myPred[m.id]?.bloqueado) && !(typeof isMatchClosed==='function' && isMatchClosed(m)));
+    const missing = matches.filter(m=>!complete16(m));
+    if(missing.length){
+      toast(`Faltan ${missing.length} partido(s) de 16vos.`);
+      byId('p'+missing[0].id+'h')?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    if(!matches.length) return toast('No hay 16vos abiertos para guardar.');
+    if(!confirm('Vas a guardar todos tus pronósticos de 16vos. Después quedarán con candado. ¿Continuar?')) return;
+    for(const m of matches){
+      const h = Number(byId('p'+m.id+'h').value);
+      const a = Number(byId('p'+m.id+'a').value);
+      const pen = byId('pedexFinalPenSel'+m.id);
+      const penaltyWinner = (h===a && pen) ? pen.value : '';
+      const winner = h>a ? m.home : (a>h ? m.away : penaltyWinner);
+      await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
+        userId:currentUser.uid,
+        nombre:currentProfile?.nombre||currentUser.email,
+        email:currentUser.email,
+        partidoId:Number(m.id),
+        fase:m.phase||'Dieciseisavos',
+        equipoA:m.home,
+        equipoB:m.away,
+        marcadorA:h,
+        marcadorB:a,
+        homeScore:h,
+        awayScore:a,
+        penaltyWinner,
+        winner,
+        bloqueado:true,
+        cerradoPorInicio:false,
+        actualizado:serverTimestamp()
+      },{merge:true});
+    }
+    toast('Pronósticos de 16vos guardados.');
+    renderPredictions();
+  };
+
+  const oldRenderPredictions = renderPredictions;
+  renderPredictions = function(){ const r = oldRenderPredictions.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors(); updateFloat16();}, 90); return r; };
+
+  const oldGoSection = goSection;
+  goSection = function(){ const r = oldGoSection.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 100); return r; };
+  window.goSection = goSection;
+  window.renderPredictions = renderPredictions;
+  window.renderRanking = renderRanking;
+  window.computeRanking = computeRanking;
+  window.updateUserStats = updateUserStats;
+  window.renderAdminUsers = renderAdminUsers;
+
+  document.addEventListener('input',()=>setTimeout(updateFloat16,30),true);
+  document.addEventListener('change',()=>setTimeout(updateFloat16,30),true);
+  setInterval(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1200);
+  setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 500);
+  setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1600);
+})();
 
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminDashboard();}});
