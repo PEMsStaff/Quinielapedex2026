@@ -92,6 +92,219 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
 .admin-result-actions .btn{padding:10px 12px;font-size:12px}
 @media(max-width:920px){.admin-mini-grid{grid-template-columns:1fr}.admin-result-actions .btn{width:100%}}
 
+
+/* === PEDEX 2.0: 16vos por lote + avance flotante + ojito password === */
+.password-wrap-v20{position:relative;width:100%}
+.password-wrap-v20 input{padding-right:52px!important}
+.password-eye-v20{
+  position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border:1px solid rgba(255,255,255,.18);
+  border-radius:13px;background:rgba(255,255,255,.10);color:#fff;
+  display:grid;place-items:center;font-size:17px;z-index:5
+}
+.r32-batch-note{
+  border:1px solid rgba(245,196,0,.36);
+  background:rgba(245,196,0,.12);
+  border-radius:18px;
+  padding:13px 15px;
+  margin:0 0 14px;
+  color:#fff;
+  line-height:1.5;
+}
+.r32-batch-note b{color:var(--gold)}
+.r32-batch-toolbar{
+  position:sticky;top:12px;z-index:30;
+  border:1px solid rgba(245,196,0,.38);
+  background:linear-gradient(145deg,rgba(7,26,58,.96),rgba(4,17,39,.94));
+  border-radius:22px;padding:14px;margin:0 0 16px;
+  box-shadow:0 18px 55px rgba(0,0,0,.30)
+}
+.r32-batch-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.r32-batch-top h3{margin:0;color:#fff;font-size:18px}
+.r32-batch-top p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.r32-progress{display:flex;align-items:center;gap:10px;min-width:240px}
+.r32-track{height:10px;background:rgba(255,255,255,.14);border-radius:999px;overflow:hidden;flex:1}
+.r32-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--green));border-radius:999px;transition:.2s}
+.r32-actions{display:flex;gap:8px;flex-wrap:wrap}
+.r32-actions .btn{padding:11px 14px;font-size:12px}
+.r32-missing-box{
+  display:none;margin-top:10px;border:1px solid rgba(255,85,112,.35);
+  background:rgba(255,85,112,.13);color:#ffd6dc;border-radius:15px;
+  padding:10px;font-size:12px;line-height:1.45
+}
+.r32-card{
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));
+  padding:16px;
+}
+.r32-card.complete{border-color:rgba(112,225,166,.45);box-shadow:0 0 0 1px rgba(112,225,166,.08)}
+.r32-card.missing{border-color:rgba(255,85,112,.68);box-shadow:0 0 0 2px rgba(255,85,112,.09)}
+.r32-team-row{
+  display:grid;grid-template-columns:1fr 82px;gap:12px;align-items:center;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  border-radius:18px;padding:10px;margin:8px 0
+}
+.r32-team-row b{display:flex;align-items:center;gap:8px}
+.r32-team-row input{
+  height:50px;border:1px solid rgba(245,196,0,.32);
+  background:rgba(0,0,0,.22);color:#fff;border-radius:14px;
+  text-align:center;font-size:22px;font-weight:900
+}
+.r32-penalty{
+  display:none;margin-top:10px;border:1px solid rgba(245,196,0,.34);
+  background:rgba(245,196,0,.10);border-radius:16px;padding:11px
+}
+.r32-penalty.show{display:block}
+.r32-penalty label{display:block;color:var(--gold);font-size:12px;font-weight:900;margin-bottom:7px}
+.r32-penalty select{
+  width:100%;border:1px solid rgba(245,196,0,.36);
+  background:#071A3A;color:#fff;border-radius:13px;padding:11px
+}
+.r32-floating-save{
+  position:fixed;right:18px;bottom:18px;z-index:920;
+  display:none;align-items:center;gap:10px;padding:10px;
+  border:1px solid rgba(245,196,0,.42);
+  background:rgba(3,13,32,.88);backdrop-filter:blur(18px);
+  border-radius:999px;box-shadow:0 18px 55px rgba(0,0,0,.45)
+}
+body.logged-in .r32-floating-save{display:flex}
+.r32-float-circle{
+  --p:0;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(255,255,255,.13) 0);
+  position:relative;flex:0 0 auto
+}
+.r32-float-circle:after{content:"";position:absolute;inset:6px;border-radius:50%;background:#06172f}
+.r32-float-circle b{position:relative;z-index:2;font-size:14px;color:#fff}
+.r32-float-status{color:var(--muted);font-size:11px;white-space:nowrap}
+.r32-float-btn{
+  border:0;border-radius:999px;padding:12px 15px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#071A3A;font-weight:900;font-size:13px
+}
+.r32-float-btn small{display:block;font-size:9px;opacity:.82;line-height:1}
+@media(max-width:920px){
+  .r32-batch-toolbar{top:8px;border-radius:20px;padding:12px}
+  .r32-batch-top{display:grid;gap:10px}
+  .r32-progress{width:100%;min-width:0}
+  .r32-actions .btn{flex:1}
+  .r32-team-row{grid-template-columns:1fr 72px;padding:9px}
+  .r32-team-row input{height:48px;font-size:21px}
+  .r32-floating-save{left:12px;right:12px;bottom:82px;justify-content:space-between;border-radius:22px}
+  .r32-float-circle{width:52px;height:52px}
+  .r32-float-status{font-size:10px;flex:1}
+  .r32-float-btn{min-width:118px;padding:11px 13px}
+}
+
+
+/* === PEDEX 2.0: circulito flotante de avance sin estorbar menús === */
+.pedex-floating-progress{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:950;
+  display:none;
+  align-items:center;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid rgba(245,196,0,.42);
+  background:rgba(3,13,32,.88);
+  backdrop-filter:blur(18px);
+  border-radius:999px;
+  box-shadow:0 18px 55px rgba(0,0,0,.45);
+}
+body.logged-in .pedex-floating-progress{display:flex}
+.pedex-progress-circle{
+  --p:0;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(255,255,255,.13) 0);
+  position:relative;
+  flex:0 0 auto;
+}
+.pedex-progress-circle:after{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border-radius:50%;
+  background:#06172f;
+}
+.pedex-progress-circle b{
+  position:relative;
+  z-index:2;
+  color:#fff;
+  font-size:14px;
+}
+.pedex-progress-meta{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.pedex-progress-meta strong{
+  display:block;
+  color:#fff;
+  font-size:12px;
+}
+.pedex-progress-save{
+  border:0;
+  border-radius:999px;
+  padding:11px 14px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#071A3A;
+  font-weight:900;
+  font-size:12px;
+  box-shadow:0 10px 24px rgba(245,196,0,.22);
+}
+.pedex-progress-save small{
+  display:block;
+  font-size:9px;
+  opacity:.78;
+  line-height:1;
+}
+@media(min-width:921px){
+  .pedex-floating-progress{
+    right:22px;
+    bottom:22px;
+  }
+}
+@media(max-width:920px){
+  .pedex-floating-progress{
+    left:12px;
+    right:12px;
+    bottom:88px;
+    justify-content:space-between;
+    border-radius:22px;
+    padding:9px 10px;
+    z-index:260;
+  }
+  .pedex-progress-circle{
+    width:52px;
+    height:52px;
+  }
+  .pedex-progress-meta{
+    flex:1;
+    font-size:10px;
+  }
+  .pedex-progress-save{
+    min-width:112px;
+    padding:10px 12px;
+  }
+  .main{
+    padding-bottom:160px!important;
+  }
+}
+@media(max-width:420px){
+  .pedex-progress-meta strong{font-size:11px}
+  .pedex-progress-save{min-width:96px;font-size:11px}
+}
+
+
+.r32-floating-save{display:none!important}
 </style>
 </head>
 <body>
@@ -900,7 +1113,402 @@ onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
 
+
+/* === PEDEX 2.0: overrides 16vos por lote + ojito password === */
+function setupPasswordEyesV20(){
+  ['loginPassword','regPassword','newUserPassword'].forEach(id=>{
+    const input=$(id);
+    if(!input || input.closest('.password-wrap-v20')) return;
+    const wrap=document.createElement('div');
+    wrap.className='password-wrap-v20';
+    input.parentNode.insertBefore(wrap,input);
+    wrap.appendChild(input);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='password-eye-v20';
+    btn.innerHTML='👁';
+    btn.setAttribute('aria-label','Mostrar contraseña');
+    btn.onclick=()=>{
+      input.type=input.type==='password'?'text':'password';
+      btn.innerHTML=input.type==='password'?'👁':'🙈';
+      btn.setAttribute('aria-label',input.type==='password'?'Mostrar contraseña':'Ocultar contraseña');
+    };
+    wrap.appendChild(btn);
+  });
+}
+const __oldShowAuthV20 = showAuth;
+showAuth = function(which){
+  __oldShowAuthV20(which);
+  setTimeout(setupPasswordEyesV20,30);
+};
+window.showAuth=showAuth;
+setTimeout(setupPasswordEyesV20,100);
+document.addEventListener('DOMContentLoaded',setupPasswordEyesV20);
+
+function getR32PredictionMatches(){
+  const source = (typeof buildOfficialBracket==='function' ? buildOfficialBracket() : (DATA.bracket||[]));
+  const byId = new Map();
+  source
+    .filter(m=>Number(m.id)>=73 && Number(m.id)<=88)
+    .forEach(m=>{
+      const homeOk=m.home && m.home!=='Por definir' && !String(m.home).startsWith('TBD');
+      const awayOk=m.away && m.away!=='Por definir' && !String(m.away).startsWith('TBD');
+      if(homeOk && awayOk) byId.set(Number(m.id),m);
+    });
+  return Array.from(byId.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+function r32IsLockedOrClosed(m){
+  const p=myPred[m.id]||{};
+  return !!p.bloqueado || isMatchClosed(m);
+}
+function r32InputComplete(m){
+  const h=$('r32p'+m.id+'h'), a=$('r32p'+m.id+'a');
+  if(!h || !a) return false;
+  if(h.value==='' || a.value==='' || Number(h.value)<0 || Number(a.value)<0) return false;
+  if(Number(h.value)===Number(a.value)){
+    const pen=$('r32pen'+m.id);
+    if(!pen || !pen.value) return false;
+  }
+  return true;
+}
+function r32UpdatePenalty(id){
+  const h=$('r32p'+id+'h')?.value;
+  const a=$('r32p'+id+'a')?.value;
+  const box=$('r32penbox'+id);
+  if(box) box.classList.toggle('show',h!=='' && a!=='' && Number(h)===Number(a));
+  updateR32BatchProgress();
+}
+function updateR32BatchProgress(){
+  const matches=getR32PredictionMatches();
+  let completed=0;
+  matches.forEach(m=>{
+    const saved=myPred[m.id] && myPred[m.id].bloqueado;
+    const complete=saved || r32InputComplete(m);
+    if(complete) completed++;
+    const card=document.querySelector(`.r32-card[data-match-id="${m.id}"]`);
+    if(card){
+      card.classList.toggle('complete',complete);
+      if(complete) card.classList.remove('missing');
+    }
+  });
+  const total=matches.length || 16;
+  const pct=total?Math.round((completed/total)*100):0;
+  if($('r32ProgressFill')) $('r32ProgressFill').style.width=pct+'%';
+  if($('r32ProgressLabel')) $('r32ProgressLabel').textContent=`${completed} / ${total} completos`;
+  if($('r32FloatCircle')) $('r32FloatCircle').style.setProperty('--p',pct);
+  if($('r32FloatPct')) $('r32FloatPct').textContent=pct+'%';
+  if($('r32FloatStatus')) $('r32FloatStatus').textContent=`${completed} / ${total} capturados`;
+}
+function validateR32Batch(){
+  const missing=[];
+  getR32PredictionMatches().forEach(m=>{
+    if(myPred[m.id]?.bloqueado) return;
+    if(isMatchClosed(m)) return;
+    if(!r32InputComplete(m)) missing.push(m);
+  });
+  document.querySelectorAll('.r32-card').forEach(c=>c.classList.remove('missing'));
+  missing.forEach(m=>document.querySelector(`.r32-card[data-match-id="${m.id}"]`)?.classList.add('missing'));
+  const box=$('r32MissingBox');
+  if(box){
+    if(missing.length){
+      box.style.display='block';
+      box.innerHTML='<b>Faltan por completar:</b> '+missing.map(m=>`#${m.id} ${m.home} vs ${m.away}`).join(', ');
+    }else{
+      box.style.display='none';
+      box.innerHTML='';
+    }
+  }
+  if(missing.length){
+    document.querySelector('.r32-card.missing')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  return missing;
+}
+renderPredictions = function(){
+  const all=getR32PredictionMatches();
+  if(!all.length){
+    $('predictionList').innerHTML='<div class="admin-warning">No se encontraron partidos de dieciseisavos disponibles para pronosticar.</div>';
+    return;
+  }
+  $('predictionList').innerHTML = `
+    <div class="r32-batch-note">
+      <b>Nuevo flujo PEDEX 2.0:</b> captura todos tus pronósticos de dieciseisavos y presiona <b>Guardar 16vos</b> una sola vez. Si pones empate, debes elegir quién avanza por penales.
+    </div>
+    <div class="r32-batch-toolbar">
+      <div class="r32-batch-top">
+        <div><h3>Pronósticos de dieciseisavos</h3><p>Llena los 16 partidos. El botón flotante también guarda todos.</p></div>
+        <div class="r32-progress"><span id="r32ProgressLabel" class="small">0 / 16 completos</span><div class="r32-track"><div id="r32ProgressFill" class="r32-fill"></div></div></div>
+        <div class="r32-actions">
+          <button class="btn btn-gold" onclick="saveAllR32Predictions()">Guardar todos 16vos</button>
+          <button class="btn btn-outline" onclick="validateR32Batch()">Revisar faltantes</button>
+          <button class="btn btn-outline" onclick="clearOpenR32Inputs()">Limpiar abiertos</button>
+        </div>
+      </div>
+      <div id="r32MissingBox" class="r32-missing-box"></div>
+    </div>
+  ` + all.map(m=>{
+    const p=myPred[m.id]||{};
+    const saved=!!p.bloqueado;
+    const closed=isMatchClosed(m);
+    const disabled=saved || closed;
+    const hs=p.homeScore ?? p.marcadorA ?? '';
+    const as=p.awayScore ?? p.marcadorB ?? '';
+    const draw=hs!=='' && as!=='' && Number(hs)===Number(as);
+    const note=saved?'Pronóstico guardado con candado.':(closed?'Cerrado por inicio del partido.':'Pendiente por capturar.');
+    return `<div class="r32-card ${saved?'complete':''}" data-match-id="${m.id}">
+      <div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${m.phase||'Dieciseisavos'}</span></div>
+      <div class="r32-team-row"><b>${teamLabel(m.home)}</b><input type="number" min="0" max="20" id="r32p${m.id}h" value="${hs}" ${disabled?'disabled':''} oninput="r32UpdatePenalty(${m.id})" placeholder="0"></div>
+      <div class="r32-team-row"><b>${teamLabel(m.away)}</b><input type="number" min="0" max="20" id="r32p${m.id}a" value="${as}" ${disabled?'disabled':''} oninput="r32UpdatePenalty(${m.id})" placeholder="0"></div>
+      <div id="r32penbox${m.id}" class="r32-penalty ${draw?'show':''}">
+        <label>Empate en 16vos: ¿quién avanza por penales?</label>
+        <select id="r32pen${m.id}" ${disabled?'disabled':''} onchange="updateR32BatchProgress()">
+          <option value="">Selecciona ganador</option>
+          <option value="${m.home}" ${(p.penaltyWinner===m.home||p.winner===m.home)?'selected':''}>${m.home}</option>
+          <option value="${m.away}" ${(p.penaltyWinner===m.away||p.winner===m.away)?'selected':''}>${m.away}</option>
+        </select>
+      </div>
+      <div class="saved-note">${note}</div>
+    </div>`;
+  }).join('');
+  setTimeout(updateR32BatchProgress,30);
+};
+window.renderPredictions=renderPredictions;
+window.r32UpdatePenalty=r32UpdatePenalty;
+window.updateR32BatchProgress=updateR32BatchProgress;
+window.validateR32Batch=validateR32Batch;
+
+async function saveAllR32Predictions(){
+  if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
+  const missing=validateR32Batch();
+  if(missing.length) return toast(`Te faltan ${missing.length} partido(s) de 16vos por completar.`);
+  const matches=getR32PredictionMatches().filter(m=>!myPred[m.id]?.bloqueado && !isMatchClosed(m));
+  if(!matches.length) return toast('No hay pronósticos abiertos para guardar.');
+  if(!confirm('Vas a guardar TODOS tus pronósticos de 16vos. Después quedarán con candado y no podrás modificarlos salvo desbloqueo del administrador antes del inicio del partido. ¿Continuar?')) return;
+  for(const m of matches){
+    const h=Number($('r32p'+m.id+'h').value);
+    const a=Number($('r32p'+m.id+'a').value);
+    const pen=$('r32pen'+m.id);
+    const penaltyWinner=(h===a && pen) ? pen.value : '';
+    const winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
+    await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
+      userId:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email,
+      email:currentUser.email,
+      partidoId:Number(m.id),
+      fase:m.phase||'Dieciseisavos',
+      equipoA:m.home,
+      equipoB:m.away,
+      marcadorA:h,
+      marcadorB:a,
+      homeScore:h,
+      awayScore:a,
+      penaltyWinner,
+      winner,
+      bloqueado:true,
+      cerradoPorInicio:false,
+      actualizado:serverTimestamp()
+    },{merge:true});
+  }
+  toast('Pronósticos de 16vos guardados correctamente.');
+  renderPredictions();
+}
+window.saveAllR32Predictions=saveAllR32Predictions;
+
+function clearOpenR32Inputs(){
+  getR32PredictionMatches().forEach(m=>{
+    if(myPred[m.id]?.bloqueado || isMatchClosed(m)) return;
+    const h=$('r32p'+m.id+'h'), a=$('r32p'+m.id+'a'), pen=$('r32pen'+m.id);
+    if(h) h.value='';
+    if(a) a.value='';
+    if(pen) pen.value='';
+    $('r32penbox'+m.id)?.classList.remove('show');
+  });
+  const box=$('r32MissingBox');
+  if(box){box.style.display='none';box.innerHTML='';}
+  updateR32BatchProgress();
+}
+window.clearOpenR32Inputs=clearOpenR32Inputs;
+
+
+/* === PEDEX 2.0: Ranking estilo golf con empates === */
+function golfRankLabel(rank, tied){
+  return tied ? "T" + rank : String(rank);
+}
+function assignGolfRanks(players){
+  const sorted = [...players].sort((a,b)=>{
+    if((b.points||0)!==(a.points||0)) return (b.points||0)-(a.points||0);
+    return String(a.name||"").localeCompare(String(b.name||""));
+  });
+  let previousPoints = null;
+  let currentRank = 0;
+  sorted.forEach((p,idx)=>{
+    if(previousPoints === null || p.points !== previousPoints){
+      currentRank = idx + 1;
+      previousPoints = p.points;
+    }
+    p.rank = currentRank;
+  });
+  const counts = {};
+  sorted.forEach(p=>{ counts[p.rank] = (counts[p.rank]||0)+1; });
+  sorted.forEach(p=>{ p.rankLabel = golfRankLabel(p.rank, counts[p.rank] > 1); });
+  return sorted;
+}
+function normalizeRankingPlayersFromRows(players){
+  return assignGolfRanks(players).map(p=>({
+    ...p,
+    lugar:p.rankLabel,
+    rankText:p.rankLabel
+  }));
+}
+const __oldRenderRankingGolf = typeof renderRanking === "function" ? renderRanking : null;
+renderRanking = function(){
+  if(typeof getAllUsersForRanking === "function" && typeof calculateUserScore === "function"){
+    const users = getAllUsersForRanking();
+    const players = users.map(u=>{
+      const score = calculateUserScore(u.uid || u.id || u.userId || "", u);
+      return {
+        raw:u,
+        name:u.nombre || u.name || u.displayName || u.email || "Participante",
+        email:u.email || "",
+        photo:u.photoURL || u.foto || u.photo || "assets/persona-perfil.png",
+        points:Number(score.total || score.points || score.puntos || 0),
+        predCount:Number(score.predCount || score.capturados || score.pronosticos || 0),
+        exact:Number(score.exactos || score.exact || 0)
+      };
+    });
+    const ranked = assignGolfRanks(players);
+    const meEmail = (currentUser && currentUser.email) ? currentUser.email : "";
+    const myRow = ranked.find(p=>p.email===meEmail);
+    if($("rankingTable")){
+      $("rankingTable").innerHTML = `<table><thead><tr><th>Lugar</th><th>Participante</th><th>Puntos</th><th>Pronósticos</th><th>Exactos</th></tr></thead><tbody>`+
+        ranked.map(p=>`<tr>
+          <td><b class="pts">${p.rankLabel}</b></td>
+          <td><div class="rank-user"><img class="rank-photo" src="${p.photo}" onerror="this.src='assets/persona-perfil.png'"><div><b>${p.name}</b><small>${p.email}</small></div></div></td>
+          <td class="pts">${p.points}</td>
+          <td>${p.predCount}</td>
+          <td>${p.exact}</td>
+        </tr>`).join("")+
+        `</tbody></table>`;
+    }
+    if(myRow){
+      if($("kpiPlace")) $("kpiPlace").textContent=myRow.rankLabel;
+      if($("profilePlace")) $("profilePlace").textContent=myRow.rankLabel;
+      if($("headerRank")) $("headerRank").textContent=`Lugar: ${myRow.rankLabel} · ${myRow.points} pts`;
+      if($("kpiPoints")) $("kpiPoints").textContent=myRow.points;
+      if($("profilePoints")) $("profilePoints").textContent=myRow.points;
+    }
+    return;
+  }
+  if(__oldRenderRankingGolf) __oldRenderRankingGolf();
+  // Post-procesa tablas existentes cuando el ranking ya fue dibujado por la versión anterior.
+  try{
+    const table = $("rankingTable")?.querySelector("table");
+    if(!table) return;
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+    const parsed = rows.map((tr,idx)=>{
+      const cells = Array.from(tr.children);
+      let pointsCell = cells.find(td=>/^\d+$/.test((td.textContent||"").trim()) && td.cellIndex>0) || cells[2] || cells[cells.length-1];
+      const pts = Number((pointsCell.textContent||"0").replace(/[^\d.-]/g,"")) || 0;
+      return {tr,idx,points:pts};
+    });
+    const ranked = assignGolfRanks(parsed);
+    ranked.forEach(p=>{
+      const firstCell = p.tr.children[0];
+      if(firstCell) firstCell.innerHTML = `<b class="pts">${p.rankLabel}</b>`;
+    });
+  }catch(e){ console.warn("No se pudo aplicar ranking golf", e); }
+};
+window.renderRanking = renderRanking;
+
+
+/* === PEDEX 2.0: actualizador universal del avance flotante === */
+function pedexCountVisiblePredictionProgress(){
+  let total=0, completed=0;
+  if(typeof getR32PredictionMatches === "function"){
+    const matches = getR32PredictionMatches();
+    if(matches && matches.length){
+      total = matches.length;
+      completed = matches.filter(m=>{
+        const saved = myPred && myPred[m.id] && myPred[m.id].bloqueado;
+        if(saved) return true;
+        if(typeof r32InputComplete === "function") return r32InputComplete(m);
+        return false;
+      }).length;
+      return {total,completed,title:"16vos"};
+    }
+  }
+  if(typeof getJornada3PronosticoMatches === "function"){
+    const matches = getJornada3PronosticoMatches();
+    total = matches.length;
+    completed = matches.filter(m=>{
+      const p = myPred && myPred[m.id];
+      return !!(p && (p.bloqueado || p.homeScore!==undefined || p.marcadorA!==undefined));
+    }).length;
+    return {total,completed,title:"Pronósticos"};
+  }
+  const cards = Array.from(document.querySelectorAll('.r32-card,.prediction-card-v2,.match-card'));
+  total = cards.length;
+  completed = cards.filter(c=>c.classList.contains('complete') || c.querySelector('.saved-note')?.textContent?.toLowerCase().includes('guardado')).length;
+  return {total,completed,title:"Avance"};
+}
+function updatePedexFloatingProgress(){
+  const data = pedexCountVisiblePredictionProgress();
+  const pct = data.total ? Math.round((data.completed/data.total)*100) : 0;
+  const circle = document.getElementById("pedexProgressCircle");
+  const pctEl = document.getElementById("pedexProgressPct");
+  const textEl = document.getElementById("pedexProgressText");
+  const titleEl = document.getElementById("pedexProgressTitle");
+  if(circle) circle.style.setProperty("--p", pct);
+  if(pctEl) pctEl.textContent = pct + "%";
+  if(textEl) textEl.textContent = data.completed + " / " + data.total + " capturados";
+  if(titleEl) titleEl.textContent = data.title;
+  // sincroniza también el circulito anterior si existe
+  if(document.getElementById("r32FloatCircle")) document.getElementById("r32FloatCircle").style.setProperty("--p", pct);
+  if(document.getElementById("r32FloatPct")) document.getElementById("r32FloatPct").textContent = pct + "%";
+  if(document.getElementById("r32FloatStatus")) document.getElementById("r32FloatStatus").textContent = data.completed + " / " + data.total + " capturados";
+}
+function pedexFloatingSave(){
+  if(typeof saveAllR32Predictions === "function") return saveAllR32Predictions();
+  if(typeof saveAllPredictions === "function") return saveAllPredictions();
+  if(typeof saveAll === "function") return saveAll();
+  alert("No se encontró la función de guardado.");
+}
+window.updatePedexFloatingProgress = updatePedexFloatingProgress;
+window.pedexFloatingSave = pedexFloatingSave;
+
+const __oldUpdateR32BatchProgressPedex = typeof updateR32BatchProgress === "function" ? updateR32BatchProgress : null;
+if(__oldUpdateR32BatchProgressPedex){
+  updateR32BatchProgress = function(){
+    __oldUpdateR32BatchProgressPedex();
+    updatePedexFloatingProgress();
+  };
+  window.updateR32BatchProgress = updateR32BatchProgress;
+}
+const __oldRenderPredictionsPedex = typeof renderPredictions === "function" ? renderPredictions : null;
+if(__oldRenderPredictionsPedex){
+  renderPredictions = function(){
+    __oldRenderPredictionsPedex();
+    setTimeout(updatePedexFloatingProgress,60);
+  };
+  window.renderPredictions = renderPredictions;
+}
+const __oldGoSectionPedex = typeof goSection === "function" ? goSection : null;
+if(__oldGoSectionPedex){
+  goSection = function(section){
+    __oldGoSectionPedex(section);
+    setTimeout(updatePedexFloatingProgress,80);
+  };
+  window.goSection = goSection;
+}
+document.addEventListener("input", function(e){
+  if(e.target && (e.target.id||"").match(/(r32p|p\d+)/)) setTimeout(updatePedexFloatingProgress,40);
+});
+document.addEventListener("change", function(e){
+  if(e.target && (e.target.id||"").match(/(r32pen|pen\d+)/)) setTimeout(updatePedexFloatingProgress,40);
+});
+setTimeout(updatePedexFloatingProgress,300);
+
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
+setTimeout(updatePedexFloatingProgress,500);
 </script>
 </body>
 </html>
