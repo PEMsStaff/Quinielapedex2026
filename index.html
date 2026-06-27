@@ -92,6 +92,123 @@ body.logged-in .bottom-nav{visibility:visible;pointer-events:auto;}
 .admin-result-actions .btn{padding:10px 12px;font-size:12px}
 @media(max-width:920px){.admin-mini-grid{grid-template-columns:1fr}.admin-result-actions .btn{width:100%}}
 
+
+/* === PEDEX: posiciones tipo golf + botón flotante 16vos === */
+.golf-place{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:42px;
+  height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  font-weight:900;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#071A3A;
+}
+.golf-place.tie{
+  color:var(--green);
+  background:rgba(112,225,166,.12);
+  border:1px solid rgba(112,225,166,.45);
+}
+#pedexR32Float{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  z-index:999999;
+  display:none;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid rgba(245,196,0,.55);
+  background:rgba(3,13,32,.94);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-radius:999px;
+  box-shadow:0 18px 55px rgba(0,0,0,.5);
+}
+body.logged-in #pedexR32Float{display:flex}
+#pedexR32Circle{
+  --p:0;
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  flex:0 0 auto;
+  background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(255,255,255,.14) 0);
+}
+#pedexR32Circle:after{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border-radius:50%;
+  background:#06172f;
+}
+#pedexR32Pct{
+  position:relative;
+  z-index:2;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+#pedexR32Text{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.25;
+  white-space:nowrap;
+}
+#pedexR32Text b{
+  display:block;
+  color:#fff;
+  font-size:12px;
+}
+#pedexR32Btn{
+  border:0;
+  border-radius:999px;
+  padding:12px 16px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#071A3A;
+  font-weight:900;
+  font-size:12px;
+  box-shadow:0 10px 24px rgba(245,196,0,.25);
+}
+#pedexR32Btn small{
+  display:block;
+  font-size:9px;
+  line-height:1;
+  opacity:.78;
+}
+.r32-penalty-inline{
+  display:none;
+  text-align:center;
+  margin-top:10px;
+}
+.r32-penalty-inline.show{display:block}
+.r32-penalty-inline select{
+  width:min(360px,100%);
+  border:1px solid rgba(245,196,0,.36);
+  background:#071A3A;
+  color:#fff;
+  border-radius:14px;
+  padding:11px;
+}
+@media(max-width:920px){
+  #pedexR32Float{
+    left:12px;
+    right:12px;
+    bottom:86px;
+    justify-content:space-between;
+    border-radius:22px;
+    padding:9px 10px;
+  }
+  #pedexR32Circle{width:52px;height:52px}
+  #pedexR32Text{flex:1;font-size:10px}
+  #pedexR32Btn{min-width:112px;padding:10px 12px}
+  .main{padding-bottom:160px!important}
+}
+
 </style>
 </head>
 <body>
@@ -900,7 +1017,207 @@ onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
 
+
+/* === PEDEX: ranking tipo golf y guardado flotante 16vos === */
+function golfRankBadge(label){
+  const tied = String(label).startsWith('T');
+  return `<span class="golf-place ${tied?'tie':''}">${label}</span>`;
+}
+function applyGolfRanksToRanking(){
+  if(!Array.isArray(ranking)) return;
+  let previous = null;
+  let rankNumber = 0;
+  ranking.forEach((r,index)=>{
+    const pts = Number(r.puntos||0);
+    if(previous === null || pts !== previous){
+      rankNumber = index + 1;
+      previous = pts;
+    }
+    r.golfRank = rankNumber;
+  });
+  const counts = {};
+  ranking.forEach(r=>counts[r.golfRank]=(counts[r.golfRank]||0)+1);
+  ranking.forEach(r=>{
+    r.golfTied = counts[r.golfRank] > 1;
+    r.golfLabel = r.golfTied ? 'T' + r.golfRank : String(r.golfRank);
+  });
+}
+const __pedexOriginalComputeRanking = computeRanking;
+computeRanking = function(){
+  const result = __pedexOriginalComputeRanking.apply(this, arguments);
+  applyGolfRanksToRanking();
+  renderRanking();
+  updateUserStats();
+  return result;
+};
+window.computeRanking = computeRanking;
+
+renderRanking = function(){
+  applyGolfRanksToRanking();
+  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Pronósticos capturados</th><th>Avance de captura</th><th>Pronósticos</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r)=>{
+    const foto=r.fotoURL||r.photoURL||'assets/persona-perfil.png';
+    const nombre=r.nombre||'Participante';
+    const correo=r.email||'';
+    const label=r.golfLabel||'--';
+    return `<tr>
+      <td class="pts">${golfRankBadge(label)}</td>
+      <td><div class="rank-user"><img class="rank-photo" src="${foto}" onerror="this.src='assets/persona-perfil.png'"><div><b>${nombre}</b><small>${correo}</small></div></div></td>
+      <td class="pts">${r.puntos||0}</td>
+      <td>${Number(r.ajustePuntos||0)}</td>
+      <td><b>${r.captured||0} / ${r.total||DATA.pending.length}</b></td>
+      <td>${captureBar(r)} ${r.pct||0}%</td>
+      <td>${r.pronosticados||0}</td>
+      <td>${r.aciertos||0}</td>
+      <td>${r.exactos||0}</td>
+    </tr>`}).join('')}</tbody></table>`;
+};
+window.renderRanking = renderRanking;
+
+updateUserStats = function(){
+  if(!currentUser)return;
+  applyGolfRanksToRanking();
+  const me=ranking.find(r=>r.id===currentUser.uid)||{puntos:0,pronosticados:0,exactos:0,aciertos:0,captured:0,total:DATA.pending.length,pct:0,golfLabel:'--'};
+  const placeLabel=me.golfLabel||'--';
+  $('kpiMine').textContent=`${me.captured||0}/${me.total||DATA.pending.length}`;
+  $('kpiPoints').textContent=me.puntos||0;
+  $('kpiPlace').textContent=placeLabel;
+  $('headerRank').innerHTML=`Lugar: ${golfRankBadge(placeLabel)} · ${me.puntos||0} pts · ${me.captured||0}/${me.total||DATA.pending.length} pronósticos`;
+  $('profilePlace').textContent=placeLabel;
+  $('profilePoints').textContent=me.puntos||0;
+  $('profilePredCount').textContent=me.captured||0;
+  $('profileExactos').textContent=me.exactos||0;
+};
+window.updateUserStats = updateUserStats;
+
+renderAdminUsers = function(){
+  if(!isAdmin())return;
+  applyGolfRanksToRanking();
+  const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)})));
+  $('adminUsers').innerHTML=source.map((u,i)=>{
+    const meta=u.total!==undefined?u:captureMeta(u.id);
+    const label=u.golfLabel||String(i+1);
+    return `<div class="admin-user-card">
+      <img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'">
+      <b class="pts">${golfRankBadge(label)}</b>
+      <div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div>
+      <div>${u.email||''}</div>
+      <b>${u.puntos||0} pts</b>
+      <div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div>
+      <button class="btn btn-gold" style="margin-left:auto" onclick="openAdminUser('${u.id}')">Abrir ficha</button>
+    </div>`
+  }).join('');
+};
+window.renderAdminUsers = renderAdminUsers;
+
+function getR32MatchesBatch(){
+  const source = (typeof buildUserBracket==='function' ? buildUserBracket() : DATA.bracket);
+  const byId = new Map();
+  source.filter(m=>Number(m.id)>=73 && Number(m.id)<=88).forEach(m=>{
+    const homeOk = m.home && m.home !== 'Por definir' && !String(m.home).startsWith('TBD');
+    const awayOk = m.away && m.away !== 'Por definir' && !String(m.away).startsWith('TBD');
+    if(homeOk && awayOk) byId.set(Number(m.id),m);
+  });
+  return Array.from(byId.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+function syncR32PenaltySelectors(){
+  getR32MatchesBatch().forEach(m=>{
+    const h=$('p'+m.id+'h');
+    const a=$('p'+m.id+'a');
+    if(!h || !a) return;
+    let box=$('r32penbox'+m.id);
+    if(!box){
+      const container=h.closest('.match-card');
+      box=document.createElement('div');
+      box.id='r32penbox'+m.id;
+      box.className='r32-penalty-inline';
+      box.innerHTML=`<select id="r32pen${m.id}"><option value="">Empate: ¿quién avanza por penales?</option><option value="${m.home}">${m.home}</option><option value="${m.away}">${m.away}</option></select>`;
+      const note=container?.querySelector('.saved-note');
+      if(note) container.insertBefore(box,note); else container?.appendChild(box);
+      box.querySelector('select').addEventListener('change',updateR32FloatingProgress);
+    }
+    const draw=h.value!=='' && a.value!=='' && Number(h.value)===Number(a.value);
+    box.classList.toggle('show',draw);
+    h.addEventListener('input',()=>{syncR32PenaltySelectors();updateR32FloatingProgress();});
+    a.addEventListener('input',()=>{syncR32PenaltySelectors();updateR32FloatingProgress();});
+  });
+}
+function r32InputComplete(m){
+  const existing=myPred[m.id]||{};
+  if(existing.bloqueado) return true;
+  const h=$('p'+m.id+'h');
+  const a=$('p'+m.id+'a');
+  if(!h || !a || h.value==='' || a.value==='') return false;
+  if(Number(h.value)===Number(a.value)){
+    const pen=$('r32pen'+m.id);
+    return !!(pen && pen.value);
+  }
+  return true;
+}
+function updateR32FloatingProgress(){
+  const matches=getR32MatchesBatch();
+  const total=matches.length || 16;
+  const completed=matches.filter(r32InputComplete).length;
+  const pct=total?Math.round((completed/total)*100):0;
+  if($('pedexR32Circle')) $('pedexR32Circle').style.setProperty('--p',pct);
+  if($('pedexR32Pct')) $('pedexR32Pct').textContent=pct+'%';
+  if($('pedexR32Status')) $('pedexR32Status').textContent=`${completed} / ${total} capturados`;
+}
+const __pedexOriginalRenderPredictions = renderPredictions;
+renderPredictions = function(){
+  __pedexOriginalRenderPredictions.apply(this, arguments);
+  setTimeout(()=>{syncR32PenaltySelectors();updateR32FloatingProgress();},80);
+};
+window.renderPredictions = renderPredictions;
+
+async function saveAllR32PredictionsBatch(){
+  if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
+  const matches=getR32MatchesBatch().filter(m=>!myPred[m.id]?.bloqueado && !isMatchClosed(m));
+  const missing=[];
+  for(const m of matches){
+    if(!r32InputComplete(m)) missing.push(m);
+  }
+  if(missing.length){
+    toast(`Faltan ${missing.length} partido(s) de 16vos.`);
+    const first=missing[0];
+    $('p'+first.id+'h')?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(!matches.length) return toast('No hay partidos de 16vos abiertos para guardar.');
+  if(!confirm('Vas a guardar todos tus pronósticos de 16vos. Después quedarán con candado. ¿Continuar?')) return;
+  for(const m of matches){
+    const h=Number($('p'+m.id+'h').value);
+    const a=Number($('p'+m.id+'a').value);
+    const pen=$('r32pen'+m.id);
+    const penaltyWinner=(h===a && pen) ? pen.value : '';
+    const winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
+    await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
+      userId:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email,
+      email:currentUser.email,
+      partidoId:Number(m.id),
+      fase:m.phase||'Dieciseisavos',
+      equipoA:m.home,
+      equipoB:m.away,
+      marcadorA:h,
+      marcadorB:a,
+      homeScore:h,
+      awayScore:a,
+      penaltyWinner,
+      winner,
+      bloqueado:true,
+      cerradoPorInicio:false,
+      actualizado:serverTimestamp()
+    },{merge:true});
+  }
+  toast('Pronósticos de 16vos guardados.');
+  renderPredictions();
+}
+window.saveAllR32PredictionsBatch=saveAllR32PredictionsBatch;
+
+setInterval(updateR32FloatingProgress,1200);
+
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
+setTimeout(()=>{syncR32PenaltySelectors();updateR32FloatingProgress();},600);
 </script>
 </body>
 </html>
