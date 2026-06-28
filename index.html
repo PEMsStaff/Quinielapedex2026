@@ -451,23 +451,35 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function isAdmin(){return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes((currentUser?.email||"").toLowerCase())}
 
-const FLAG_BASE = 'img/flags/';
+const FLAG_BASE = 'flags/';
 const FLAG_FILES = {
-  'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'usa.svg','USA':'usa.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
+  'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-and-herzegovina.svg','Bosnia Herzegovina':'bosnia-and-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'united-states.svg','USA':'united-states.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Curaçao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Cote d Ivoire':'ivory-coast.svg','Côte d’Ivoire':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Congo DR':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
 };
-function flagSrc(team){return FLAG_BASE + (FLAG_FILES[team] || 'tbd.svg')}
+function flagSlug(team){
+  return String(team||'tbd')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/&/g,'and')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'') || 'tbd';
+}
+function flagFile(team){
+  if(!team || team==='Por definir') return 'tbd.svg';
+  return FLAG_FILES[team] || `${flagSlug(team)}.svg`;
+}
+function flagSrc(team){return FLAG_BASE + flagFile(team)}
+function normalizeFlagFile(team, savedFlag=''){
+  const flag=String(savedFlag||'').trim();
+  if(flag && flag.toLowerCase().endsWith('.svg')) return flag.includes('/') ? flag.split('/').pop() : flag;
+  return flagFile(team);
+}
 function flagImg(team,cls='flag-img-sm'){return `<img class="${cls}" src="${flagSrc(team)}" alt="${team||'Por definir'}" onerror="this.src='${FLAG_BASE}tbd.svg'">`}
 function teamLabel(team,cls='flag-img-sm'){return `${flagImg(team,cls)}<span>${team||'Por definir'}</span>`}
 function teamLabelSaved(team, savedFlag='', cls='flag-img-sm'){
   const name=team||'Por definir';
-  const flag=String(savedFlag||'').trim();
-  if(flag && (flag.startsWith('http') || flag.startsWith('data:') || flag.includes('/') || flag.endsWith('.svg') || flag.endsWith('.png') || flag.endsWith('.jpg') || flag.endsWith('.webp'))){
-    return `<img class="${cls}" src="${flag}" alt="${name}" onerror="this.src='${FLAG_BASE}tbd.svg'"><span>${name}</span>`;
-  }
-  if(flag){
-    return `<span class="flag" style="display:inline;margin-right:7px">${flag}</span><span>${name}</span>`;
-  }
-  return teamLabel(name,cls);
+  const file=normalizeFlagFile(name,savedFlag);
+  const src = file.includes('/') ? file : (FLAG_BASE + file);
+  return `<img class="${cls}" src="${src}" alt="${name}" onerror="this.src='${FLAG_BASE}tbd.svg'"><span>${name}</span>`;
 }
 function matchTeamLabel(m,side,cls='flag-img-sm'){
   const team=side==='home' ? m?.home : m?.away;
@@ -525,8 +537,8 @@ function normalizeManualBracket(raw){
     out[Number(id)]={
       home:v.home||'Por definir',
       away:v.away||'Por definir',
-      homeFlag:v.homeFlag||'',
-      awayFlag:v.awayFlag||'',
+      homeFlag:normalizeFlagFile(v.home,v.homeFlag),
+      awayFlag:normalizeFlagFile(v.away,v.awayFlag),
       homeFrom:v.homeFrom||'Manual',
       awayFrom:v.awayFrom||'Manual',
       manual:true
@@ -553,9 +565,8 @@ function getTeamPool(){
   return Array.from(map.entries()).sort((a,b)=>a[0].localeCompare(b[0])).map(([team,flag])=>({team,flag}));
 }
 function getTeamFlag(team){
-  if(!team || team==='Por definir') return '';
-  const found=getTeamPool().find(t=>t.team===team);
-  return found?.flag || '';
+  if(!team || team==='Por definir') return 'tbd.svg';
+  return flagFile(team);
 }
 
 function matchById(id){
