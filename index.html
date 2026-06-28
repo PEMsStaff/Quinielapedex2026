@@ -451,7 +451,7 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function isAdmin(){return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes((currentUser?.email||"").toLowerCase())}
 
-const FLAG_BASE = 'flags/';
+const FLAG_BASE = 'img/flags/';
 const FLAG_FILES = {
   'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-and-herzegovina.svg','Bosnia Herzegovina':'bosnia-and-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'united-states.svg','USA':'united-states.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Curaçao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Cote d Ivoire':'ivory-coast.svg','Côte d’Ivoire':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Congo DR':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
 };
@@ -477,8 +477,8 @@ function flagImg(team,cls='flag-img-sm'){return `<img class="${cls}" src="${flag
 function teamLabel(team,cls='flag-img-sm'){return `${flagImg(team,cls)}<span>${team||'Por definir'}</span>`}
 function teamLabelSaved(team, savedFlag='', cls='flag-img-sm'){
   const name=team||'Por definir';
-  const file=normalizeFlagFile(name,savedFlag);
-  const src = file.includes('/') ? file : (FLAG_BASE + file);
+  const file=normalizeFlagFile(name,savedFlag).split('/').pop();
+  const src = FLAG_BASE + file;
   return `<img class="${cls}" src="${src}" alt="${name}" onerror="this.src='${FLAG_BASE}tbd.svg'"><span>${name}</span>`;
 }
 function matchTeamLabel(m,side,cls='flag-img-sm'){
@@ -1223,7 +1223,7 @@ function renderProfile(){
   updateUserStats();
 }
 
-function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`}).join('');}
+function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button><button class="btn btn-outline" onclick="adminUnlockUserAllPredictions('${u.id}')">Desbloquear marcadores</button></div></div>`}).join('');}
 async function adminCreateUser(){if(!isAdmin())return; const name=$('newUserName').value.trim(), email=$('newUserEmail').value.trim(), pass=$('newUserPassword').value; if(!name||!email||!pass)return alert('Completa nombre, email y password inicial.'); if(pass.length<6)return alert('El password debe tener al menos 6 caracteres.'); try{const cred=await createUserWithEmailAndPassword(adminCreateAuth,email,pass); await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,activo:true,puntos:0,ajustePuntos:0,exactos:0,aciertos:0,fotoURL:'assets/persona-perfil.png',creadoPorAdmin:true,fechaRegistro:serverTimestamp()},{merge:true}); await signOut(adminCreateAuth); $('newUserName').value='';$('newUserEmail').value='';$('newUserPassword').value=''; toast('Usuario creado');}catch(e){alert('No se pudo crear usuario: '+e.message)}}
 function canUnlockPrediction(m){
   if(!m) return false;
@@ -1248,7 +1248,7 @@ async function openAdminUser(uid){
     <div class="profile-top"><img id="adminUserPhoto" class="profile-photo" src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><h2>${u.nombre||'Usuario'}</h2><p class="muted">${u.email||''}</p><div class="photo-tools"><input id="adminPhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="adminUpdateUserPhoto('${uid}')">Cambiar foto del usuario</button><small>También se reflejará en su perfil y en el encabezado cuando inicie sesión.</small></div><div class="kpis"><div class="kpi"><small>Puntos</small><strong>${u.puntos||0}</strong></div><div class="kpi"><small>Pronósticos</small><strong>${u.pronosticados||0}</strong></div><div class="kpi"><small>Aciertos</small><strong>${u.aciertos||0}</strong></div><div class="kpi"><small>Exactos</small><strong>${u.exactos||0}</strong></div></div></div></div>
     <div class="admin-warning"><b>Administración:</b> puedes dar de alta, dar de baja, eliminar de la quiniela, actualizar nombre/email visible y ajustar puntos. Si ya desplegaste la Cloud Function <code>deleteUserCompletely</code>, el botón <b>Eliminar completo Auth + Quiniela</b> borra también el acceso de Firebase Authentication y libera el correo. Para contraseña, este panel envía un correo de recuperación.</div>
     <div class="grid3"><label>Nombre<input id="editName" value="${u.nombre||''}"></label><label>Email visible<input id="editEmail" value="${u.email||''}"></label><label>Ajuste manual de puntos<input id="editPoints" type="number" value="${Number(u.ajustePuntos||0)}"></label></div>
-    <div class="admin-detail-actions"><button class="btn btn-gold" onclick="saveAdminProfile('${uid}')">Guardar perfil/puntos</button><button class="btn btn-outline" onclick="adminResetPassword('${uid}')">Enviar reset password</button><button class="btn btn-outline" onclick="adminToggleActive('${uid}',${u.activo===false?'true':'false'})">${u.activo===false?'Reactivar usuario':'Dar de baja usuario'}</button><button class="btn btn-outline" onclick="adminDeleteProfile('${uid}')">Eliminar solo quiniela</button><button class="btn btn-gold" onclick="adminDeleteComplete('${uid}')">Eliminar completo Auth + Quiniela</button></div>
+    <div class="admin-detail-actions"><button class="btn btn-gold" onclick="saveAdminProfile('${uid}')">Guardar perfil/puntos</button><button class="btn btn-outline" onclick="adminResetPassword('${uid}')">Enviar reset password</button><button class="btn btn-outline" onclick="adminToggleActive('${uid}',${u.activo===false?'true':'false'})">${u.activo===false?'Reactivar usuario':'Dar de baja usuario'}</button><button class="btn btn-outline" onclick="adminUnlockUserAllPredictions('${uid}')">Desbloquear todos sus marcadores</button><button class="btn btn-outline" onclick="adminDeleteProfile('${uid}')">Eliminar solo quiniela</button><button class="btn btn-gold" onclick="adminDeleteComplete('${uid}')">Eliminar completo Auth + Quiniela</button></div>
     <h3>Desbloqueo de pronósticos</h3>
     <p class="muted">Pronósticos capturados: <b>${captureMeta(uid).captured} / ${captureMeta(uid).total}</b> (${captureMeta(uid).pct}%). El administrador ya no cambia marcadores. Sólo puede desbloquear un pronóstico para que el usuario lo vuelva a capturar, siempre que el partido no haya empezado ni terminado.</p>
     <div class="match-list">${allMatches.map(m=>{const p=preds.find(x=>Number(x.partidoId)===Number(m.id))||{}; const h=p.homeScore??p.marcadorA; const a=p.awayScore??p.marcadorB; const status=unlockStatusText(m,p); const can=!!p.id && !!p.bloqueado && canUnlockPrediction(m); return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${m.date} · ${m.time}</span><span>${m.phase||('Grupo '+m.group)}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="admin-warning" style="margin-top:12px"><b>Pronóstico:</b> ${h!==undefined && h!=='' ? h+' - '+a : 'Sin captura'}<br><b>Estado:</b> ${status}</div><div class="score-inputs" style="margin-top:10px"><input type="number" min="0" max="20" id="adminPred_${uid}_${m.id}_h" value="${h!==undefined?h:''}"><input type="number" min="0" max="20" id="adminPred_${uid}_${m.id}_a" value="${a!==undefined?a:''}"></div><div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-gold" onclick="adminSaveUserPrediction('${uid}',${m.id})">Guardar pronóstico como admin</button><button class="btn btn-outline" onclick="adminUnlockPrediction('${uid}',${m.id})" ${can?'':'disabled'}>${can?'Desbloquear para usuario':'No disponible'}</button></div></div>`}).join('')}</div>`;
@@ -1295,8 +1295,21 @@ async function adminUnlockPrediction(uid,id){
   const pred=predictions.find(p=>p.userId===uid && Number(p.partidoId)===Number(id));
   if(!pred) return alert('Este usuario aún no tiene pronóstico guardado para ese partido.');
   if(!confirm('Se desbloqueará este pronóstico para que el usuario lo vuelva a capturar. ¿Continuar?')) return;
-  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
+  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
   toast('Pronóstico desbloqueado para el usuario');
+  await openAdminUser(uid);
+}
+async function adminUnlockUserAllPredictions(uid){
+  if(!isAdmin()) return;
+  const user=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid)||{};
+  const userPreds=predictions.filter(p=>p.userId===uid && p.bloqueado!==false);
+  const unlockable=userPreds.filter(p=>canUnlockPrediction(matchById(p.partidoId)));
+  if(!unlockable.length) return alert('No hay marcadores bloqueados disponibles para desbloquear de este usuario.');
+  if(!confirm(`Se desbloquearán ${unlockable.length} marcador(es) de ${user.nombre||user.email||'este usuario'} para que los pueda modificar. ¿Continuar?`)) return;
+  for(const p of unlockable){
+    await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
+  }
+  toast('Marcadores desbloqueados para el usuario');
   await openAdminUser(uid);
 }
 async function adminResetPassword(uid){const u=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid); if(!u?.email)return alert('Este usuario no tiene email.'); try{await sendPasswordResetEmail(auth,u.email); toast('Correo de recuperación enviado');}catch(e){alert('No se pudo enviar reset: '+e.message)}}
@@ -1321,6 +1334,7 @@ async function adminDeleteComplete(uid){
   }
 }
 window.adminClearJornada3Predictions=adminClearJornada3Predictions; window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; window.saveAdminProfile=saveAdminProfile; window.adminUnlockPrediction=adminUnlockPrediction; window.adminSaveUserPrediction=adminSaveUserPrediction; window.adminResetPassword=adminResetPassword; window.adminToggleActive=adminToggleActive; window.adminDeleteProfile=adminDeleteProfile; window.adminDeleteComplete=adminDeleteComplete;
+window.adminUnlockUserAllPredictions=adminUnlockUserAllPredictions;
 
 async function adminClearJornada3Predictions(){
   if(!isAdmin()) return;
@@ -1372,7 +1386,7 @@ function renderAdminResults(){
       <div class="admin-result-actions">
         <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado real y cerrar</button>
         <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir solo resultado</button>
-        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Abrir resultado + pronósticos</button>
+        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Desbloquear pronósticos de este partido</button>
       </div>
     </div>`;
   }).join('') || '<div class="admin-warning">Primero da de alta la llave manual de dieciseisavos para poder capturar resultados reales.</div>';
@@ -1417,7 +1431,7 @@ async function adminOpenResultAndPredictions(id){
     await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
     const docs=predictions.filter(p=>Number(p.partidoId)===Number(id));
     for(const p of docs){
-      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
+      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
     }
     renderPredictions();
     toast('Resultado y pronósticos abiertos para corrección');
