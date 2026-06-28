@@ -2157,8 +2157,8 @@ renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminR
       var card=byId('predCard16_'+id);
       if(card) card.classList.add('pedex-card-draft-saved');
       var note=byId('draftNote16_'+id);
-      if(note) note.innerHTML='✅ Marcador guardado como borrador. Continua con el siguiente partido.';
-      safeToast('Marcador guardado. Continua hacia abajo.');
+      if(note) note.innerHTML='✅ Partido guardado como borrador. Continua con el siguiente partido.';
+      safeToast('Partido guardado. Continua hacia abajo.');
       setTimeout(function(){
         var next=nextEditableCard(id);
         if(next) next.scrollIntoView({behavior:'smooth',block:'center'});
@@ -2168,7 +2168,7 @@ renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminR
     }).catch(function(e){
       alert('No se pudo guardar el borrador: '+(e.message||e));
     }).finally(function(){
-      if(btn){ btn.disabled=false; btn.textContent='Guardar este marcador'; }
+      if(btn){ btn.disabled=false; btn.textContent='Guardar este partido'; }
       if(typeof updateFloat==='function') updateFloat();
     });
   };
@@ -2243,21 +2243,22 @@ renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminR
       var p=(window.myPred&&myPred[m.id])||{};
       return p.bloqueado || p.homeScore!==undefined || p.marcadorA!==undefined;
     }).length;
-    var html='<div class="card pedex-capture-help"><h2>Captura tus marcadores de Dieciseisavos</h2><p class="muted">Llena los marcadores de arriba hacia abajo. Puedes guardar cada partido como borrador y la pantalla avanzara automaticamente al siguiente. Al terminar, usa el boton fijo <b>Guardar y confirmar todo</b>.</p><div class="capture-bar"><div class="capture-fill green" style="width:'+Math.round(doneCount/(all.length||1)*100)+'%"></div></div><p class="small">Avance: '+doneCount+' / '+all.length+' partidos con marcador.</p></div>';
+    var html='<div class="card pedex-capture-help"><h2>Captura tus marcadores de Dieciseisavos</h2><p class="muted">Llena los marcadores de arriba hacia abajo. Cada partido tiene su propio boton para guardar. Al guardar, se conserva como borrador y la pantalla avanza automaticamente al siguiente. Al terminar, usa el boton fijo <b>Guardar y confirmar todo</b>.</p><div class="capture-bar"><div class="capture-fill green" style="width:'+Math.round(doneCount/(all.length||1)*100)+'%"></div></div><p class="small">Avance: '+doneCount+' / '+all.length+' partidos con marcador.</p></div>';
     html+=all.map(function(m){
       var p=(window.myPred&&myPred[m.id])||{};
       var disabled=isLockedOrClosed(m);
       var st=cardStatus(m);
       var h=scoreValue(p,'homeScore','marcadorA');
       var a=scoreValue(p,'awayScore','marcadorB');
-      return '<div class="match-card '+((p.homeScore!==undefined||p.marcadorA!==undefined)&&!p.bloqueado?'pedex-card-draft-saved':'')+'" id="predCard16_'+m.id+'" data-pred-card="'+m.id+'"><div class="match-head"><span>#'+m.id+' · '+(typeof formatKickoff==='function'?formatKickoff(m):'')+'</span><span>Dieciseisavos</span></div><div class="teams"><div class="team">'+teamLabel(m.home)+'</div><div class="vs">VS</div><div class="team">'+teamLabel(m.away)+'</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p'+m.id+'h" value="'+h+'" '+(disabled?'disabled':'')+' inputmode="numeric"><input type="number" min="0" max="20" id="p'+m.id+'a" value="'+a+'" '+(disabled?'disabled':'')+' inputmode="numeric"></div><div id="draftNote16_'+m.id+'" class="saved-note '+st.cls+'">'+st.text+'</div>'+(disabled?'':'<div style="display:flex;justify-content:center;margin-top:10px"><button id="draftBtn16_'+m.id+'" class="btn btn-outline" type="button" onclick="pedexSaveDraft16('+m.id+')">Guardar este marcador</button></div>')+'</div>';
+      return '<div class="match-card '+((p.homeScore!==undefined||p.marcadorA!==undefined)&&!p.bloqueado?'pedex-card-draft-saved':'')+'" id="predCard16_'+m.id+'" data-pred-card="'+m.id+'"><div class="match-head"><span>#'+m.id+' · '+(typeof formatKickoff==='function'?formatKickoff(m):'')+'</span><span>'+(m.phase||'Dieciseisavos')+'</span></div><div class="teams"><div class="team">'+teamLabel(m.home)+'</div><div class="vs">VS</div><div class="team">'+teamLabel(m.away)+'</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p'+m.id+'h" value="'+h+'" '+(disabled?'disabled':'')+' inputmode="numeric"><input type="number" min="0" max="20" id="p'+m.id+'a" value="'+a+'" '+(disabled?'disabled':'')+' inputmode="numeric"></div><div id="draftNote16_'+m.id+'" class="saved-note '+st.cls+'">'+st.text+'</div>'+(disabled?'':'<div class="pedex-save-one" style="display:flex;justify-content:center;margin-top:10px"><button id="draftBtn16_'+m.id+'" class="btn btn-outline" type="button" onclick="pedexSaveDraft16('+m.id+')">Guardar este partido</button></div>')+'</div>';
     }).join('');
     html+='<div id="pedexStickyBulkSave16" class="pedex-sticky-save"><div><b>'+getCurrentPhaseLabel()+'</b><small>'+doneCount+' / '+all.length+' capturados</small></div><button class="btn btn-gold" type="button" onclick="pedexPrepareSave16vos()">Guardar y confirmar todo</button></div>';
     list.innerHTML=html;
     setTimeout(function(){ if(typeof ensurePenaltySelectors==='function') ensurePenaltySelectors(); },80);
   };
   var css=document.createElement('style');
-  css.textContent='\n.pedex-capture-help{border-color:rgba(245,196,0,.38)}\n.pedex-card-draft-saved{border-color:rgba(112,225,166,.55)!important;background:linear-gradient(145deg,rgba(112,225,166,.10),rgba(255,255,255,.04))!important}\n.pedex-sticky-save{position:sticky;bottom:12px;z-index:80;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;padding:12px 14px;border:1px solid rgba(245,196,0,.55);border-radius:22px;background:rgba(3,13,32,.96);box-shadow:0 18px 50px rgba(0,0,0,.35);backdrop-filter:blur(16px)}\n.pedex-sticky-save b{display:block;color:#fff}.pedex-sticky-save small{display:block;color:var(--muted);font-size:11px}\n#pedexFriendlyConfirm16.hidden{display:none!important}#pedexFriendlyConfirm16{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:18px}.pedex-confirm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px)}.pedex-confirm-modal{position:relative;width:min(520px,100%);border:1px solid rgba(245,196,0,.5);border-radius:26px;background:#071A3A;color:#fff;padding:22px;box-shadow:0 24px 90px rgba(0,0,0,.55)}.pedex-confirm-modal h3{margin:0 0 10px;color:var(--gold)}.pedex-confirm-modal p{color:var(--muted);line-height:1.55}\n@media(max-width:920px){.pedex-sticky-save{bottom:92px;left:0;right:0;align-items:stretch;flex-direction:column}.pedex-sticky-save .btn{width:100%}}';
+  css.textContent='\n.pedex-capture-help{border-color:rgba(245,196,0,.38)}
+.pedex-save-one .btn{min-width:210px}.pedex-save-one .btn:before{content:"💾";margin-right:6px}\n.pedex-card-draft-saved{border-color:rgba(112,225,166,.55)!important;background:linear-gradient(145deg,rgba(112,225,166,.10),rgba(255,255,255,.04))!important}\n.pedex-sticky-save{position:sticky;bottom:12px;z-index:80;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;padding:12px 14px;border:1px solid rgba(245,196,0,.55);border-radius:22px;background:rgba(3,13,32,.96);box-shadow:0 18px 50px rgba(0,0,0,.35);backdrop-filter:blur(16px)}\n.pedex-sticky-save b{display:block;color:#fff}.pedex-sticky-save small{display:block;color:var(--muted);font-size:11px}\n#pedexFriendlyConfirm16.hidden{display:none!important}#pedexFriendlyConfirm16{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:18px}.pedex-confirm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px)}.pedex-confirm-modal{position:relative;width:min(520px,100%);border:1px solid rgba(245,196,0,.5);border-radius:26px;background:#071A3A;color:#fff;padding:22px;box-shadow:0 24px 90px rgba(0,0,0,.55)}.pedex-confirm-modal h3{margin:0 0 10px;color:var(--gold)}.pedex-confirm-modal p{color:var(--muted);line-height:1.55}\n@media(max-width:920px){.pedex-sticky-save{bottom:92px;left:0;right:0;align-items:stretch;flex-direction:column}.pedex-sticky-save .btn{width:100%}}';
   document.head.appendChild(css);
   document.addEventListener('input',function(e){
     if(e.target && /^p\d+[ha]$/.test(e.target.id)){
@@ -2267,6 +2268,120 @@ renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminR
     }
   },true);
   setTimeout(function(){ if(typeof renderPredictions==='function') renderPredictions(); },600);
+})();
+</script>
+
+<script>
+/* === FIX 2026-06: guardar pronosticos sin convertirlos en empates ===
+   Causa corregida: al confirmar se hacia await partido por partido y Firestore re-renderizaba la pantalla
+   antes de leer los siguientes marcadores. Ahora primero se toma una foto completa de todos los inputs y
+   despues se escriben todos los documentos. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function safeToast(msg){ if(typeof toast==='function') toast(msg); else alert(msg); }
+  function activePredictionMatches(){
+    try{
+      if(typeof getCurrentPredictionMatches==='function'){
+        return getCurrentPredictionMatches().filter(function(m){
+          return typeof hasBothTeams==='function' ? hasBothTeams(m) : !!(m && m.home && m.away);
+        });
+      }
+    }catch(e){}
+    try{
+      if(typeof getKnockout16Matches==='function'){
+        return getKnockout16Matches().filter(function(m){ return !!(m && m.home && m.away); });
+      }
+    }catch(e){}
+    return [];
+  }
+  function isLockedOrClosedFixed(m){
+    var p=(window.myPred && myPred[m.id]) || {};
+    return !!p.bloqueado || (typeof isMatchClosed==='function' && isMatchClosed(m));
+  }
+  function readPredictionSnapshot(){
+    var matches=activePredictionMatches().filter(function(m){ return !isLockedOrClosedFixed(m); });
+    var rows=[];
+    for(var i=0;i<matches.length;i++){
+      var m=matches[i];
+      var hEl=byId('p'+m.id+'h');
+      var aEl=byId('p'+m.id+'a');
+      if(!hEl || !aEl || hEl.value==='' || aEl.value===''){
+        safeToast('Falta capturar marcador en el partido #'+m.id+'.');
+        (hEl || aEl)?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+        return null;
+      }
+      var h=parseInt(hEl.value,10);
+      var a=parseInt(aEl.value,10);
+      if(!Number.isFinite(h) || !Number.isFinite(a) || h<0 || a<0){
+        safeToast('Revisa el marcador del partido #'+m.id+'.');
+        hEl.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+        return null;
+      }
+      var penEl=byId('pedexFinalPenSel'+m.id);
+      var penaltyWinner='';
+      if(h===a){
+        penaltyWinner=penEl ? penEl.value : '';
+        if(!penaltyWinner){
+          safeToast('Empate en partido #'+m.id+': elige quien avanza por penales.');
+          (penEl || hEl)?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+          return null;
+        }
+      }
+      var winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
+      rows.push({match:m,homeScore:h,awayScore:a,penaltyWinner:penaltyWinner,winner:winner});
+    }
+    return rows;
+  }
+  window.pedexPrepareSave16vos=function(){
+    var rows=readPredictionSnapshot();
+    if(!rows) return;
+    if(!rows.length){ return safeToast('No hay pronosticos abiertos para confirmar.'); }
+    var box=document.getElementById('pedexFriendlyConfirm16');
+    if(!box){
+      box=document.createElement('div');
+      box.id='pedexFriendlyConfirm16';
+      box.className='hidden';
+      box.innerHTML='<div class="pedex-confirm-backdrop"></div><div class="pedex-confirm-modal"><h3>Confirmar pronosticos</h3><p>Al confirmar, todos tus marcadores quedaran guardados con candado y ya no podras modificarlos. Revisa que esten correctos antes de continuar.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-gold" type="button" onclick="pedexConfirmSave16vos()">Confirmar y bloquear</button><button class="btn btn-outline" type="button" onclick="pedexCancelConfirm16vos()">Cancelar</button></div></div>';
+      document.body.appendChild(box);
+    }
+    box.classList.remove('hidden');
+  };
+  window.pedexCancelConfirm16vos=function(){ byId('pedexFriendlyConfirm16')?.classList.add('hidden'); };
+  window.pedexConfirmSave16vos=async function(){
+    if(!currentUser) return alert('Inicia sesion para guardar tus pronosticos.');
+    var rows=readPredictionSnapshot();
+    if(!rows) return;
+    if(!rows.length){ pedexCancelConfirm16vos(); return safeToast('No hay pronosticos abiertos para bloquear.'); }
+    try{
+      for(const row of rows){
+        const m=row.match;
+        await setDoc(doc(db,'pronosticos',currentUser.uid+'_'+m.id),{
+          userId:currentUser.uid,
+          nombre:(currentProfile&&currentProfile.nombre)||currentUser.email,
+          email:currentUser.email,
+          partidoId:Number(m.id),
+          fase:m.phase||getCurrentPhaseLabel?.()||'Dieciseisavos',
+          equipoA:m.home,
+          equipoB:m.away,
+          marcadorA:row.homeScore,
+          marcadorB:row.awayScore,
+          homeScore:row.homeScore,
+          awayScore:row.awayScore,
+          penaltyWinner:row.penaltyWinner,
+          winner:row.winner,
+          bloqueado:true,
+          borrador:false,
+          cerradoPorInicio:false,
+          actualizado:serverTimestamp()
+        },{merge:true});
+      }
+      pedexCancelConfirm16vos();
+      safeToast('Listo. Tus pronosticos quedaron confirmados y bloqueados.');
+      if(typeof renderPredictions==='function') renderPredictions();
+    }catch(e){
+      alert('No se pudieron guardar tus pronosticos: '+(e.message||e));
+    }
+  };
 })();
 </script>
 
