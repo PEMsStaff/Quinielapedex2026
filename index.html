@@ -216,6 +216,16 @@ body.logged-in #pedexFinalFloat16{
   .main{padding-bottom:165px!important}
 }
 
+
+/* === FIFA KNOCKOUT SYNC === */
+.fifa-sync-card{border-color:rgba(90,168,255,.42)!important;background:linear-gradient(145deg,rgba(90,168,255,.10),rgba(255,255,255,.05))!important}
+.fifa-sync-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.fifa-sync-status{font-size:12px;color:var(--muted);line-height:1.55}
+.fifa-sync-status b{color:var(--gold)}
+.fifa-source-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(90,168,255,.45);background:rgba(90,168,255,.12);color:#dff0ff;border-radius:999px;padding:8px 12px;font-weight:900;font-size:12px;margin-top:8px}
+.fifa-json-input{width:100%;min-height:130px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22);color:#fff;border-radius:16px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px}
+@media(max-width:920px){.fifa-sync-actions .btn,.fifa-sync-actions .fifa-link{width:100%;justify-content:center}}
+
 </style>
 </head>
 <body>
@@ -325,6 +335,23 @@ body.logged-in #pedexFinalFloat16{
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
           <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
         </div>
+        <div class="card fifa-sync-card">
+          <h3>Actualizar llave oficial FIFA · 16vos a Final</h3>
+          <p class="muted">Este módulo intenta traer la información actualizada de FIFA.com para dieciseisavos, octavos, cuartos, semifinales, tercer lugar y final. Si el navegador bloquea FIFA por CORS, puedes pegar un JSON o guardar la versión importada en Firebase para que todos los usuarios vean la misma llave.</p>
+          <div class="fifa-sync-actions">
+            <button class="btn btn-gold" onclick="syncKnockoutFromFifa()">Jalar de FIFA.com</button>
+            <button class="btn btn-outline" onclick="saveKnockoutToFirebase()">Guardar llave en Firebase</button>
+            <button class="btn btn-outline" onclick="clearKnockoutOverride()">Usar fallback local</button>
+            <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Abrir FIFA</a>
+          </div>
+          <details>
+            <summary style="cursor:pointer;font-weight:900;color:var(--gold)">Pegar JSON manual de FIFA / proveedor autorizado</summary>
+            <p class="muted">Acepta un arreglo de partidos o un objeto con <code>matches</code>. Campos sugeridos: <code>id</code>, <code>date</code>, <code>time</code>, <code>phase</code>, <code>home</code>, <code>away</code>, <code>homeScore</code>, <code>awayScore</code>, <code>status</code>.</p>
+            <textarea id="fifaJsonInput" class="fifa-json-input" placeholder='[{"id":73,"date":"2026-06-28","time":"12:00","phase":"Dieciseisavos","home":"South Africa","away":"Canada"}]'></textarea>
+            <div class="fifa-sync-actions"><button class="btn btn-gold" onclick="importKnockoutJsonFromTextarea()">Importar JSON pegado</button></div>
+          </details>
+          <div id="fifaSyncStatus" class="fifa-sync-status">Fuente actual: fallback local del HTML.</div>
+        </div>
         <div id="adminResults" class="admin-results-grid"></div>
       </div>
 
@@ -407,6 +434,7 @@ const ADMIN_EMAIL = "pem250274@gmail.com";
 const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const functions = getFunctions(app, "us-central1");
 const adminCreateApp = initializeApp(firebaseConfig, 'admin-create-app'); const adminCreateAuth = getAuth(adminCreateApp);
 let currentUser=null,currentProfile=null,users=[],predictions=[],myPred={},ranking=[],actualResults={};
+let fifaKnockoutMatches=[], fifaSyncMeta=null, fifaSyncLoadedFromFirebase=false;
 
 function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
@@ -662,7 +690,99 @@ function buildOfficialRound32(){
     return {...template,id:Number(id),phase:'Dieciseisavos',home:home.team,homeFlag:home.flag,away:away.team,awayFlag:away.flag,homeFrom:homeSlot,awayFrom:awaySlot,homeNote:home.note,awayNote:away.note};
   });
 }
+
+function normalizePhaseName(raw){
+  const t=String(raw||'').toLowerCase();
+  if(t.includes('round of 32')||t.includes('last 32')||t.includes('dieciseis')||t.includes('32')) return 'Dieciseisavos';
+  if(t.includes('round of 16')||t.includes('last 16')||t.includes('octav')||t.includes('16')) return 'Octavos';
+  if(t.includes('quarter')||t.includes('cuarto')) return 'Cuartos';
+  if(t.includes('semi')) return 'Semifinal';
+  if(t.includes('third')||t.includes('3rd')||t.includes('tercer')) return '3rd Place';
+  if(t.includes('final')) return 'Final';
+  return raw||'Llave';
+}
+function fifaTeamName(obj){
+  if(!obj) return '';
+  if(typeof obj==='string') return obj;
+  return obj.name || obj.shortName || obj.abbreviation || obj.displayName || obj.countryName || obj.teamName || obj.triCode || '';
+}
+function fifaScore(obj){
+  if(obj==null) return null;
+  if(typeof obj==='number') return obj;
+  const n=Number(obj.score ?? obj.goals ?? obj.regularTimeScore ?? obj.displayScore);
+  return Number.isFinite(n) ? n : null;
+}
+function normalizeKnockoutMatch(item,idx=0){
+  const id=Number(item.id ?? item.matchNumber ?? item.matchNo ?? item.MatchNumber ?? item.match_id ?? item.matchId ?? (73+idx));
+  const homeRaw=item.home || item.homeTeam || item.team1 || item.contestantHome || item.localTeam || item.Home;
+  const awayRaw=item.away || item.awayTeam || item.team2 || item.contestantAway || item.visitorTeam || item.Away;
+  const home=fifaTeamName(homeRaw) || item.homeName || item.team1Name || item.homeTeamName || 'Por definir';
+  const away=fifaTeamName(awayRaw) || item.awayName || item.team2Name || item.awayTeamName || 'Por definir';
+  const phase=normalizePhaseName(item.phase || item.stage || item.round || item.competitionStage || item.matchType || item.description);
+  const dt=item.date || item.matchDate || item.kickoff || item.kickOff || item.startTime || item.utcDate || '';
+  let date=item.localDate || item.dateLocal || '';
+  let time=item.localTime || item.time || '';
+  if((!date || !time) && typeof dt==='string' && dt){
+    const m=dt.match(/(\d{4}-\d{2}-\d{2}).*?(\d{2}:\d{2})/);
+    if(m){date=date||m[1]; time=time||m[2];}
+  }
+  return {
+    id, date:date || item.date || '', time:time || item.time || '', phase,
+    home, homeFlag:item.homeFlag || '', away, awayFlag:item.awayFlag || '',
+    homeScore:fifaScore(item.homeScore ?? item.homeGoals ?? item.scoreHome ?? item.homeTeamScore ?? homeRaw),
+    awayScore:fifaScore(item.awayScore ?? item.awayGoals ?? item.scoreAway ?? item.awayTeamScore ?? awayRaw),
+    status:String(item.status || item.matchStatus || item.state || '').toLowerCase().includes('final') ? 'final' : (item.status || '')
+  };
+}
+function normalizeKnockoutArray(raw){
+  const list=Array.isArray(raw) ? raw : (raw?.matches || raw?.data?.matches || raw?.items || []);
+  return list.map(normalizeKnockoutMatch)
+    .filter(m=>Number(m.id)>=73 && Number(m.id)<=104)
+    .map(m=>({...m,phase:normalizePhaseName(m.phase)}))
+    .sort((a,b)=>Number(a.id)-Number(b.id));
+}
+function buildOfficialBracketFromImported(imported){
+  const byId={};
+  (DATA.bracket||[]).forEach(m=>{ if(Number(m.id)>=73) byId[Number(m.id)]={...m}; });
+  normalizeKnockoutArray(imported).forEach(m=>{ byId[Number(m.id)]={...(byId[Number(m.id)]||{}),...m,fifaImported:true}; });
+  const scoreFor=(m)=>{
+    if(!m) return null;
+    const real=actualResults[Number(m.id)];
+    if(real && (real.homeScore!==undefined || real.marcadorA!==undefined)) return {h:Number(real.homeScore ?? real.marcadorA),a:Number(real.awayScore ?? real.marcadorB)};
+    if(m.homeScore!=null && m.awayScore!=null) return {h:Number(m.homeScore),a:Number(m.awayScore)};
+    return null;
+  };
+  const winner=(m)=>{
+    const s=scoreFor(m); if(!m || !s) return null;
+    if(s.h>s.a) return {team:m.home,flag:m.homeFlag||'',from:`Ganador #${m.id}`};
+    if(s.a>s.h) return {team:m.away,flag:m.awayFlag||'',from:`Ganador #${m.id}`};
+    return {team:m.home,flag:m.homeFlag||'',from:`Ganador #${m.id}`,note:'Empate: definir ganador en penales'};
+  };
+  const loser=(m)=>{
+    const s=scoreFor(m); if(!m || !s) return null;
+    if(s.h>s.a) return {team:m.away,flag:m.awayFlag||'',from:`Perdedor #${m.id}`};
+    if(s.a>s.h) return {team:m.home,flag:m.homeFlag||'',from:`Perdedor #${m.id}`};
+    return {team:m.away,flag:m.awayFlag||'',from:`Perdedor #${m.id}`};
+  };
+  const pairMap={89:[73,74],90:[75,76],91:[77,78],92:[79,80],93:[81,82],94:[83,84],95:[85,86],96:[87,88],97:[89,90],98:[91,92],99:[93,94],100:[95,96],101:[97,98],102:[99,100],104:[101,102]};
+  Object.entries(pairMap).forEach(([target,sources])=>{
+    const t=byId[Number(target)]; if(!t) return;
+    const importedTarget=normalizeKnockoutArray(imported).find(x=>Number(x.id)===Number(target));
+    const hasImportedTeams=importedTarget && importedTarget.home && importedTarget.home!=='Por definir' && importedTarget.away && importedTarget.away!=='Por definir';
+    if(hasImportedTeams) return;
+    const wa=winner(byId[Number(sources[0])]), wb=winner(byId[Number(sources[1])]);
+    if(wa){t.home=wa.team;t.homeFlag=wa.flag;t.homeFrom=wa.from;t.homeNote=wa.note||'';}
+    if(wb){t.away=wb.team;t.awayFlag=wb.flag;t.awayFrom=wb.from;t.awayNote=wb.note||'';}
+  });
+  const l101=loser(byId[101]), l102=loser(byId[102]);
+  if(byId[103] && l101 && (!byId[103].home || byId[103].home==='Por definir')){byId[103].home=l101.team; byId[103].homeFlag=l101.flag; byId[103].homeFrom=l101.from;}
+  if(byId[103] && l102 && (!byId[103].away || byId[103].away==='Por definir')){byId[103].away=l102.team; byId[103].awayFlag=l102.flag; byId[103].awayFrom=l102.from;}
+  return Object.values(byId).sort((a,b)=>Number(a.id)-Number(b.id));
+}
 function buildOfficialBracket(){
+  if(Array.isArray(fifaKnockoutMatches) && fifaKnockoutMatches.length){
+    return buildOfficialBracketFromImported(fifaKnockoutMatches);
+  }
   const r32=buildOfficialRound32();
   const byId={};
   r32.forEach(m=>byId[Number(m.id)]={...m});
@@ -1242,10 +1362,116 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1600);
 })();
 
+
+const FIFA_SCORES_URL='https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures';
+const FIFA_FETCH_URLS=[
+  FIFA_SCORES_URL,
+  'https://api.allorigins.win/raw?url='+encodeURIComponent(FIFA_SCORES_URL),
+  'https://r.jina.ai/http://r.jina.ai/http://example.com'
+].filter(u=>!u.includes('example.com'));
+function updateFifaSyncStatus(){
+  const el=$('fifaSyncStatus');
+  if(!el) return;
+  const count=Array.isArray(fifaKnockoutMatches)?fifaKnockoutMatches.length:0;
+  const src=fifaSyncMeta?.source || (fifaSyncLoadedFromFirebase?'Firebase config/fifaKnockout':'fallback local del HTML');
+  const stamp=fifaSyncMeta?.updatedAt || fifaSyncMeta?.loadedAt || '';
+  el.innerHTML=`<span class="fifa-source-badge">Fuente: ${src}</span><br><b>${count||32}</b> partidos de llave disponibles. ${stamp?`Última actualización: ${stamp}.`:''}`;
+}
+function recursivelyCollectMatches(node,out=[]){
+  if(!node || out.length>2000) return out;
+  if(Array.isArray(node)){ node.forEach(x=>recursivelyCollectMatches(x,out)); return out; }
+  if(typeof node==='object'){
+    const keys=Object.keys(node);
+    const hasTeams=keys.some(k=>/home|team1|local/i.test(k)) && keys.some(k=>/away|team2|visitor/i.test(k));
+    const hasRound=keys.some(k=>/phase|stage|round|matchType|description/i.test(k));
+    const id=Number(node.id ?? node.matchNumber ?? node.matchNo ?? node.MatchNumber ?? node.match_id ?? node.matchId);
+    if(hasTeams && (hasRound || (id>=73 && id<=104))) out.push(node);
+    keys.forEach(k=>recursivelyCollectMatches(node[k],out));
+  }
+  return out;
+}
+function extractKnockoutFromText(text){
+  const candidates=[];
+  const next=text.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+  if(next){
+    try{ candidates.push(...recursivelyCollectMatches(JSON.parse(next[1]))); }catch(e){ console.warn('No se pudo parsear __NEXT_DATA__ FIFA',e); }
+  }
+  const jsonMatches=text.match(/\{[\s\S]{200,}\}/g) || [];
+  for(const block of jsonMatches.slice(0,3)){
+    try{ candidates.push(...recursivelyCollectMatches(JSON.parse(block))); }catch(e){}
+  }
+  const normalized=normalizeKnockoutArray(candidates);
+  const unique=new Map(); normalized.forEach(m=>{ if(Number(m.id)>=73 && Number(m.id)<=104) unique.set(Number(m.id),m); });
+  return Array.from(unique.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+async function syncKnockoutFromFifa(){
+  if(!isAdmin()) return alert('Sólo el administrador puede actualizar la llave oficial.');
+  let lastErr=null;
+  for(const url of FIFA_FETCH_URLS){
+    try{
+      const res=await fetch(url,{cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const text=await res.text();
+      const arr=extractKnockoutFromText(text);
+      if(arr.length>=16){
+        fifaKnockoutMatches=arr;
+        fifaSyncMeta={source:'FIFA.com',loadedAt:new Date().toLocaleString('es-MX')};
+        refreshAfterKnockoutChange();
+        toast('Llave actualizada desde FIFA.com');
+        return arr;
+      }
+      lastErr=new Error('FIFA respondió, pero no encontré suficientes partidos de llave.');
+    }catch(e){ lastErr=e; console.warn('Fallo consultando FIFA',url,e); }
+  }
+  alert('No se pudo jalar directo desde FIFA.com desde este navegador. Probablemente es bloqueo CORS o cambió la estructura del sitio. Usa el botón de pegar JSON o guarda la llave en Firebase desde un origen autorizado. Detalle: '+(lastErr?.message||lastErr));
+}
+function refreshAfterKnockoutChange(){
+  computeRanking();
+  renderHome();
+  renderPredictions();
+  renderGroups();
+  renderBracket();
+  renderAdminResults();
+  renderAdminDashboard();
+  updateFifaSyncStatus();
+}
+async function saveKnockoutToFirebase(){
+  if(!isAdmin()) return alert('Sólo el administrador puede guardar la llave oficial.');
+  if(!Array.isArray(fifaKnockoutMatches)||!fifaKnockoutMatches.length) return alert('Primero jala de FIFA.com o importa un JSON.');
+  await setDoc(doc(db,'config','fifaKnockout'),{matches:fifaKnockoutMatches,source:fifaSyncMeta?.source||'manual',updatedAt:new Date().toISOString(),updatedBy:currentUser.email},{merge:true});
+  toast('Llave oficial guardada en Firebase para todos los usuarios.');
+}
+async function clearKnockoutOverride(){
+  if(!isAdmin()) return alert('Sólo el administrador puede cambiar la fuente de llave.');
+  if(!confirm('Se dejará de usar la llave importada y se volverá al fallback local/dinámico del HTML. ¿Continuar?')) return;
+  fifaKnockoutMatches=[]; fifaSyncMeta={source:'fallback local del HTML',loadedAt:new Date().toLocaleString('es-MX')};
+  await setDoc(doc(db,'config','fifaKnockout'),{matches:[],source:'fallback local del HTML',updatedAt:new Date().toISOString(),updatedBy:currentUser.email},{merge:true});
+  refreshAfterKnockoutChange();
+}
+function importKnockoutJsonFromTextarea(){
+  if(!isAdmin()) return alert('Sólo el administrador puede importar la llave.');
+  const raw=$('fifaJsonInput')?.value?.trim();
+  if(!raw) return alert('Pega un JSON primero.');
+  try{
+    const parsed=JSON.parse(raw);
+    const arr=normalizeKnockoutArray(parsed);
+    if(!arr.length) return alert('No encontré partidos válidos entre IDs 73 y 104.');
+    fifaKnockoutMatches=arr;
+    fifaSyncMeta={source:'JSON manual',loadedAt:new Date().toLocaleString('es-MX')};
+    refreshAfterKnockoutChange();
+    toast('JSON de llave importado.');
+  }catch(e){ alert('JSON inválido: '+(e.message||e)); }
+}
+window.syncKnockoutFromFifa=syncKnockoutFromFifa;
+window.saveKnockoutToFirebase=saveKnockoutToFirebase;
+window.clearKnockoutOverride=clearKnockoutOverride;
+window.importKnockoutJsonFromTextarea=importKnockoutJsonFromTextarea;
+
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
+onSnapshot(doc(db,'config','fifaKnockout'), snap=>{ const data=snap.exists()?snap.data():null; fifaSyncLoadedFromFirebase=!!data; fifaKnockoutMatches=normalizeKnockoutArray(data?.matches||[]); fifaSyncMeta=data?{source:data.source||'Firebase config/fifaKnockout',updatedAt:data.updatedAt||''}:null; refreshAfterKnockoutChange(); });
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
 </script>
