@@ -458,6 +458,22 @@ const FLAG_FILES = {
 function flagSrc(team){return FLAG_BASE + (FLAG_FILES[team] || 'tbd.svg')}
 function flagImg(team,cls='flag-img-sm'){return `<img class="${cls}" src="${flagSrc(team)}" alt="${team||'Por definir'}" onerror="this.src='${FLAG_BASE}tbd.svg'">`}
 function teamLabel(team,cls='flag-img-sm'){return `${flagImg(team,cls)}<span>${team||'Por definir'}</span>`}
+function teamLabelSaved(team, savedFlag='', cls='flag-img-sm'){
+  const name=team||'Por definir';
+  const flag=String(savedFlag||'').trim();
+  if(flag && (flag.startsWith('http') || flag.startsWith('data:') || flag.includes('/') || flag.endsWith('.svg') || flag.endsWith('.png') || flag.endsWith('.jpg') || flag.endsWith('.webp'))){
+    return `<img class="${cls}" src="${flag}" alt="${name}" onerror="this.src='${FLAG_BASE}tbd.svg'"><span>${name}</span>`;
+  }
+  if(flag){
+    return `<span class="flag" style="display:inline;margin-right:7px">${flag}</span><span>${name}</span>`;
+  }
+  return teamLabel(name,cls);
+}
+function matchTeamLabel(m,side,cls='flag-img-sm'){
+  const team=side==='home' ? m?.home : m?.away;
+  const savedFlag=side==='home' ? m?.homeFlag : m?.awayFlag;
+  return teamLabelSaved(team,savedFlag,cls);
+}
 
 function showAuth(which){$('loginForm').classList.toggle('hidden',which!=='login');$('registerForm').classList.toggle('hidden',which!=='register');$('tabLogin').classList.toggle('active',which==='login');$('tabRegister').classList.toggle('active',which==='register')}
 function goSection(section){
@@ -544,8 +560,14 @@ function getTeamFlag(team){
 
 function matchById(id){
   const n=Number(id);
+  const knockoutIds=new Set(getKnockoutPhases().flatMap(p=>p.ids));
   const dynamicBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : [];
-  const base=DATA.matches.find(m=>m.id===n)||DATA.pending.find(m=>m.id===n)||dynamicBracket.find(m=>m.id===n)||DATA.bracket.find(m=>m.id===n);
+  let base=null;
+  if(knockoutIds.has(n)){
+    base=dynamicBracket.find(m=>Number(m.id)===n)||DATA.bracket.find(m=>Number(m.id)===n)||DATA.matches.find(m=>Number(m.id)===n)||DATA.pending.find(m=>Number(m.id)===n);
+  }else{
+    base=DATA.matches.find(m=>Number(m.id)===n)||DATA.pending.find(m=>Number(m.id)===n)||dynamicBracket.find(m=>Number(m.id)===n)||DATA.bracket.find(m=>Number(m.id)===n);
+  }
   if(!base) return null;
   const real=actualResults[n];
   const hasRealScore=real && real.homeScore!==undefined && real.awayScore!==undefined && real.homeScore!==null && real.awayScore!==null && String(real.status||'').toLowerCase()!=='open';
@@ -1180,7 +1202,7 @@ function renderProfile(){
       if(p && calcWinnerOk(fullMatch,p)) aciertos++;
       if(p && calcExact(fullMatch,p)) exactos++;
       const ok=pts>0?'✅':'—';
-      return `<tr><td>${m.id}</td><td class="team-cell">${teamLabel(fullMatch.home)} vs ${teamLabel(fullMatch.away)}</td><td>${formatPredictionScore(p)}</td><td>${formatOfficialScore(fullMatch)}</td><td>${ok}</td><td class="pts">${pts}</td></tr>`;
+      return `<tr><td>${m.id}</td><td class="team-cell">${matchTeamLabel(fullMatch,'home')} <b class="vs">vs</b> ${matchTeamLabel(fullMatch,'away')}</td><td>${formatPredictionScore(p)}</td><td>${formatOfficialScore(fullMatch)}</td><td>${ok}</td><td class="pts">${pts}</td></tr>`;
     }).join('');
     if(rows){
       sections.push(`<h3 style="margin-top:18px;color:var(--gold)">${phaseLabelForMatch({phase:ph})}</h3><div class="table-wrap"><table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado oficial</th><th>Acierto</th><th>Puntos</th></tr></thead><tbody>${rows}</tbody></table></div>`);
