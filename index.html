@@ -558,19 +558,52 @@ function resultWinner(h,a,home,away,penaltyWinner=''){
   if(a>h)return away;
   return penaltyWinner || 'Empate';
 }
+function isDrawScore(h,a){
+  return h!==undefined && a!==undefined && h!==null && a!==null && h!=='' && a!=='' && Number(h)===Number(a);
+}
+function normalizeWinnerName(v){return String(v||'').trim();}
 function calcPoints(match,p){
   if(!match||p.homeScore==null||p.awayScore==null||match.homeScore==null||match.awayScore==null)return 0;
-  const exact=Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore);
-  if(exact)return 5;
-  const predWinner=resultWinner(p.homeScore,p.awayScore,match.home,match.away,p.penaltyWinner||p.winner||'');
-  const realWinner=resultWinner(match.homeScore,match.awayScore,match.home,match.away,match.penaltyWinner||'');
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  const realDraw = rh===ra;
+  const predDraw = ph===pa;
+  const realPenaltyWinner = normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+  const predPenaltyWinner = normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+
+  // Regla especial de eliminación directa:
+  // Si el partido real empata, sólo suma si el usuario también pronosticó empate
+  // y acertó el ganador por penales. En ese caso son 5 puntos; si no, 0.
+  if(realDraw){
+    return (predDraw && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner) ? 5 : 0;
+  }
+
+  const exact = ph===rh && pa===ra;
+  if(exact) return 5;
+
+  const predWinner=resultWinner(ph,pa,match.home,match.away,predPenaltyWinner);
+  const realWinner=resultWinner(rh,ra,match.home,match.away,realPenaltyWinner);
   return predWinner===realWinner?3:0;
 }
-function calcExact(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore));}
+function calcExact(match,p){
+  if(!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null)) return false;
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  if(rh===ra){
+    const realPenaltyWinner=normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+    const predPenaltyWinner=normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+    return ph===pa && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner;
+  }
+  return ph===rh && pa===ra;
+}
 function calcWinnerOk(match,p){
   if(!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null)) return false;
-  const predWinner=resultWinner(p.homeScore,p.awayScore,match.home,match.away,p.penaltyWinner||p.winner||'');
-  const realWinner=resultWinner(match.homeScore,match.awayScore,match.home,match.away,match.penaltyWinner||'');
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  if(rh===ra){
+    const realPenaltyWinner=normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+    const predPenaltyWinner=normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+    return ph===pa && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner;
+  }
+  const predWinner=resultWinner(ph,pa,match.home,match.away,p.penaltyWinner||p.winner||'');
+  const realWinner=resultWinner(rh,ra,match.home,match.away,match.penaltyWinner||'');
   return predWinner===realWinner;
 }
 function update16StatusBadge(){
@@ -1095,7 +1128,67 @@ async function adminUpdateUserPhoto(uid){
 }
 window.updateMyProfilePhoto=updateMyProfilePhoto; window.adminUpdateUserPhoto=adminUpdateUserPhoto;
 
-function renderProfile(){if(!currentUser)return; const photo=currentProfile?.fotoURL||'assets/persona-perfil.png'; $('profileName').textContent=currentProfile?.nombre||currentUser.email; $('profileEmail').textContent=currentProfile?.email||currentUser.email; $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email; const my=predictions.filter(p=>p.userId===currentUser.uid); $('myReport').innerHTML=`<table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody>${my.map(p=>{const m=matchById(p.partidoId)||{home:p.equipoA,away:p.equipoB}; return `<tr><td>${p.partidoId}</td><td class="team-cell">${teamLabel(m.home)} vs ${teamLabel(m.away)}</td><td>${p.homeScore??p.marcadorA} - ${p.awayScore??p.marcadorB}</td><td>${m.homeScore!=null?m.homeScore+' - '+m.awayScore:'Pendiente'}</td><td class="pts">${calcPoints(m,p)}</td></tr>`}).join('')}</tbody></table>`; updateUserStats();}
+function phaseLabelForMatch(m){
+  const ph=String(m?.phase||'');
+  if(ph==='Dieciseisavos') return 'Dieciseisavos';
+  if(ph==='Octavos') return 'Octavos';
+  if(ph==='Cuartos') return 'Cuartos de final';
+  if(ph==='Semifinal') return 'Semifinales';
+  if(ph==='Final') return 'Final';
+  if(ph==='3rd Place') return 'Tercer lugar';
+  return ph || 'Eliminación directa';
+}
+function formatPenaltyLabel(winner){return winner ? ` <small class="muted">Penales: ${teamLabel(winner)}</small>` : ''; }
+function formatPredictionScore(p){
+  if(!p || p.homeScore==null || p.awayScore==null || p.homeScore==='' || p.awayScore==='') return 'Sin capturar';
+  const draw=Number(p.homeScore)===Number(p.awayScore);
+  const pen=p.penaltyWinner||p.winner||p.ganadorPenales||'';
+  return `${p.homeScore} - ${p.awayScore}${draw?formatPenaltyLabel(pen):''}`;
+}
+function formatOfficialScore(m){
+  if(!m || m.homeScore==null || m.awayScore==null) return 'Pendiente';
+  const draw=Number(m.homeScore)===Number(m.awayScore);
+  return `${m.homeScore} - ${m.awayScore}${draw?formatPenaltyLabel(m.penaltyWinner||m.winnerPenalty||m.ganadorPenales||''):''}`;
+}
+function renderProfile(){
+  if(!currentUser)return;
+  const photo=currentProfile?.fotoURL||'assets/persona-perfil.png';
+  $('profileName').textContent=currentProfile?.nombre||currentUser.email;
+  $('profileEmail').textContent=currentProfile?.email||currentUser.email;
+  $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email;
+
+  const validMatches=getAllPublishedKnockoutMatches().filter(hasBothTeams).sort((a,b)=>Number(a.id)-Number(b.id));
+  const validIds=new Set(validMatches.map(m=>Number(m.id)));
+  const predMap={};
+  predictions.filter(p=>p.userId===currentUser.uid && validIds.has(Number(p.partidoId))).forEach(p=>{predMap[Number(p.partidoId)]=p;});
+
+  if(!validMatches.length){
+    $('myReport').innerHTML='<div class="admin-warning">Aún no hay fases de eliminación directa publicadas por el administrador.</div>';
+    updateUserStats();
+    return;
+  }
+
+  let totalPts=0, exactos=0, aciertos=0;
+  const sections=[];
+  const orderedPhases=['Dieciseisavos','Octavos','Cuartos','Semifinal','Final'];
+  orderedPhases.forEach(ph=>{
+    const rows=validMatches.filter(m=>String(m.phase)===ph).map(m=>{
+      const p=predMap[Number(m.id)]||null;
+      const fullMatch=matchById(m.id)||m;
+      const pts=p?calcPoints(fullMatch,p):0;
+      totalPts+=pts;
+      if(p && calcWinnerOk(fullMatch,p)) aciertos++;
+      if(p && calcExact(fullMatch,p)) exactos++;
+      const ok=pts>0?'✅':'—';
+      return `<tr><td>${m.id}</td><td class="team-cell">${teamLabel(fullMatch.home)} vs ${teamLabel(fullMatch.away)}</td><td>${formatPredictionScore(p)}</td><td>${formatOfficialScore(fullMatch)}</td><td>${ok}</td><td class="pts">${pts}</td></tr>`;
+    }).join('');
+    if(rows){
+      sections.push(`<h3 style="margin-top:18px;color:var(--gold)">${phaseLabelForMatch({phase:ph})}</h3><div class="table-wrap"><table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado oficial</th><th>Acierto</th><th>Puntos</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+    }
+  });
+  $('myReport').innerHTML=`<div class="admin-warning"><b>Acumulado eliminación directa:</b> ${totalPts} puntos · ${aciertos} aciertos · ${exactos} exactos. Sólo cuenta Dieciseisavos, Octavos, Cuartos, Semifinales y Final.</div>${sections.join('')}`;
+  updateUserStats();
+}
 
 function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`}).join('');}
 async function adminCreateUser(){if(!isAdmin())return; const name=$('newUserName').value.trim(), email=$('newUserEmail').value.trim(), pass=$('newUserPassword').value; if(!name||!email||!pass)return alert('Completa nombre, email y password inicial.'); if(pass.length<6)return alert('El password debe tener al menos 6 caracteres.'); try{const cred=await createUserWithEmailAndPassword(adminCreateAuth,email,pass); await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,activo:true,puntos:0,ajustePuntos:0,exactos:0,aciertos:0,fotoURL:'assets/persona-perfil.png',creadoPorAdmin:true,fechaRegistro:serverTimestamp()},{merge:true}); await signOut(adminCreateAuth); $('newUserName').value='';$('newUserEmail').value='';$('newUserPassword').value=''; toast('Usuario creado');}catch(e){alert('No se pudo crear usuario: '+e.message)}}
@@ -1117,7 +1210,7 @@ async function openAdminUser(uid){
   const detail=$('adminDetail');
   detail.classList.remove('hidden');
   const preds=predictions.filter(p=>p.userId===uid);
-  const allMatches=getKnockout16Matches().filter(hasBothTeams);
+  const allMatches=getAllPublishedKnockoutMatches().filter(hasBothTeams);
   detail.innerHTML=`<h2>Ficha completa del usuario</h2>
     <div class="profile-top"><img id="adminUserPhoto" class="profile-photo" src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><h2>${u.nombre||'Usuario'}</h2><p class="muted">${u.email||''}</p><div class="photo-tools"><input id="adminPhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="adminUpdateUserPhoto('${uid}')">Cambiar foto del usuario</button><small>También se reflejará en su perfil y en el encabezado cuando inicie sesión.</small></div><div class="kpis"><div class="kpi"><small>Puntos</small><strong>${u.puntos||0}</strong></div><div class="kpi"><small>Pronósticos</small><strong>${u.pronosticados||0}</strong></div><div class="kpi"><small>Aciertos</small><strong>${u.aciertos||0}</strong></div><div class="kpi"><small>Exactos</small><strong>${u.exactos||0}</strong></div></div></div></div>
     <div class="admin-warning"><b>Administración:</b> puedes dar de alta, dar de baja, eliminar de la quiniela, actualizar nombre/email visible y ajustar puntos. Si ya desplegaste la Cloud Function <code>deleteUserCompletely</code>, el botón <b>Eliminar completo Auth + Quiniela</b> borra también el acceso de Firebase Authentication y libera el correo. Para contraseña, este panel envía un correo de recuperación.</div>
