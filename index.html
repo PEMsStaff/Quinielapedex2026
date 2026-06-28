@@ -226,6 +226,29 @@ body.logged-in #pedexFinalFloat16{
 .fifa-json-input{width:100%;min-height:130px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22);color:#fff;border-radius:16px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px}
 @media(max-width:920px){.fifa-sync-actions .btn,.fifa-sync-actions .fifa-link{width:100%;justify-content:center}}
 
+
+/* === PEDEX UX PATCH: captura fácil de eliminatorias === */
+.ko-capture-card{border-color:rgba(245,196,0,.34);background:linear-gradient(145deg,rgba(245,196,0,.09),rgba(255,255,255,.045));}
+.ko-capture-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0 12px;}
+.ko-capture-title b{color:var(--gold);font-size:13px;text-transform:uppercase;letter-spacing:.03em;}
+.ko-team-row{display:grid;grid-template-columns:minmax(0,1fr) 86px;gap:12px;align-items:center;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px;margin:10px 0;}
+.ko-team-name{display:flex;align-items:center;gap:10px;font-weight:900;color:#fff;min-width:0;}
+.ko-team-name span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ko-score-input{width:86px!important;height:56px!important;text-align:center!important;border-radius:16px!important;border:2px solid rgba(245,196,0,.38)!important;background:rgba(0,0,0,.30)!important;color:#fff!important;font-size:24px!important;font-weight:900!important;padding:8px!important;}
+.ko-score-input:focus{outline:none!important;border-color:var(--gold)!important;box-shadow:0 0 0 4px rgba(245,196,0,.14)!important;}
+.ko-helper{font-size:12px;color:var(--muted);line-height:1.45;margin:8px 0 0;text-align:center;}
+.ko-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.ko-actions .btn{min-width:190px;}
+.ko-penalty-box{display:none;margin:12px 0 4px;padding:12px;border-radius:18px;background:rgba(245,196,0,.10);border:1px solid rgba(245,196,0,.32);text-align:center;}
+.ko-penalty-box.show{display:block;}
+.ko-penalty-box label{display:block;color:#fff;font-weight:900;font-size:13px;margin-bottom:8px;}
+.ko-penalty-box select{width:min(420px,100%);border:1px solid rgba(245,196,0,.45);background:#071A3A;color:#fff;border-radius:14px;padding:12px;font-weight:800;}
+@media(max-width:920px){
+  .ko-team-row{grid-template-columns:minmax(0,1fr) 74px;padding:10px;border-radius:16px;}
+  .ko-score-input{width:74px!important;height:54px!important;font-size:23px!important;}
+  .ko-actions .btn{width:100%;min-width:0;}
+}
+
 </style>
 </head>
 <body>
@@ -503,11 +526,51 @@ function calcPoints(match,p){if(!match||p.homeScore==null||p.awayScore==null||ma
 function calcExact(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore));}
 function calcWinnerOk(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&resultWinner(p.homeScore,p.awayScore,match.home,match.away)===resultWinner(match.homeScore,match.awayScore,match.home,match.away));}
 
-function renderHome(){
+function isPlayableTeamName(name){
+  return !!(name && name !== 'Por definir' && !String(name).startsWith('TBD'));
+}
+function safeMatchMs(m){
+  const d=matchDateTime(m);
+  return d && !Number.isNaN(d.getTime()) ? d.getTime() : 9999999999999;
+}
+function getLiveBracketMatches(){
   const officialBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : DATA.bracket;
-  $('kpiPending').textContent=DATA.pending.length;
-  $('homeNext').innerHTML=DATA.pending.slice(0,4).map(m=>matchReadOnly(matchById(m.id)||m)).join('');
-  $('homeRound32').innerHTML=officialBracket.filter(b=>b.phase==='Dieciseisavos').slice(0,4).map(matchReadOnly).join('');
+  return (officialBracket||[])
+    .map(m=>matchById(m.id)||m)
+    .filter(m=>m && Number(m.id)>=73 && isPlayableTeamName(m.home) && isPlayableTeamName(m.away))
+    .sort((a,b)=>safeMatchMs(a)-safeMatchMs(b) || Number(a.id)-Number(b.id));
+}
+function getHomeUpcomingMatches(){
+  const byId=new Map();
+  (DATA.pending||[]).forEach(m=>byId.set(Number(m.id),matchById(m.id)||m));
+  getLiveBracketMatches().forEach(m=>byId.set(Number(m.id),m));
+  const now=Date.now();
+  const list=Array.from(byId.values()).filter(m=>{
+    const real=actualResults && actualResults[Number(m.id)];
+    if(real && (real.homeScore!==undefined || real.marcadorA!==undefined)) return false;
+    return safeMatchMs(m) >= now - (2*60*60*1000);
+  }).sort((a,b)=>safeMatchMs(a)-safeMatchMs(b) || Number(a.id)-Number(b.id));
+  return list.length ? list : Array.from(byId.values()).sort((a,b)=>safeMatchMs(b)-safeMatchMs(a) || Number(a.id)-Number(b.id));
+}
+function liveHomeCard(m){
+  const p=myPred && myPred[Number(m.id)] ? myPred[Number(m.id)] : null;
+  const real=actualResults && actualResults[Number(m.id)] ? actualResults[Number(m.id)] : null;
+  const hReal=real ? (real.homeScore ?? real.marcadorA) : m.homeScore;
+  const aReal=real ? (real.awayScore ?? real.marcadorB) : m.awayScore;
+  const hasReal=hReal!==undefined && hReal!==null && aReal!==undefined && aReal!==null;
+  const hasPred=p && (p.homeScore!==undefined || p.marcadorA!==undefined) && (p.awayScore!==undefined || p.marcadorB!==undefined);
+  const hPred=hasPred ? (p.homeScore ?? p.marcadorA) : '';
+  const aPred=hasPred ? (p.awayScore ?? p.marcadorB) : '';
+  const status=hasReal ? `Resultado: ${hReal} - ${aReal}` : (hasPred ? `Mi pronóstico: ${hPred} - ${aPred}` : captureDeadlineText(m));
+  const cls=hasReal ? 'closed' : (isMatchClosed(m) ? 'closed' : 'open');
+  return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${m.phase||m.group||''}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">${hasReal?`${hReal} - ${aReal}`:'VS'}</div><div class="team">${teamLabel(m.away)}</div></div><div class="lock-note ${cls}">${status}</div></div>`;
+}
+function renderHome(){
+  const upcoming=getHomeUpcomingMatches();
+  const r32=getLiveBracketMatches().filter(b=>b.phase==='Dieciseisavos');
+  $('kpiPending').textContent=upcoming.filter(m=>!isMatchClosed(m)).length;
+  $('homeNext').innerHTML=upcoming.slice(0,4).map(liveHomeCard).join('') || '<div class="admin-warning">No hay próximos partidos cargados todavía.</div>';
+  $('homeRound32').innerHTML=r32.slice(0,8).map(liveHomeCard).join('') || '<div class="admin-warning">Los dieciseisavos se actualizarán aquí cuando la llave esté cargada.</div>';
   updateUserStats();
 }
 
@@ -1469,11 +1532,134 @@ window.importKnockoutJsonFromTextarea=importKnockoutJsonFromTextarea;
 
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminDashboard();}});
-onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
+onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderHome(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
 onSnapshot(doc(db,'config','fifaKnockout'), snap=>{ const data=snap.exists()?snap.data():null; fifaSyncLoadedFromFirebase=!!data; fifaKnockoutMatches=normalizeKnockoutArray(data?.matches||[]); fifaSyncMeta=data?{source:data.source||'Firebase config/fifaKnockout',updatedAt:data.updatedAt||''}:null; refreshAfterKnockoutChange(); });
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
+
+/* === PEDEX UX PATCH: captura facil de marcadores de eliminatorias === */
+(function(){
+  function idEl(id){ return document.getElementById(id); }
+  function isKnockoutMatch(m){ return !!(m && Number(m.id) >= 73 && Number(m.id) <= 104); }
+  function isReadyTeam(t){ return t && t !== 'Por definir' && !String(t).startsWith('TBD'); }
+  function flagOf(team){
+    try{
+      const m=(DATA.matches||[]).concat(DATA.pending||[],DATA.bracket||[]).find(x=>x.home===team || x.away===team);
+      if(!m) return '';
+      return m.home===team ? (m.homeFlag||'') : (m.awayFlag||'');
+    }catch(e){ return ''; }
+  }
+  function koTeamLabel(team, flag){ return `<span>${flag||flagOf(team)||''}</span><span>${team||'Por definir'}</span>`; }
+  function koCard(m,p,disabled,alreadySaved,closedByKickoff,note,phaseLabel){
+    const hVal = p.homeScore ?? p.marcadorA ?? '';
+    const aVal = p.awayScore ?? p.marcadorB ?? '';
+    const tie = hVal !== '' && aVal !== '' && Number(hVal) === Number(aVal);
+    const pen = p.penaltyWinner || p.ganadorPenales || p.winnerPenalty || '';
+    const penDisplay = alreadySaved && pen ? `<div class="ko-helper"><b>Avanza por penales:</b> ${pen}</div>` : '';
+    return `<div class="match-card ko-capture-card" data-ko-match="${m.id}">
+      <div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div>
+      <div class="ko-capture-title"><b>Captura marcador final</b><span class="pill">${m.phase||'Eliminatoria'}</span></div>
+      <div class="ko-team-row">
+        <div class="ko-team-name">${koTeamLabel(m.home,m.homeFlag)}</div>
+        <input class="ko-score-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="20" id="p${m.id}h" value="${hVal}" placeholder="0" ${disabled?'disabled':''} aria-label="Marcador ${m.home}">
+      </div>
+      <div class="ko-team-row">
+        <div class="ko-team-name">${koTeamLabel(m.away,m.awayFlag)}</div>
+        <input class="ko-score-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="20" id="p${m.id}a" value="${aVal}" placeholder="0" ${disabled?'disabled':''} aria-label="Marcador ${m.away}">
+      </div>
+      <div id="pedexFinalPen${m.id}" class="ko-penalty-box ${tie?'show':''}">
+        <label>Si empatan, elige quién avanza por penales</label>
+        <select id="pedexFinalPenSel${m.id}" ${disabled?'disabled':''}>
+          <option value="">Selecciona ganador por penales</option>
+          <option value="${m.home}" ${pen===m.home?'selected':''}>${m.home}</option>
+          <option value="${m.away}" ${pen===m.away?'selected':''}>${m.away}</option>
+        </select>
+      </div>
+      ${penDisplay}
+      <div class="ko-actions"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${disabled?'disabled':''}>${alreadySaved?'🔒 Guardado':(closedByKickoff?'🔒 Cerrado':'Guardar este partido')}</button></div>
+      <div class="saved-note">${note}</div>
+    </div>`;
+  }
+
+  function normalCard(m,p,disabled,alreadySaved,closedByKickoff,note,phaseLabel){
+    return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p${m.id}h" value="${p.homeScore??''}" ${disabled?'disabled':''}><input type="number" min="0" max="20" id="p${m.id}a" value="${p.awayScore??''}" ${disabled?'disabled':''}></div><div style="text-align:center;margin-top:10px"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${disabled?'disabled':''}>${alreadySaved?'🔒 Guardado':(closedByKickoff?'🔒 Cerrado':'Guardar pronóstico')}</button></div><div class="saved-note">${note}</div></div>`;
+  }
+
+  renderPredictions = function(){
+    const groupStage = getJornada3PronosticoMatches();
+    const knockout = (typeof buildUserBracket==='function' ? buildUserBracket() : DATA.bracket)
+      .filter(m=>Number(m.id)>=73)
+      .filter(m=>isReadyTeam(m.home) && isReadyTeam(m.away));
+    const all=[]; const seen=new Set();
+    groupStage.concat(knockout).forEach(m=>{ if(m && !seen.has(Number(m.id))){seen.add(Number(m.id)); all.push(m);} });
+    if(!all.length){
+      idEl('predictionList').innerHTML='<div class="admin-warning">No se encontraron partidos disponibles para pronosticar.</div>';
+      return;
+    }
+    idEl('predictionList').innerHTML=all.map((m)=>{
+      const p=myPred[m.id]||{};
+      const alreadySaved=!!p.bloqueado;
+      const closedByKickoff=isMatchClosed(m);
+      const disabled=alreadySaved || closedByKickoff;
+      const phaseLabel=m.group?`Grupo ${m.group} · Jornada ${m.jornada||3}`:(m.phase||'Llave');
+      const note=alreadySaved?'Pronóstico guardado con candado. Sólo el administrador puede desbloquearlo antes de que inicie el partido.':(closedByKickoff?'No capturaste tu pronóstico antes del inicio. Este partido ya quedó cerrado.':'Captura tu pronóstico hasta antes de la hora FIFA del partido.');
+      return isKnockoutMatch(m) ? koCard(m,p,disabled,alreadySaved,closedByKickoff,note,phaseLabel) : normalCard(m,p,disabled,alreadySaved,closedByKickoff,note,phaseLabel);
+    }).join('');
+    setTimeout(()=>{ if(typeof ensurePenaltySelectors==='function') ensurePenaltySelectors(); if(typeof updateFloat16==='function') updateFloat16(); }, 60);
+  };
+  window.renderPredictions = renderPredictions;
+
+  const oldSavePrediction = savePrediction;
+  savePrediction = async function(id){
+    const m = matchById(id) || getJornada3PronosticoMatches().find(x=>Number(x.id)===Number(id)) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
+    if(!isKnockoutMatch(m)) return oldSavePrediction(id);
+    if(!currentUser) return;
+    if(!isPronosticableMatch(m)) return alert('Este partido no está disponible para pronosticar.');
+    if(isMatchClosed(m)) return alert('Este partido ya comenzó o terminó. Ya no se puede capturar marcador.');
+    const existing=myPred[id]||{};
+    if(existing.bloqueado) return alert('Este pronóstico ya está guardado y bloqueado.');
+    const hEl=idEl('p'+id+'h'), aEl=idEl('p'+id+'a');
+    const h=hEl?.value, a=aEl?.value;
+    if(h===''||a===''||h==null||a==null) return alert('Captura ambos marcadores.');
+    const penEl=idEl('pedexFinalPenSel'+id);
+    const isTie=Number(h)===Number(a);
+    const penaltyWinner=isTie ? (penEl?.value||'') : '';
+    if(isTie && !penaltyWinner) return alert('Como pusiste empate, selecciona quién avanza por penales.');
+    const winner = Number(h)>Number(a) ? m.home : (Number(a)>Number(h) ? m.away : penaltyWinner);
+    if(!confirm('Después de guardar este pronóstico no podrás modificarlo, salvo que el administrador lo desbloquee antes de que inicie el partido. ¿Deseas guardar?')) return;
+    if(isMatchClosed(m)) return alert('El partido acaba de cerrar por hora de inicio. Ya no se puede guardar.');
+    await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${id}`),{
+      userId:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email,
+      email:currentUser.email,
+      partidoId:id,
+      fase:m.phase||'Dieciseisavos',
+      equipoA:m.home,
+      equipoB:m.away,
+      marcadorA:Number(h),
+      marcadorB:Number(a),
+      homeScore:Number(h),
+      awayScore:Number(a),
+      penaltyWinner,
+      winner,
+      bloqueado:true,
+      cerradoPorInicio:false,
+      actualizado:serverTimestamp()
+    },{merge:true});
+    toast('Pronóstico guardado');
+  };
+  window.savePrediction = savePrediction;
+
+  document.addEventListener('input', function(ev){
+    const t=ev.target;
+    if(!t || !String(t.id||'').match(/^p\d+[ha]$/)) return;
+    const id=String(t.id).match(/^p(\d+)[ha]$/)?.[1];
+    if(!id) return;
+    const h=idEl('p'+id+'h'), a=idEl('p'+id+'a'), box=idEl('pedexFinalPen'+id);
+    if(h && a && box){ box.classList.toggle('show', h.value!=='' && a.value!=='' && Number(h.value)===Number(a.value)); }
+  }, true);
+})();
 </script>
 <script>
 
@@ -1762,6 +1948,7 @@ renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminR
     }
     if(typeof toast==="function") toast("Pronósticos de 16vos guardados.");
     if(typeof renderPredictions==="function") renderPredictions();
+    if(typeof renderHome==="function") renderHome();
   };
 
   const oldRenderPredictions=window.renderPredictions;
