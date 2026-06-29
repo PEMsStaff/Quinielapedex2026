@@ -245,6 +245,29 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
 .status-16-badge.closed{color:var(--red);border-color:rgba(255,85,112,.45);background:rgba(255,85,112,.12)}
 .status-16-badge.pending{color:var(--muted);border-color:rgba(255,255,255,.20);background:rgba(255,255,255,.07)}
 
+
+
+/* === FIX FINAL: sin botón flotante, guardado individual y botones sin encimarse === */
+#pedexFinalFloat16,#pedexStickyBulkSave16,.pedex-sticky-save,#pedexBulkSaveCard{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+.match-card[data-pred-card]{position:relative;padding-bottom:18px;}
+.match-card[data-pred-card] .score-inputs{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:10px;}
+.match-card[data-pred-card] .score-inputs input{flex:0 0 68px;max-width:68px;}
+.pedex-save-one{display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important;margin-top:14px!important;clear:both!important;}
+.pedex-save-one .btn{min-width:210px;white-space:normal;text-align:center;line-height:1.15;}
+.pedex-final-penalty{width:100%;clear:both;margin:12px auto 0!important;}
+.match-card[data-pred-card] .saved-note{clear:both;margin-top:10px;line-height:1.35;}
+.admin-result-actions,.admin-bracket-controls,.admin-detail-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.admin-result-actions .btn,.admin-bracket-controls .btn,.admin-detail-actions .btn{white-space:normal;line-height:1.15;}
+@media(max-width:920px){
+  .main{padding-bottom:115px!important;}
+  .match-card[data-pred-card] .teams{grid-template-columns:1fr;gap:8px;text-align:center;}
+  .match-card[data-pred-card] .vs{display:block;}
+  .match-card[data-pred-card] .score-inputs{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:260px;margin:12px auto 0;}
+  .match-card[data-pred-card] .score-inputs input{width:100%!important;max-width:none!important;flex:1 1 auto!important;}
+  .pedex-save-one .btn{width:100%!important;min-width:0!important;padding:14px 16px!important;}
+  .admin-result-actions .btn,.admin-bracket-controls .btn,.admin-detail-actions .btn{width:100%;}
+}
+
 </style>
 
 <style id="pedexNoFloatPerMatchFix">
@@ -356,7 +379,7 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
         <div class="admin-warning"><b>Flujo:</b> 1) Primero guarda la llave manual. 2) Captura marcador oficial local/visitante. 3) Presiona <b>Guardar resultado real y cerrar</b>. 4) El partido queda con candado para los usuarios. 5) El administrador puede abrir resultado o pronósticos si necesita corregir.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
-          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos de dieciseisavos</button>
+          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Borrar TODOS los pronósticos capturados</button>
         </div>
         <div id="adminResults" class="admin-results-grid"></div>
       </div>
@@ -719,12 +742,23 @@ function renderPredictions(){
     const phaseLabel=getCurrentPhaseLabel();
     const hVal=p.homeScore??p.marcadorA??'';
     const aVal=p.awayScore??p.marcadorB??'';
+    const currentPenalty=p.penaltyWinner||'';
+    const showPenalty=(hVal!=='' && aVal!=='' && Number(hVal)===Number(aVal));
     const note=alreadySaved?'Pronóstico guardado con candado. Sólo el administrador puede desbloquearlo.':(closedByKickoff?'Este partido ya comenzó o está cerrado. Ya no se puede capturar ni modificar.':'Puedes guardar este partido ahora y continuar con los demás después.');
-    const saveButton=disabled?'':`<div class="pedex-save-one" style="display:flex;justify-content:center;margin-top:12px"><button id="saveBtn${m.id}" class="btn btn-gold" type="button" onclick="savePrediction(${m.id})">Guardar este partido</button></div>`;
-    return `<div class="match-card" data-pred-card="${m.id}"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}h" value="${hVal}" ${disabled?'disabled':''}><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}a" value="${aVal}" ${disabled?'disabled':''}></div><div class="saved-note">${note}</div>${saveButton}</div>`;
+    const saveButton=disabled?'':`<div class="pedex-save-one"><button id="saveBtn${m.id}" class="btn btn-gold" type="button" onclick="savePrediction(${m.id})">Guardar este partido</button></div>`;
+    const penaltyBlock=`<div id="pedexFinalPen${m.id}" class="pedex-final-penalty ${showPenalty?'show':''}"><select id="pedexFinalPenSel${m.id}" ${disabled?'disabled':''}><option value="">Empate: ¿quién avanza por penales?</option><option value="${m.home}" ${currentPenalty===m.home?'selected':''}>${m.home}</option><option value="${m.away}" ${currentPenalty===m.away?'selected':''}>${m.away}</option></select></div>`;
+    return `<div class="match-card" data-pred-card="${m.id}"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}h" value="${hVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}a" value="${aVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"></div>${penaltyBlock}<div class="saved-note">${note}</div>${saveButton}</div>`;
   }).join('');
   list.innerHTML=`<div class="card" style="border-color:rgba(245,196,0,.38)"><h3>Avance de captura</h3><p class="muted">Puedes guardar cada partido por separado. Cada partido se bloquea automáticamente cuando comienza.</p><div class="capture-bar"><div class="capture-fill green" style="width:${pct}%"></div></div><p class="small">${savedCount} / ${total} partidos guardados.</p></div>`+cards;
 }
+function togglePenaltyForMatch(id){
+  const h=$('p'+id+'h'), a=$('p'+id+'a'), box=$('pedexFinalPen'+id);
+  if(!h || !a || !box) return;
+  const show=h.value!=='' && a.value!=='' && Number(h.value)===Number(a.value);
+  box.classList.toggle('show', show);
+  if(!show){ const sel=$('pedexFinalPenSel'+id); if(sel) sel.value=''; }
+}
+window.togglePenaltyForMatch=togglePenaltyForMatch;
 
 function getOpen16ForBulkSave(){
   return getCurrentPredictionMatches().filter(m=>!(myPred[m.id]||{}).bloqueado && !isMatchClosed(m));
@@ -1373,19 +1407,40 @@ async function adminDeleteComplete(uid){
 window.adminClearJornada3Predictions=adminClearJornada3Predictions; window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; window.saveAdminProfile=saveAdminProfile; window.adminUnlockPrediction=adminUnlockPrediction; window.adminSaveUserPrediction=adminSaveUserPrediction; window.adminResetPassword=adminResetPassword; window.adminToggleActive=adminToggleActive; window.adminDeleteProfile=adminDeleteProfile; window.adminDeleteComplete=adminDeleteComplete;
 window.adminUnlockUserAllPredictions=adminUnlockUserAllPredictions;
 
+
+const PEDEx_RESET_PREDICTIONS_VERSION='reset-2026-06-29-guardar-por-partido-v2';
+async function adminDeleteAllUserPredictions(reason='manual'){
+  if(!isAdmin()) return;
+  try{
+    const snap=await getDocs(collection(db,'pronosticos'));
+    const docs=[];
+    snap.forEach(d=>docs.push(d.id));
+    if(!docs.length){ toast('No había pronósticos previos que borrar.'); return 0; }
+    for(const id of docs){ await deleteDoc(doc(db,'pronosticos',id)); }
+    toast(`Pronósticos previos eliminados: ${docs.length}`);
+    return docs.length;
+  }catch(e){
+    console.error('No se pudieron borrar todos los pronósticos', e);
+    alert('No se pudieron borrar todos los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
+    return 0;
+  }
+}
+async function adminAutoResetPredictionsOnce(){
+  if(!isAdmin() || !currentUser) return;
+  const key='pedex_'+PEDEx_RESET_PREDICTIONS_VERSION+'_'+currentUser.uid;
+  if(localStorage.getItem(key)==='done') return;
+  localStorage.setItem(key,'done');
+  await adminDeleteAllUserPredictions('auto-version-reset');
+  renderPredictions(); renderRanking(); renderProfile(); renderAdminDashboard(); renderAdminUsers();
+}
+window.adminDeleteAllUserPredictions=adminDeleteAllUserPredictions;
+window.adminAutoResetPredictionsOnce=adminAutoResetPredictionsOnce;
+
 async function adminClearJornada3Predictions(){
   if(!isAdmin()) return;
-  const ids=new Set(getKnockout16Matches().map(m=>Number(m.id)));
-  const related=predictions.filter(p=>ids.has(Number(p.partidoId)));
-  if(!related.length){ alert('No hay pronósticos de dieciseisavos para limpiar.'); return; }
-  if(!confirm(`Se eliminarán ${related.length} pronósticos de dieciseisavos capturados. Esta acción no elimina usuarios ni resultados oficiales. ¿Continuar?`)) return;
-  try{
-    for(const p of related){ await deleteDoc(doc(db,'pronosticos',p.id)); }
-    toast('Pronósticos de dieciseisavos eliminados');
-  }catch(e){
-    console.error('No se pudieron limpiar pronósticos Jornada 3',e);
-    alert('No se pudieron eliminar los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
-  }
+  if(!confirm('Se borrarán TODOS los pronósticos capturados de TODOS los usuarios para liberar la captura. No se eliminan usuarios ni resultados reales. ¿Continuar?')) return;
+  await adminDeleteAllUserPredictions('admin-button');
+  renderPredictions(); renderRanking(); renderProfile(); renderAdminDashboard(); renderAdminUsers();
 }
 function adminSwitchPanel(panel){
   document.querySelectorAll('[data-admin-panel]').forEach(el=>el.classList.toggle('active',el.dataset.adminPanel===panel));
@@ -1786,7 +1841,7 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1600);
 })();
 
-onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge();});
+onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge(); if(isAdmin()) setTimeout(()=>adminAutoResetPredictionsOnce(),900);});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
