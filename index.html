@@ -2335,6 +2335,137 @@ onSnapshot(collection(db,'pronosticos'), snap=>{pedexReadErrors.pronosticos=fals
 onSnapshot(collection(db,'resultados'), snap=>{pedexReadErrors.resultados=false;actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); pedexRefreshPublicViews(); renderGroups(); renderAdminResults(); renderAdminDashboard(); renderAdminUserPredictions();}, err=>{console.warn('No se pudo leer resultados para ranking',err); pedexReadErrors.resultados=true; pedexRefreshPublicViews();});
 onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; pedexRefreshPublicViews(); renderGroups(); renderAdminManualBracket(); renderAdminResults(); renderAdminUserPredictions(); update16StatusBadge();}, err=>{console.warn('No se pudo leer configuracion/llaveManual',err);});
 
+
+/* === PEDEX V9: auto-refresh y watchdog de datos ===
+   Objetivo: mantener ranking, puntos, avances, perfil y pronósticos actualizados
+   aunque el navegador pause listeners, el usuario regrese de segundo plano o falle un onSnapshot. */
+let pedexLastDataRefreshAt = 0;
+let pedexRefreshBusy = false;
+let pedexRefreshTimer = null;
+const PEDEX_REFRESH_MS = 25000; // 25 segundos: suficiente para usuarios sin saturar Firebase
+
+function pedexMarkDataFresh(){ pedexLastDataRefreshAt = Date.now(); }
+
+function pedexSafeRefreshAllViews(){
+  try{ pedexBuildUsersFromPredictionsFallback?.(); }catch(e){}
+  try{ computeRanking?.(); }catch(e){ console.warn('No se pudo recalcular ranking', e); }
+  try{ renderRanking?.(); }catch(e){}
+  try{ updateUserStats?.(); }catch(e){}
+  try{ renderProfile?.(); }catch(e){}
+  try{ renderHome?.(); }catch(e){}
+  try{ renderPredictions?.(); }catch(e){}
+  try{ renderBracket?.(); }catch(e){}
+  try{ update16StatusBadge?.(); }catch(e){}
+  if(typeof isAdmin==='function' && isAdmin()){
+    try{ renderAdminUsers?.(); }catch(e){}
+    try{ renderAdminResults?.(); }catch(e){}
+    try{ renderAdminManualBracket?.(); }catch(e){}
+    try{ renderAdminDashboard?.(); }catch(e){}
+    try{ renderAdminUserPredictions?.(); }catch(e){}
+  }
+}
+
+async function pedexForceReloadDataFromFirebase(reason='auto'){
+  if(!currentUser || pedexRefreshBusy) return;
+  pedexRefreshBusy = true;
+  try{
+    // Usuarios: necesario para ranking y avance de todos.
+    try{
+      const us = await getDocs(collection(db,'usuarios'));
+      pedexReadErrors.usuarios = false;
+      users = [];
+      us.forEach(d=>users.push({id:d.id,...d.data()}));
+      const fresh = users.find(u=>u.id===currentUser.uid);
+      if(fresh){
+        currentProfile = fresh;
+        const hn=$('headerName'); if(hn) hn.textContent=fresh.nombre||currentUser.email;
+        try{ applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png'); }catch(e){}
+      }
+    }catch(e){
+      console.warn('Refresh usuarios bloqueado o fallido', reason, e);
+      pedexReadErrors.usuarios = true;
+    }
+
+    // Pronósticos: necesario para avance de captura de cada competidor.
+    try{
+      const ps = await getDocs(collection(db,'pronosticos'));
+      pedexReadErrors.pronosticos = false;
+      predictions = [];
+      myPred = {};
+      ps.forEach(d=>{
+        const p={id:d.id,...d.data()};
+        p.homeScore = p.homeScore ?? p.marcadorA;
+        p.awayScore = p.awayScore ?? p.marcadorB;
+        predictions.push(p);
+        if(currentUser && p.userId===currentUser.uid) myPred[p.partidoId]=p;
+      });
+    }catch(e){
+      console.warn('Refresh pronosticos bloqueado o fallido', reason, e);
+      pedexReadErrors.pronosticos = true;
+    }
+
+    // Resultados reales: necesario para puntos y exactos.
+    try{
+      const rs = await getDocs(collection(db,'resultados'));
+      pedexReadErrors.resultados = false;
+      actualResults = {};
+      rs.forEach(d=>{
+        const r=d.data();
+        actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};
+      });
+    }catch(e){
+      console.warn('Refresh resultados bloqueado o fallido', reason, e);
+      pedexReadErrors.resultados = true;
+    }
+
+    // Llave manual/configuracion: necesario para fases activas y partidos visibles.
+    try{
+      const cfgSnap = await getDoc(doc(db,'configuracion','llaveManual'));
+      const cfg = cfgSnap.exists()?cfgSnap.data():{};
+      manualBracket = normalizeManualBracket(cfg.matches||{});
+      manualBracketPublished = !!cfg.published;
+    }catch(e){
+      console.warn('Refresh llaveManual bloqueado o fallido', reason, e);
+    }
+
+    pedexMarkDataFresh();
+    pedexSafeRefreshAllViews();
+  }finally{
+    pedexRefreshBusy = false;
+  }
+}
+
+function pedexStartAutoRefresh(){
+  if(pedexRefreshTimer) clearInterval(pedexRefreshTimer);
+  pedexRefreshTimer = setInterval(()=>pedexForceReloadDataFromFirebase('intervalo'), PEDEX_REFRESH_MS);
+  setTimeout(()=>pedexForceReloadDataFromFirebase('inicio'), 1200);
+}
+
+function pedexStopAutoRefresh(){
+  if(pedexRefreshTimer){ clearInterval(pedexRefreshTimer); pedexRefreshTimer=null; }
+}
+
+// Re-sincroniza al volver a la pestaña/app, al recuperar internet y al hacer foco.
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden) pedexForceReloadDataFromFirebase('visibilitychange');
+});
+window.addEventListener('focus',()=>pedexForceReloadDataFromFirebase('focus'));
+window.addEventListener('online',()=>pedexForceReloadDataFromFirebase('online'));
+
+// Botón manual de emergencia en consola/HTML si se necesita diagnosticar.
+window.pedexForceReloadDataFromFirebase = pedexForceReloadDataFromFirebase;
+window.pedexSafeRefreshAllViews = pedexSafeRefreshAllViews;
+
+// Arranca/detiene el refresh cuando cambia la sesion.
+onAuthStateChanged(auth, user=>{
+  if(user){
+    pedexStartAutoRefresh();
+    setTimeout(()=>pedexForceReloadDataFromFirebase('login'), 800);
+  }else{
+    pedexStopAutoRefresh();
+  }
+});
+
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); renderAdminUserPredictions(); update16StatusBadge();
 </script>
 
