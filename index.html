@@ -216,6 +216,42 @@ body.logged-in #pedexFinalFloat16{
   .main{padding-bottom:165px!important}
 }
 
+/* === PANEL ADMIN LLAVE MANUAL === */
+.admin-bracket-controls{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px}
+.manual-bracket-phase{margin:18px 0 22px}
+.manual-bracket-phase h3{color:var(--gold);margin:0 0 10px}
+.manual-bracket-grid{display:grid;gap:12px}
+.manual-bracket-card{display:grid;grid-template-columns:1fr 1fr 92px 92px auto;gap:10px;align-items:end;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}
+.manual-bracket-card.manual{border-color:rgba(245,196,0,.48);background:rgba(245,196,0,.08)}
+.manual-bracket-card label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}
+.manual-bracket-card select,.manual-bracket-card input{width:100%;border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:10px}
+.manual-bracket-meta{font-size:11px;color:var(--muted);margin-bottom:4px}
+@media(max-width:920px){.manual-bracket-card{grid-template-columns:1fr}.manual-bracket-card .btn{width:100%}}
+
+
+
+/* Limpieza: quiniela enfocada en dieciseisavos, conservando ranking */
+body.logged-in #pedexFinalFloat16{display:flex!important}
+
+/* === Estado limpio 16avos === */
+.status-16-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:999px;padding:10px 14px;
+  font-weight:900;font-size:12px;letter-spacing:.2px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+}
+.status-16-badge.open{color:var(--green);border-color:rgba(112,225,166,.45);background:rgba(112,225,166,.12)}
+.status-16-badge.closed{color:var(--red);border-color:rgba(255,85,112,.45);background:rgba(255,85,112,.12)}
+.status-16-badge.pending{color:var(--muted);border-color:rgba(255,255,255,.20);background:rgba(255,255,255,.07)}
+
+</style>
+
+<style id="pedexNoFloatPerMatchFix">
+#pedexFinalFloat16,#pedexStickyBulkSave16,.pedex-sticky-save,#pedexBulkSaveCard{display:none!important}
+.pedex-save-one .btn{min-width:210px}
+.pedex-save-one .btn:before{content:"💾";margin-right:6px}
+@media(max-width:920px){.main{padding-bottom:96px!important}}
 </style>
 </head>
 <body>
@@ -224,7 +260,7 @@ body.logged-in #pedexFinalFloat16{
     <div class="login-hero">
       <img class="logo" src="assets/logo-pedex.png" alt="PEDEX" onerror="this.style.display='none'">
       <h1>Quiniela<br><span>PEDEX 2026</span></h1>
-      <p>Inicia sesión o crea tu cuenta para pronosticar los partidos pendientes de fase de grupos, consultar grupos, ranking y la llave provisional de dieciseisavos.</p>
+      <p>Inicia sesión o crea tu cuenta para pronosticar únicamente los dieciseisavos de final. La llave la define el administrador y, al guardarla, se abre para todos los participantes.</p>
       <div class="hero-balls"><img src="assets/ball.png" alt="Balón"><img src="assets/trophy-fifa.png" alt="Trofeo"></div>
     </div>
     <div class="auth-panel">
@@ -250,9 +286,7 @@ body.logged-in #pedexFinalFloat16{
   <aside class="sidebar">
     <div class="brand"><img src="assets/logo-pedex.png" alt="PEDEX"><div><b>PEDEX 2026</b><br><span class="small">Quiniela Mundialista</span></div></div>
     <nav class="nav">
-      <button class="active" data-section="inicio"><img src="assets/icon-inicio.png">Inicio</button>
-      <button data-section="pronosticos"><img src="assets/icon-pronosticos.png">Pronósticos</button>
-      <button data-section="partidos"><img src="assets/icon-partidos.png">Partidos</button>
+      <button class="active" data-section="pronosticos"><img src="assets/icon-pronosticos.png">Pronósticos</button>
       <button data-section="ranking"><img src="assets/icon-ranking.png">Ranking</button>
       <button data-section="perfil"><img src="assets/icon-perfil.png">Mi perfil</button>
       <button class="admin-only" data-section="admin"><img src="assets/trophy-fifa.png">Admin</button>
@@ -263,42 +297,41 @@ body.logged-in #pedexFinalFloat16{
   <main class="main">
     <div class="mobile-logo"><img src="assets/logo-pedex.png" alt="PEDEX"></div>
     <header class="topbar">
-      <div><span class="pill">Calendario oficial desde base PEM</span> <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver horarios FIFA</a> <button class="btn btn-outline admin-only" style="padding:9px 12px" onclick="goSection('admin');setTimeout(()=>document.getElementById('adminResultadosCard')?.scrollIntoView({behavior:'smooth'}),100)">Capturar resultados</button></div>
+      <div><span id="status16Badge" class="status-16-badge pending">⚪ Próximamente</span> <button class="btn btn-outline admin-only" style="padding:9px 12px" onclick="goSection('admin');setTimeout(()=>document.getElementById('adminResultadosCard')?.scrollIntoView({behavior:'smooth'}),100)">Capturar resultados</button></div>
       <div class="user-chip" onclick="goSection('perfil')"><img id="headerPhoto" class="avatar" src="assets/persona-perfil.png"><div><strong id="headerName">Participante</strong><small id="headerRank">Lugar: -- · 0 pts</small></div></div>
     </header>
 
-    <section id="sec-inicio" class="section active">
+    <section id="sec-inicio" class="section hidden">
       <div class="hero-dash">
-        <div class="hero-card"><h2>Jornada pendiente<br><span>antes de 16vos</span></h2><p>Pronostica únicamente los partidos pendientes del 24 al 27 de junio y consulta cómo se está formando la llave provisional.</p><img class="ball" src="assets/ball.png" alt="Balón"></div>
+        <div class="hero-card"><h2>Quiniela<br><span>Dieciseisavos</span></h2><p>Pronostica sólo los partidos de dieciseisavos que el administrador cargue y guarde en la llave manual.</p><img class="ball" src="assets/ball.png" alt="Balón"></div>
         <div class="stat-card"><h3>Regla de puntos</h3><p><b class="pts">5 pts</b> marcador exacto</p><p><b class="pts">3 pts</b> ganador correcto</p><p><b>0 pts</b> si no acierta ganador ni marcador</p><button class="btn btn-gold" onclick="goSection('pronosticos')">Ir a pronosticar</button></div>
       </div>
-      <div class="kpis"><div class="kpi"><small>Partidos pendientes</small><strong id="kpiPending">0</strong></div><div class="kpi"><small>Mis pronósticos</small><strong id="kpiMine">0/24</strong></div><div class="kpi"><small>Mis puntos</small><strong id="kpiPoints">0</strong></div><div class="kpi"><small>Mi lugar</small><strong id="kpiPlace">--</strong></div></div>
-      <div class="grid2"><div class="card"><h2>Próximos partidos</h2><div id="homeNext" class="match-list"></div></div><div class="card"><h2>Dieciseisavos provisionales</h2><div id="homeRound32" class="match-list"></div></div></div>
+      <div class="kpis"><div class="kpi"><small id="kpiPendingLabel">Partidos fase activa</small><strong id="kpiPending">0</strong></div><div class="kpi"><small>Mis pronósticos</small><strong id="kpiMine">0/16</strong></div><div class="kpi"><small>Mis puntos</small><strong id="kpiPoints">0</strong></div><div class="kpi"><small>Mi lugar</small><strong id="kpiPlace">--</strong></div></div>
+      <div class="card"><h2>16avos Abiertos</h2><div id="homeNext" class="match-list"></div></div><div id="homeRound32" class="hidden"></div>
     </section>
 
-    <section id="sec-pronosticos" class="section">
+    <section id="sec-pronosticos" class="section active">
       <div class="card" id="usuariosJornada3Card" style="border-color:rgba(245,196,0,.38)">
-        <h2>Mis pronósticos · Jornada 3 de grupos</h2>
-        <p class="muted"><b>Esta sección es para todos los participantes.</b> Aquí cada usuario puede capturar sus pronósticos de los partidos faltantes de la tercera jornada. Al guardar un pronóstico queda con candado y ya no se puede modificar, salvo desbloqueo del administrador antes del inicio del partido.</p>
-        <div class="admin-warning"><b>Importante:</b> El cierre automático se aplica por hora de inicio del partido. Si el partido ya comenzó, el usuario ya no podrá capturar ni modificar su pronóstico.</div>
+        <h2>Mis pronósticos · Dieciseisavos</h2>
+        <p class="muted"><b>Esta sección es para todos los participantes.</b> Aquí cada usuario puede capturar sus pronósticos únicamente de los partidos de dieciseisavos cargados por el administrador. Al guardar un pronóstico queda con candado y ya no se puede modificar, salvo desbloqueo del administrador antes del inicio del partido.</p>
+        <div class="admin-warning"><b>Importante:</b> Los pronósticos se abren cuando el administrador guarda la llave manual de dieciseisavos. Si un partido ya comenzó o el admin cerró el resultado, ya no se podrá modificar.</div>
         <div id="predictionList" class="match-list"></div>
       </div>
     </section>
 
-    <section id="sec-partidos" class="section">
-      <div class="card"><h2>Grupos · Primera fase</h2><p class="muted">Tabla dinámica: se recalcula automáticamente con cada resultado real que el administrador capture y cierre.</p><div id="groupsContainer"></div></div>
-      <div class="card"><h2>Mejores terceros provisionales</h2><div id="thirdsContainer" class="table-wrap"></div></div>
-      <div class="card"><h2>Llave provisional</h2><div id="bracketContainer" class="bracket"></div></div>
+    <section id="sec-partidos" class="section hidden">
+      <div class="card"><h2>Llave de eliminación directa</h2><p class="muted">Vista de la llave guardada por el administrador.</p><div id="bracketContainer" class="bracket"></div></div>
     </section>
 
-    <section id="sec-ranking" class="section"><div class="card"><h2>Ranking general</h2><div id="rankingTable" class="table-wrap"></div></div></section>
+    <section id="sec-ranking" class="section"><div class="card"><h2>Ranking de jugadores</h2><p class="muted">Se actualiza automáticamente conforme el administrador captura y cierra resultados reales.</p><div id="rankingTable" class="table-wrap"></div></div></section>
 
     <section id="sec-perfil" class="section"><div class="card"><div class="profile-top"><img id="profilePhoto" class="profile-photo" src="assets/persona-perfil.png"><div><h2 id="profileName">Participante</h2><p class="muted" id="profileEmail">correo</p><div class="photo-tools"><input id="profilePhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="updateMyProfilePhoto()">Cambiar foto</button><small>La foto se actualizará arriba, en móvil, desktop y en Mi Perfil.</small></div><div class="kpis"><div class="kpi"><small>Lugar</small><strong id="profilePlace">--</strong></div><div class="kpi"><small>Puntos</small><strong id="profilePoints">0</strong></div><div class="kpi"><small>Pronósticos capturados</small><strong id="profilePredCount">0</strong></div><div class="kpi"><small>Exactos</small><strong id="profileExactos">0</strong></div></div></div></div></div><div class="card"><h2>Mi reporte de pronósticos</h2><div id="myReport" class="table-wrap"></div></div></section>
 
     <section id="sec-admin" class="section admin-only">
       <div class="admin-tabs-panel">
         <button type="button" class="active" data-admin-panel-tab="dashboard" onclick="adminSwitchPanel('dashboard')">🏠 Dashboard</button>
-        <button type="button" data-admin-panel-tab="partidos" onclick="adminSwitchPanel('partidos')">⚽ Partidos reales</button>
+        <button type="button" data-admin-panel-tab="llave" onclick="adminSwitchPanel('llave')">🏆 Llave manual</button>
+        <button type="button" data-admin-panel-tab="partidos" onclick="adminSwitchPanel('partidos')">⚽ Resultados 16vos</button>
         <button type="button" data-admin-panel-tab="usuarios" onclick="adminSwitchPanel('usuarios')">👥 Usuarios</button>
       </div>
 
@@ -311,21 +344,36 @@ body.logged-in #pedexFinalFloat16{
           <div class="admin-mini-card"><small>Resultados reales</small><b id="adminDashResults">0</b></div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-gold" onclick="adminSwitchPanel('partidos')">Ir a Partidos reales</button>
+          <button class="btn btn-gold" onclick="adminSwitchPanel('partidos')">Ir a Resultados 16vos</button>
           <button class="btn btn-outline" onclick="adminSwitchPanel('usuarios')">Ir a Usuarios</button>
+          <button class="btn btn-outline" onclick="adminSwitchPanel('llave')">Ir a Llave manual</button>
         </div>
       </div>
 
       <div class="card admin-panel-block" data-admin-panel="partidos" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
-        <h2>Capturar resultados reales · Jornada 3 de grupos</h2>
-        <p class="muted"><b>Esta es la sección para capturar los marcadores oficiales de los partidos faltantes de la tercera jornada de grupos.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
-        <div class="admin-warning"><b>Flujo:</b> 1) Captura marcador oficial local/visitante. 2) Presiona <b>Guardar y cerrar</b>. 3) El partido queda con candado. 4) El sistema recalcula ranking, grupos, mejores terceros y dieciseisavos. 5) A partir de los dieciseisavos, cada usuario podrá poner sus marcadores y su llave avanzará a octavos, cuartos, semifinal y final según sus pronósticos.</div>
+        <h2>Capturar resultados reales · Dieciseisavos</h2>
+        <p class="muted"><b>Esta sección es para capturar los marcadores oficiales de los partidos de dieciseisavos que el administrador haya cargado en la llave manual.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
+        <div class="admin-warning"><b>Flujo:</b> 1) Primero guarda la llave manual. 2) Captura marcador oficial local/visitante. 3) Presiona <b>Guardar resultado real y cerrar</b>. 4) El partido queda con candado para los usuarios. 5) El administrador puede abrir resultado o pronósticos si necesita corregir.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
-          <a class="fifa-link" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures" target="_blank" rel="noopener">Ver calendario FIFA</a>
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
-          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos previos Jornada 3</button>
+          <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Limpiar pronósticos de dieciseisavos</button>
         </div>
         <div id="adminResults" class="admin-results-grid"></div>
+      </div>
+
+      <div class="card admin-panel-block" data-admin-panel="llave" id="adminLlaveManualCard" style="border-color:rgba(245,196,0,.45)">
+        <h2>Panel manual de eliminación directa</h2>
+        <p class="muted"><b>Este panel es la fuente principal de la quiniela. Lo que guardes aquí será exactamente lo que verán los usuarios para pronosticar.</b> Selecciona los 16 partidos de Dieciseisavos y guarda. Al guardar, esos partidos quedan abiertos para pronósticos y también para capturar resultados reales.</p>
+        <div class="admin-warning"><b>Flujo recomendado:</b> 1) Selecciona equipos en Dieciseisavos. 2) Guarda la llave manual. 3) Los usuarios ya podrán pronosticar esos partidos. 4) Después podrás capturar resultados reales y cerrar cada partido.</div>
+        <div class="admin-bracket-controls">
+          <button class="btn btn-outline" onclick="adminSaveManualBracket()">Guardar borrador de llave</button>
+          <button class="btn btn-gold" onclick="adminPublishManualBracket()">Dar de alta llave y abrir pronósticos</button>
+          <button class="btn btn-outline" onclick="adminAutofillManualFromResults()">Autollenar ganadores</button>
+          <button class="btn btn-outline" onclick="adminLoadOfficialIntoManual()">Cargar llave automática actual</button>
+          <button class="btn btn-outline" onclick="adminClearManualBracket()">Borrar llave manual</button>
+        </div>
+        <div id="adminManualBracketStatus" class="admin-warning"></div>
+        <div id="adminManualBracket"></div>
       </div>
 
       <div class="card admin-panel-block" data-admin-panel="usuarios">
@@ -363,17 +411,8 @@ body.logged-in #pedexFinalFloat16{
   </main>
 </div>
 
-<!-- Botón flotante PEDEX: guardar y ver avance de 16vos -->
-<div id="pedexFinalFloat16" aria-label="Guardar pronósticos de dieciseisavos">
-  <div id="pedexFinalCircle16"><span id="pedexFinalPct16">0%</span></div>
-  <div id="pedexFinalText16"><b>Dieciseisavos</b><span id="pedexFinalStatus16">0 / 16 capturados</span></div>
-  <button id="pedexFinalBtn16" type="button" onclick="pedexFinalSave16vos()">Guardar<small>pronósticos</small></button>
-</div>
-
 <nav class="bottom-nav">
-  <button class="active" data-section="inicio"><img src="assets/icon-inicio.png"><span>Inicio</span></button>
-  <button data-section="pronosticos"><img src="assets/icon-pronosticos.png"><span>Pron.</span></button>
-  <button data-section="partidos"><img src="assets/icon-partidos.png"><span>Partidos</span></button>
+  <button class="active" data-section="pronosticos"><img src="assets/icon-pronosticos.png"><span>Pron.</span></button>
   <button data-section="ranking"><img src="assets/icon-ranking.png"><span>Ranking</span></button>
   <button data-section="perfil"><img src="assets/icon-perfil.png"><span>Perfil</span></button>
   <button class="admin-only" data-section="admin"><img src="assets/trophy-fifa.png"><span>Admin</span></button>
@@ -403,34 +442,62 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
 const DATA = {"matches": [{"id": 1, "date": "2026-06-11", "time": "13:00", "phase": "Group A", "group": "A", "jornada": 1, "home": "Mexico", "homeFlag": "🇲🇽", "away": "South Africa", "awayFlag": "🇿🇦", "homeScore": 2, "awayScore": 0, "status": "final"}, {"id": 2, "date": "2026-06-11", "time": "20:00", "phase": "Group A", "group": "A", "jornada": 1, "home": "South Korea", "homeFlag": "🇰🇷", "away": "Czechia", "awayFlag": "🇨🇿", "homeScore": 2, "awayScore": 1, "status": "final"}, {"id": 3, "date": "2026-06-12", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 1, "home": "Canada", "homeFlag": "🇨🇦", "away": "Bosnia and Herzegovina", "awayFlag": "🇧🇦", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 4, "date": "2026-06-12", "time": "19:00", "phase": "Group D", "group": "D", "jornada": 1, "home": "United States", "homeFlag": "🇺🇸", "away": "Paraguay", "awayFlag": "🇵🇾", "homeScore": 4, "awayScore": 1, "status": "final"}, {"id": 5, "date": "2026-06-13", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 1, "home": "Qatar", "homeFlag": "🇶🇦", "away": "Switzerland", "awayFlag": "🇨🇭", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 6, "date": "2026-06-13", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 1, "home": "Brazil", "homeFlag": "🇧🇷", "away": "Morocco", "awayFlag": "🇲🇦", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 7, "date": "2026-06-13", "time": "19:00", "phase": "Group C", "group": "C", "jornada": 1, "home": "Haiti", "homeFlag": "🇭🇹", "away": "Scotland", "awayFlag": "🏴", "homeScore": 0, "awayScore": 1, "status": "final"}, {"id": 8, "date": "2026-06-13", "time": "22:00", "phase": "Group D", "group": "D", "jornada": 1, "home": "Australia", "homeFlag": "🇦🇺", "away": "Turkey", "awayFlag": "🇹🇷", "homeScore": 2, "awayScore": 0, "status": "final"}, {"id": 9, "date": "2026-06-14", "time": "11:00", "phase": "Group E", "group": "E", "jornada": 1, "home": "Germany", "homeFlag": "🇩🇪", "away": "Curacao", "awayFlag": "🇨🇼", "homeScore": 7, "awayScore": 1, "status": "final"}, {"id": 10, "date": "2026-06-14", "time": "14:00", "phase": "Group F", "group": "F", "jornada": 1, "home": "Netherlands", "homeFlag": "🇳🇱", "away": "Japan", "awayFlag": "🇯🇵", "homeScore": 2, "awayScore": 2, "status": "final"}, {"id": 11, "date": "2026-06-14", "time": "17:00", "phase": "Group E", "group": "E", "jornada": 1, "home": "Ivory Coast", "homeFlag": "🇨🇮", "away": "Ecuador", "awayFlag": "🇪🇨", "homeScore": 1, "awayScore": 0, "status": "final"}, {"id": 12, "date": "2026-06-14", "time": "20:00", "phase": "Group F", "group": "F", "jornada": 1, "home": "Sweden", "homeFlag": "🇸🇪", "away": "Tunisia", "awayFlag": "🇹🇳", "homeScore": 5, "awayScore": 1, "status": "final"}, {"id": 13, "date": "2026-06-15", "time": "10:00", "phase": "Group H", "group": "H", "jornada": 1, "home": "Spain", "homeFlag": "🇪🇸", "away": "Cape Verde", "awayFlag": "🇨🇻", "homeScore": 0, "awayScore": 0, "status": "final"}, {"id": 14, "date": "2026-06-15", "time": "13:00", "phase": "Group G", "group": "G", "jornada": 1, "home": "Belgium", "homeFlag": "🇧🇪", "away": "Egypt", "awayFlag": "🇪🇬", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 15, "date": "2026-06-15", "time": "16:00", "phase": "Group H", "group": "H", "jornada": 1, "home": "Saudi Arabia", "homeFlag": "🇸🇦", "away": "Uruguay", "awayFlag": "🇺🇾", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 16, "date": "2026-06-15", "time": "19:00", "phase": "Group G", "group": "G", "jornada": 1, "home": "Iran", "homeFlag": "🇮🇷", "away": "New Zealand", "awayFlag": "🇳🇿", "homeScore": 2, "awayScore": 2, "status": "final"}, {"id": 17, "date": "2026-06-16", "time": "13:00", "phase": "Group I", "group": "I", "jornada": 1, "home": "France", "homeFlag": "🇫🇷", "away": "Senegal", "awayFlag": "🇸🇳", "homeScore": 3, "awayScore": 1, "status": "final"}, {"id": 18, "date": "2026-06-16", "time": "16:00", "phase": "Group I", "group": "I", "jornada": 1, "home": "Iraq", "homeFlag": "🇮🇶", "away": "Norway", "awayFlag": "🇳🇴", "homeScore": 1, "awayScore": 4, "status": "final"}, {"id": 19, "date": "2026-06-16", "time": "19:00", "phase": "Group J", "group": "J", "jornada": 1, "home": "Argentina", "homeFlag": "🇦🇷", "away": "Algeria", "awayFlag": "🇩🇿", "homeScore": 3, "awayScore": 0, "status": "final"}, {"id": 20, "date": "2026-06-16", "time": "22:00", "phase": "Group J", "group": "J", "jornada": 1, "home": "Austria", "homeFlag": "🇦🇹", "away": "Jordan", "awayFlag": "🇯🇴", "homeScore": 3, "awayScore": 1, "status": "final"}, {"id": 21, "date": "2026-06-17", "time": "11:00", "phase": "Group K", "group": "K", "jornada": 1, "home": "Portugal", "homeFlag": "🇵🇹", "away": "DR Congo", "awayFlag": "🇨🇩", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 22, "date": "2026-06-17", "time": "14:00", "phase": "Group L", "group": "L", "jornada": 1, "home": "England", "homeFlag": "🏴", "away": "Croatia", "awayFlag": "🇭🇷", "homeScore": 4, "awayScore": 2, "status": "final"}, {"id": 23, "date": "2026-06-17", "time": "17:00", "phase": "Group L", "group": "L", "jornada": 1, "home": "Ghana", "homeFlag": "🇬🇭", "away": "Panama", "awayFlag": "🇵🇦", "homeScore": 1, "awayScore": 0, "status": "final"}, {"id": 24, "date": "2026-06-17", "time": "20:00", "phase": "Group K", "group": "K", "jornada": 1, "home": "Uzbekistan", "homeFlag": "🇺🇿", "away": "Colombia", "awayFlag": "🇨🇴", "homeScore": 1, "awayScore": 3, "status": "final"}, {"id": 25, "date": "2026-06-18", "time": "10:00", "phase": "Group A", "group": "A", "jornada": 2, "home": "Czechia", "homeFlag": "🇨🇿", "away": "South Africa", "awayFlag": "🇿🇦", "homeScore": 1, "awayScore": 1, "status": "final"}, {"id": 26, "date": "2026-06-18", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 2, "home": "Switzerland", "homeFlag": "🇨🇭", "away": "Bosnia and Herzegovina", "awayFlag": "🇧🇦", "homeScore": 4, "awayScore": 1, "status": "final"}, {"id": 27, "date": "2026-06-18", "time": "16:00", "phase": "Group B", "group": "B", "jornada": 2, "home": "Canada", "homeFlag": "🇨🇦", "away": "Qatar", "awayFlag": "🇶🇦", "homeScore": 6, "awayScore": 0, "status": "final"}, {"id": 28, "date": "2026-06-18", "time": "19:00", "phase": "Group A", "group": "A", "jornada": 2, "home": "Mexico", "homeFlag": "🇲🇽", "away": "South Korea", "awayFlag": "🇰🇷", "homeScore": 1, "awayScore": 0, "status": "final"}, {"id": 29, "date": "2026-06-19", "time": "13:00", "phase": "Group D", "group": "D", "jornada": 2, "home": "United States", "homeFlag": "🇺🇸", "away": "Australia", "awayFlag": "🇦🇺", "homeScore": 2, "awayScore": 0, "status": "final"}, {"id": 30, "date": "2026-06-19", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 2, "home": "Scotland", "homeFlag": "🏴", "away": "Morocco", "awayFlag": "🇲🇦", "homeScore": 0, "awayScore": 1, "status": "final"}, {"id": 31, "date": "2026-06-19", "time": "18:30", "phase": "Group C", "group": "C", "jornada": 2, "home": "Brazil", "homeFlag": "🇧🇷", "away": "Haiti", "awayFlag": "🇭🇹", "homeScore": 3, "awayScore": 0, "status": "final"}, {"id": 32, "date": "2026-06-19", "time": "21:00", "phase": "Group D", "group": "D", "jornada": 2, "home": "Turkey", "homeFlag": "🇹🇷", "away": "Paraguay", "awayFlag": "🇵🇾", "homeScore": 0, "awayScore": 1, "status": "final"}, {"id": 33, "date": "2026-06-20", "time": "11:00", "phase": "Group F", "group": "F", "jornada": 2, "home": "Netherlands", "homeFlag": "🇳🇱", "away": "Sweden", "awayFlag": "🇸🇪", "homeScore": 5, "awayScore": 1, "status": "final"}, {"id": 34, "date": "2026-06-20", "time": "14:00", "phase": "Group E", "group": "E", "jornada": 2, "home": "Germany", "homeFlag": "🇩🇪", "away": "Ivory Coast", "awayFlag": "🇨🇮", "homeScore": 2, "awayScore": 1, "status": "final"}, {"id": 35, "date": "2026-06-20", "time": "18:00", "phase": "Group E", "group": "E", "jornada": 2, "home": "Ecuador", "homeFlag": "🇪🇨", "away": "Curacao", "awayFlag": "🇨🇼", "homeScore": 0, "awayScore": 0, "status": "final"}, {"id": 36, "date": "2026-06-20", "time": "22:00", "phase": "Group F", "group": "F", "jornada": 2, "home": "Tunisia", "homeFlag": "🇹🇳", "away": "Japan", "awayFlag": "🇯🇵", "homeScore": 0, "awayScore": 4, "status": "final"}, {"id": 37, "date": "2026-06-21", "time": "10:00", "phase": "Group H", "group": "H", "jornada": 2, "home": "Spain", "homeFlag": "🇪🇸", "away": "Saudi Arabia", "awayFlag": "🇸🇦", "homeScore": 4, "awayScore": 0, "status": "final"}, {"id": 38, "date": "2026-06-21", "time": "13:00", "phase": "Group G", "group": "G", "jornada": 2, "home": "Belgium", "homeFlag": "🇧🇪", "away": "Iran", "awayFlag": "🇮🇷", "homeScore": 0, "awayScore": 0, "status": "final"}, {"id": 39, "date": "2026-06-21", "time": "16:00", "phase": "Group H", "group": "H", "jornada": 2, "home": "Uruguay", "homeFlag": "🇺🇾", "away": "Cape Verde", "awayFlag": "🇨🇻", "homeScore": 2, "awayScore": 2, "status": "final"}, {"id": 40, "date": "2026-06-21", "time": "19:00", "phase": "Group G", "group": "G", "jornada": 2, "home": "New Zealand", "homeFlag": "🇳🇿", "away": "Egypt", "awayFlag": "🇪🇬", "homeScore": 1, "awayScore": 3, "status": "final"}, {"id": 41, "date": "2026-06-22", "time": "11:00", "phase": "Group J", "group": "J", "jornada": 2, "home": "Argentina", "homeFlag": "🇦🇷", "away": "Austria", "awayFlag": "🇦🇹", "homeScore": 2, "awayScore": 0, "status": "final"}, {"id": 42, "date": "2026-06-22", "time": "15:00", "phase": "Group I", "group": "I", "jornada": 2, "home": "France", "homeFlag": "🇫🇷", "away": "Iraq", "awayFlag": "🇮🇶", "homeScore": 3, "awayScore": 0, "status": "final"}, {"id": 43, "date": "2026-06-22", "time": "18:00", "phase": "Group I", "group": "I", "jornada": 2, "home": "Norway", "homeFlag": "🇳🇴", "away": "Senegal", "awayFlag": "🇸🇳", "homeScore": 3, "awayScore": 2, "status": "final"}, {"id": 44, "date": "2026-06-22", "time": "21:00", "phase": "Group J", "group": "J", "jornada": 2, "home": "Jordan", "homeFlag": "🇯🇴", "away": "Algeria", "awayFlag": "🇩🇿", "homeScore": 1, "awayScore": 2, "status": "final"}, {"id": 45, "date": "2026-06-23", "time": "11:00", "phase": "Group K", "group": "K", "jornada": 2, "home": "Portugal", "homeFlag": "🇵🇹", "away": "Uzbekistan", "awayFlag": "🇺🇿", "homeScore": 5, "awayScore": 0, "status": "final"}, {"id": 46, "date": "2026-06-23", "time": "14:00", "phase": "Group L", "group": "L", "jornada": 2, "home": "England", "homeFlag": "🏴", "away": "Ghana", "awayFlag": "🇬🇭", "homeScore": 0, "awayScore": 0, "status": "final"}, {"id": 47, "date": "2026-06-23", "time": "17:00", "phase": "Group L", "group": "L", "jornada": 2, "home": "Panama", "homeFlag": "🇵🇦", "away": "Croatia", "awayFlag": "🇭🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 48, "date": "2026-06-23", "time": "20:00", "phase": "Group K", "group": "K", "jornada": 2, "home": "Colombia", "homeFlag": "🇨🇴", "away": "DR Congo", "awayFlag": "🇨🇩", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 49, "date": "2026-06-24", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 3, "home": "Switzerland", "homeFlag": "🇨🇭", "away": "Canada", "awayFlag": "🇨🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 50, "date": "2026-06-24", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 3, "home": "Bosnia and Herzegovina", "homeFlag": "🇧🇦", "away": "Qatar", "awayFlag": "🇶🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 51, "date": "2026-06-24", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 3, "home": "Scotland", "homeFlag": "🏴", "away": "Brazil", "awayFlag": "🇧🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 52, "date": "2026-06-24", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 3, "home": "Morocco", "homeFlag": "🇲🇦", "away": "Haiti", "awayFlag": "🇭🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 53, "date": "2026-06-24", "time": "19:00", "phase": "Group A", "group": "A", "jornada": 3, "home": "Czechia", "homeFlag": "🇨🇿", "away": "Mexico", "awayFlag": "🇲🇽", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 54, "date": "2026-06-24", "time": "19:00", "phase": "Group A", "group": "A", "jornada": 3, "home": "South Africa", "homeFlag": "🇿🇦", "away": "South Korea", "awayFlag": "🇰🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 55, "date": "2026-06-25", "time": "14:00", "phase": "Group E", "group": "E", "jornada": 3, "home": "Ecuador", "homeFlag": "🇪🇨", "away": "Germany", "awayFlag": "🇩🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 56, "date": "2026-06-25", "time": "14:00", "phase": "Group E", "group": "E", "jornada": 3, "home": "Curacao", "homeFlag": "🇨🇼", "away": "Ivory Coast", "awayFlag": "🇨🇮", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 57, "date": "2026-06-25", "time": "17:00", "phase": "Group F", "group": "F", "jornada": 3, "home": "Tunisia", "homeFlag": "🇹🇳", "away": "Netherlands", "awayFlag": "🇳🇱", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 58, "date": "2026-06-25", "time": "17:00", "phase": "Group F", "group": "F", "jornada": 3, "home": "Japan", "homeFlag": "🇯🇵", "away": "Sweden", "awayFlag": "🇸🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 59, "date": "2026-06-25", "time": "20:00", "phase": "Group D", "group": "D", "jornada": 3, "home": "Turkey", "homeFlag": "🇹🇷", "away": "United States", "awayFlag": "🇺🇸", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 60, "date": "2026-06-25", "time": "20:00", "phase": "Group D", "group": "D", "jornada": 3, "home": "Paraguay", "homeFlag": "🇵🇾", "away": "Australia", "awayFlag": "🇦🇺", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 61, "date": "2026-06-26", "time": "13:00", "phase": "Group I", "group": "I", "jornada": 3, "home": "Norway", "homeFlag": "🇳🇴", "away": "France", "awayFlag": "🇫🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 62, "date": "2026-06-26", "time": "13:00", "phase": "Group I", "group": "I", "jornada": 3, "home": "Senegal", "homeFlag": "🇸🇳", "away": "Iraq", "awayFlag": "🇮🇶", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 63, "date": "2026-06-26", "time": "18:00", "phase": "Group H", "group": "H", "jornada": 3, "home": "Uruguay", "homeFlag": "🇺🇾", "away": "Spain", "awayFlag": "🇪🇸", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 64, "date": "2026-06-26", "time": "18:00", "phase": "Group H", "group": "H", "jornada": 3, "home": "Cape Verde", "homeFlag": "🇨🇻", "away": "Saudi Arabia", "awayFlag": "🇸🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 65, "date": "2026-06-26", "time": "21:00", "phase": "Group G", "group": "G", "jornada": 3, "home": "New Zealand", "homeFlag": "🇳🇿", "away": "Belgium", "awayFlag": "🇧🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 66, "date": "2026-06-26", "time": "21:00", "phase": "Group G", "group": "G", "jornada": 3, "home": "Egypt", "homeFlag": "🇪🇬", "away": "Iran", "awayFlag": "🇮🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 67, "date": "2026-06-27", "time": "15:00", "phase": "Group L", "group": "L", "jornada": 3, "home": "Panama", "homeFlag": "🇵🇦", "away": "England", "awayFlag": "🏴", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 68, "date": "2026-06-27", "time": "15:00", "phase": "Group L", "group": "L", "jornada": 3, "home": "Croatia", "homeFlag": "🇭🇷", "away": "Ghana", "awayFlag": "🇬🇭", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 69, "date": "2026-06-27", "time": "17:30", "phase": "Group K", "group": "K", "jornada": 3, "home": "Colombia", "homeFlag": "🇨🇴", "away": "Portugal", "awayFlag": "🇵🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 70, "date": "2026-06-27", "time": "17:30", "phase": "Group K", "group": "K", "jornada": 3, "home": "DR Congo", "homeFlag": "🇨🇩", "away": "Uzbekistan", "awayFlag": "🇺🇿", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 71, "date": "2026-06-27", "time": "20:00", "phase": "Group J", "group": "J", "jornada": 3, "home": "Jordan", "homeFlag": "🇯🇴", "away": "Argentina", "awayFlag": "🇦🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 72, "date": "2026-06-27", "time": "20:00", "phase": "Group J", "group": "J", "jornada": 3, "home": "Algeria", "homeFlag": "🇩🇿", "away": "Austria", "awayFlag": "🇦🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 73, "date": "2026-06-28", "time": "13:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (2nd Group A)", "homeFlag": "🏳️", "away": "TBD (2nd Group B)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 74, "date": "2026-06-29", "time": "11:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group C)", "homeFlag": "🏳️", "away": "TBD (2nd Group F)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 75, "date": "2026-06-29", "time": "14:30", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group E)", "homeFlag": "🏳️", "away": "TBD (3rd Group A/B/C/D/F)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 76, "date": "2026-06-29", "time": "19:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group F)", "homeFlag": "🏳️", "away": "TBD (2nd Group C)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 77, "date": "2026-06-30", "time": "11:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (2nd Group E)", "homeFlag": "🏳️", "away": "TBD (2nd Group I)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 78, "date": "2026-06-30", "time": "15:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group I)", "homeFlag": "🏳️", "away": "TBD (3rd Group C/D/F/G/H)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 79, "date": "2026-06-30", "time": "19:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group A)", "homeFlag": "🏳️", "away": "TBD (3rd Group C/E/F/H/I)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 80, "date": "2026-07-01", "time": "10:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group L)", "homeFlag": "🏳️", "away": "TBD (3rd Group E/H/I/J/K)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 81, "date": "2026-07-01", "time": "14:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group G)", "homeFlag": "🏳️", "away": "TBD (3rd Group A/E/H/I/J)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 82, "date": "2026-07-01", "time": "18:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group D)", "homeFlag": "🏳️", "away": "TBD (3rd Group B/E/F/I/J)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 83, "date": "2026-07-02", "time": "13:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group H)", "homeFlag": "🏳️", "away": "TBD (2nd Group J)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 84, "date": "2026-07-02", "time": "17:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (2nd Group K)", "homeFlag": "🏳️", "away": "TBD (2nd Group L)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 85, "date": "2026-07-02", "time": "21:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group B)", "homeFlag": "🏳️", "away": "TBD (3rd Group E/F/G/I/J)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 86, "date": "2026-07-03", "time": "12:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (2nd Group D)", "homeFlag": "🏳️", "away": "TBD (2nd Group G)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 87, "date": "2026-07-03", "time": "16:00", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group J)", "homeFlag": "🏳️", "away": "TBD (2nd Group H)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 88, "date": "2026-07-03", "time": "19:30", "phase": "Round Of 32", "group": "", "jornada": null, "home": "TBD (1st Group K)", "homeFlag": "🏳️", "away": "TBD (3rd Group D/E/I/J/L)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 89, "date": "2026-07-04", "time": "11:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-1)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-4)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 90, "date": "2026-07-04", "time": "15:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-3)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-6)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 91, "date": "2026-07-05", "time": "14:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-2)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-5)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 92, "date": "2026-07-05", "time": "18:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-7)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-8)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 93, "date": "2026-07-06", "time": "13:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-12)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-11)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 94, "date": "2026-07-06", "time": "18:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-10)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-9)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 95, "date": "2026-07-07", "time": "10:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-15)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-14)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 96, "date": "2026-07-07", "time": "14:00", "phase": "Round Of 16", "group": "", "jornada": null, "home": "TBD (Winner of R32-13)", "homeFlag": "🏳️", "away": "TBD (Winner of R32-16)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 97, "date": "2026-07-09", "time": "14:00", "phase": "Quarterfinal", "group": "", "jornada": null, "home": "TBD (Winner of R16-2)", "homeFlag": "🏳️", "away": "TBD (Winner of R16-1)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 98, "date": "2026-07-10", "time": "13:00", "phase": "Quarterfinal", "group": "", "jornada": null, "home": "TBD (Winner of R16-5)", "homeFlag": "🏳️", "away": "TBD (Winner of R16-6)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 99, "date": "2026-07-11", "time": "15:00", "phase": "Quarterfinal", "group": "", "jornada": null, "home": "TBD (Winner of R16-3)", "homeFlag": "🏳️", "away": "TBD (Winner of R16-4)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 100, "date": "2026-07-11", "time": "19:00", "phase": "Quarterfinal", "group": "", "jornada": null, "home": "TBD (Winner of R16-7)", "homeFlag": "🏳️", "away": "TBD (Winner of R16-8)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 101, "date": "2026-07-14", "time": "13:00", "phase": "Semifinal", "group": "", "jornada": null, "home": "TBD (Winner of QF-1)", "homeFlag": "🏳️", "away": "TBD (Winner of QF-2)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 102, "date": "2026-07-15", "time": "13:00", "phase": "Semifinal", "group": "", "jornada": null, "home": "TBD (Winner of QF-3)", "homeFlag": "🏳️", "away": "TBD (Winner of QF-4)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 103, "date": "2026-07-18", "time": "15:00", "phase": "3rd Place", "group": "", "jornada": null, "home": "TBD (Loser of SF-1)", "homeFlag": "🏳️", "away": "TBD (Loser of SF-2)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 104, "date": "2026-07-19", "time": "13:00", "phase": "Final", "group": "", "jornada": null, "home": "TBD (Winner of SF-1)", "homeFlag": "🏳️", "away": "TBD (Winner of SF-2)", "awayFlag": "🏳️", "homeScore": null, "awayScore": null, "status": "scheduled"}], "pending": [{"id": 49, "date": "2026-06-24", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 3, "home": "Switzerland", "homeFlag": "🇨🇭", "away": "Canada", "awayFlag": "🇨🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 50, "date": "2026-06-24", "time": "13:00", "phase": "Group B", "group": "B", "jornada": 3, "home": "Bosnia and Herzegovina", "homeFlag": "🇧🇦", "away": "Qatar", "awayFlag": "🇶🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 51, "date": "2026-06-24", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 3, "home": "Scotland", "homeFlag": "🏴", "away": "Brazil", "awayFlag": "🇧🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 52, "date": "2026-06-24", "time": "16:00", "phase": "Group C", "group": "C", "jornada": 3, "home": "Morocco", "homeFlag": "🇲🇦", "away": "Haiti", "awayFlag": "🇭🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 53, "date": "2026-06-24", "time": "19:00", "phase": "Group A", "group": "A", "jornada": 3, "home": "Czechia", "homeFlag": "🇨🇿", "away": "Mexico", "awayFlag": "🇲🇽", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 54, "date": "2026-06-24", "time": "19:00", "phase": "Group A", "group": "A", "jornada": 3, "home": "South Africa", "homeFlag": "🇿🇦", "away": "South Korea", "awayFlag": "🇰🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 55, "date": "2026-06-25", "time": "14:00", "phase": "Group E", "group": "E", "jornada": 3, "home": "Ecuador", "homeFlag": "🇪🇨", "away": "Germany", "awayFlag": "🇩🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 56, "date": "2026-06-25", "time": "14:00", "phase": "Group E", "group": "E", "jornada": 3, "home": "Curacao", "homeFlag": "🇨🇼", "away": "Ivory Coast", "awayFlag": "🇨🇮", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 57, "date": "2026-06-25", "time": "17:00", "phase": "Group F", "group": "F", "jornada": 3, "home": "Tunisia", "homeFlag": "🇹🇳", "away": "Netherlands", "awayFlag": "🇳🇱", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 58, "date": "2026-06-25", "time": "17:00", "phase": "Group F", "group": "F", "jornada": 3, "home": "Japan", "homeFlag": "🇯🇵", "away": "Sweden", "awayFlag": "🇸🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 59, "date": "2026-06-25", "time": "20:00", "phase": "Group D", "group": "D", "jornada": 3, "home": "Turkey", "homeFlag": "🇹🇷", "away": "United States", "awayFlag": "🇺🇸", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 60, "date": "2026-06-25", "time": "20:00", "phase": "Group D", "group": "D", "jornada": 3, "home": "Paraguay", "homeFlag": "🇵🇾", "away": "Australia", "awayFlag": "🇦🇺", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 61, "date": "2026-06-26", "time": "13:00", "phase": "Group I", "group": "I", "jornada": 3, "home": "Norway", "homeFlag": "🇳🇴", "away": "France", "awayFlag": "🇫🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 62, "date": "2026-06-26", "time": "13:00", "phase": "Group I", "group": "I", "jornada": 3, "home": "Senegal", "homeFlag": "🇸🇳", "away": "Iraq", "awayFlag": "🇮🇶", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 63, "date": "2026-06-26", "time": "18:00", "phase": "Group H", "group": "H", "jornada": 3, "home": "Uruguay", "homeFlag": "🇺🇾", "away": "Spain", "awayFlag": "🇪🇸", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 64, "date": "2026-06-26", "time": "18:00", "phase": "Group H", "group": "H", "jornada": 3, "home": "Cape Verde", "homeFlag": "🇨🇻", "away": "Saudi Arabia", "awayFlag": "🇸🇦", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 65, "date": "2026-06-26", "time": "21:00", "phase": "Group G", "group": "G", "jornada": 3, "home": "New Zealand", "homeFlag": "🇳🇿", "away": "Belgium", "awayFlag": "🇧🇪", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 66, "date": "2026-06-26", "time": "21:00", "phase": "Group G", "group": "G", "jornada": 3, "home": "Egypt", "homeFlag": "🇪🇬", "away": "Iran", "awayFlag": "🇮🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 67, "date": "2026-06-27", "time": "15:00", "phase": "Group L", "group": "L", "jornada": 3, "home": "Panama", "homeFlag": "🇵🇦", "away": "England", "awayFlag": "🏴", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 68, "date": "2026-06-27", "time": "15:00", "phase": "Group L", "group": "L", "jornada": 3, "home": "Croatia", "homeFlag": "🇭🇷", "away": "Ghana", "awayFlag": "🇬🇭", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 69, "date": "2026-06-27", "time": "17:30", "phase": "Group K", "group": "K", "jornada": 3, "home": "Colombia", "homeFlag": "🇨🇴", "away": "Portugal", "awayFlag": "🇵🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 70, "date": "2026-06-27", "time": "17:30", "phase": "Group K", "group": "K", "jornada": 3, "home": "DR Congo", "homeFlag": "🇨🇩", "away": "Uzbekistan", "awayFlag": "🇺🇿", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 71, "date": "2026-06-27", "time": "20:00", "phase": "Group J", "group": "J", "jornada": 3, "home": "Jordan", "homeFlag": "🇯🇴", "away": "Argentina", "awayFlag": "🇦🇷", "homeScore": null, "awayScore": null, "status": "scheduled"}, {"id": 72, "date": "2026-06-27", "time": "20:00", "phase": "Group J", "group": "J", "jornada": 3, "home": "Algeria", "homeFlag": "🇩🇿", "away": "Austria", "awayFlag": "🇦🇹", "homeScore": null, "awayScore": null, "status": "scheduled"}], "groups": {"A": [{"group": "A", "pos": 1, "team": "Mexico", "flag": "🇲🇽", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 3, "gc": 0, "dg": 3, "pts": 6}, {"group": "A", "pos": 2, "team": "South Korea", "flag": "🇰🇷", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 2, "dg": 0, "pts": 3}, {"group": "A", "pos": 3, "team": "Czechia", "flag": "🇨🇿", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 2, "gc": 3, "dg": -1, "pts": 1}, {"group": "A", "pos": 4, "team": "South Africa", "flag": "🇿🇦", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 1, "gc": 3, "dg": -2, "pts": 1}], "B": [{"group": "B", "pos": 1, "team": "Canada", "flag": "🇨🇦", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 7, "gc": 1, "dg": 6, "pts": 4}, {"group": "B", "pos": 2, "team": "Switzerland", "flag": "🇨🇭", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 5, "gc": 2, "dg": 3, "pts": 4}, {"group": "B", "pos": 3, "team": "Bosnia and Herzegovina", "flag": "🇧🇦", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 2, "gc": 5, "dg": -3, "pts": 1}, {"group": "B", "pos": 4, "team": "Qatar", "flag": "🇶🇦", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 1, "gc": 7, "dg": -6, "pts": 1}], "C": [{"group": "C", "pos": 1, "team": "Brazil", "flag": "🇧🇷", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 4, "gc": 1, "dg": 3, "pts": 4}, {"group": "C", "pos": 2, "team": "Morocco", "flag": "🇲🇦", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 2, "gc": 1, "dg": 1, "pts": 4}, {"group": "C", "pos": 3, "team": "Scotland", "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 1, "gc": 1, "dg": 0, "pts": 3}, {"group": "C", "pos": 4, "team": "Haiti", "flag": "🇭🇹", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 0, "gc": 4, "dg": -4, "pts": 0}], "D": [{"group": "D", "pos": 1, "team": "United States", "flag": "🇺🇸", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 6, "gc": 1, "dg": 5, "pts": 6}, {"group": "D", "pos": 2, "team": "Australia", "flag": "🇦🇺", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 2, "dg": 0, "pts": 3}, {"group": "D", "pos": 3, "team": "Paraguay", "flag": "🇵🇾", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 4, "dg": -2, "pts": 3}, {"group": "D", "pos": 4, "team": "Turkey", "flag": "🇹🇷", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 0, "gc": 3, "dg": -3, "pts": 0}], "E": [{"group": "E", "pos": 1, "team": "Germany", "flag": "🇩🇪", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 9, "gc": 2, "dg": 7, "pts": 6}, {"group": "E", "pos": 2, "team": "Ivory Coast", "flag": "🇨🇮", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 2, "dg": 0, "pts": 3}, {"group": "E", "pos": 3, "team": "Ecuador", "flag": "🇪🇨", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 0, "gc": 1, "dg": -1, "pts": 1}, {"group": "E", "pos": 4, "team": "Curacao", "flag": "🇨🇼", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 1, "gc": 7, "dg": -6, "pts": 1}], "F": [{"group": "F", "pos": 1, "team": "Netherlands", "flag": "🇳🇱", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 7, "gc": 3, "dg": 4, "pts": 4}, {"group": "F", "pos": 2, "team": "Japan", "flag": "🇯🇵", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 6, "gc": 2, "dg": 4, "pts": 4}, {"group": "F", "pos": 3, "team": "Sweden", "flag": "🇸🇪", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 6, "gc": 6, "dg": 0, "pts": 3}, {"group": "F", "pos": 4, "team": "Tunisia", "flag": "🇹🇳", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 1, "gc": 9, "dg": -8, "pts": 0}], "G": [{"group": "G", "pos": 1, "team": "Egypt", "flag": "🇪🇬", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 4, "gc": 2, "dg": 2, "pts": 4}, {"group": "G", "pos": 2, "team": "Iran", "flag": "🇮🇷", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 2, "gc": 2, "dg": 0, "pts": 2}, {"group": "G", "pos": 3, "team": "Belgium", "flag": "🇧🇪", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 1, "gc": 1, "dg": 0, "pts": 2}, {"group": "G", "pos": 4, "team": "New Zealand", "flag": "🇳🇿", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 3, "gc": 5, "dg": -2, "pts": 1}], "H": [{"group": "H", "pos": 1, "team": "Spain", "flag": "🇪🇸", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 4, "gc": 0, "dg": 4, "pts": 4}, {"group": "H", "pos": 2, "team": "Uruguay", "flag": "🇺🇾", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 3, "gc": 3, "dg": 0, "pts": 2}, {"group": "H", "pos": 3, "team": "Cape Verde", "flag": "🇨🇻", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 2, "gc": 2, "dg": 0, "pts": 2}, {"group": "H", "pos": 4, "team": "Saudi Arabia", "flag": "🇸🇦", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 1, "gc": 5, "dg": -4, "pts": 1}], "I": [{"group": "I", "pos": 1, "team": "France", "flag": "🇫🇷", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 6, "gc": 1, "dg": 5, "pts": 6}, {"group": "I", "pos": 2, "team": "Norway", "flag": "🇳🇴", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 7, "gc": 3, "dg": 4, "pts": 6}, {"group": "I", "pos": 3, "team": "Senegal", "flag": "🇸🇳", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 3, "gc": 6, "dg": -3, "pts": 0}, {"group": "I", "pos": 4, "team": "Iraq", "flag": "🇮🇶", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 1, "gc": 7, "dg": -6, "pts": 0}], "J": [{"group": "J", "pos": 1, "team": "Argentina", "flag": "🇦🇷", "pj": 2, "pg": 2, "pe": 0, "pp": 0, "gf": 5, "gc": 0, "dg": 5, "pts": 6}, {"group": "J", "pos": 2, "team": "Austria", "flag": "🇦🇹", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 3, "gc": 3, "dg": 0, "pts": 3}, {"group": "J", "pos": 3, "team": "Algeria", "flag": "🇩🇿", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 4, "dg": -2, "pts": 3}, {"group": "J", "pos": 4, "team": "Jordan", "flag": "🇯🇴", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 2, "gc": 5, "dg": -3, "pts": 0}], "K": [{"group": "K", "pos": 1, "team": "Portugal", "flag": "🇵🇹", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 6, "gc": 1, "dg": 5, "pts": 4}, {"group": "K", "pos": 2, "team": "Colombia", "flag": "🇨🇴", "pj": 1, "pg": 1, "pe": 0, "pp": 0, "gf": 3, "gc": 1, "dg": 2, "pts": 3}, {"group": "K", "pos": 3, "team": "DR Congo", "flag": "🇨🇩", "pj": 1, "pg": 0, "pe": 1, "pp": 0, "gf": 1, "gc": 1, "dg": 0, "pts": 1}, {"group": "K", "pos": 4, "team": "Uzbekistan", "flag": "🇺🇿", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 1, "gc": 8, "dg": -7, "pts": 0}], "L": [{"group": "L", "pos": 1, "team": "England", "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 4, "gc": 2, "dg": 2, "pts": 4}, {"group": "L", "pos": 2, "team": "Ghana", "flag": "🇬🇭", "pj": 2, "pg": 1, "pe": 1, "pp": 0, "gf": 1, "gc": 0, "dg": 1, "pts": 4}, {"group": "L", "pos": 3, "team": "Panama", "flag": "🇵🇦", "pj": 1, "pg": 0, "pe": 0, "pp": 1, "gf": 0, "gc": 1, "dg": -1, "pts": 0}, {"group": "L", "pos": 4, "team": "Croatia", "flag": "🇭🇷", "pj": 1, "pg": 0, "pe": 0, "pp": 1, "gf": 2, "gc": 4, "dg": -2, "pts": 0}]}, "thirds": [{"group": "F", "team": "Sweden", "flag": "🇸🇪", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 6, "gc": 6, "dg": 0, "pts": 3, "estado": "Clasifica provisional"}, {"group": "C", "team": "Scotland", "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 1, "gc": 1, "dg": 0, "pts": 3, "estado": "Clasifica provisional"}, {"group": "J", "team": "Algeria", "flag": "🇩🇿", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 4, "dg": -2, "pts": 3, "estado": "Clasifica provisional"}, {"group": "D", "team": "Paraguay", "flag": "🇵🇾", "pj": 2, "pg": 1, "pe": 0, "pp": 1, "gf": 2, "gc": 4, "dg": -2, "pts": 3, "estado": "Clasifica provisional"}, {"group": "H", "team": "Cape Verde", "flag": "🇨🇻", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 2, "gc": 2, "dg": 0, "pts": 2, "estado": "Clasifica provisional"}, {"group": "G", "team": "Belgium", "flag": "🇧🇪", "pj": 2, "pg": 0, "pe": 2, "pp": 0, "gf": 1, "gc": 1, "dg": 0, "pts": 2, "estado": "Clasifica provisional"}, {"group": "K", "team": "DR Congo", "flag": "🇨🇩", "pj": 1, "pg": 0, "pe": 1, "pp": 0, "gf": 1, "gc": 1, "dg": 0, "pts": 1, "estado": "Clasifica provisional"}, {"group": "A", "team": "Czechia", "flag": "🇨🇿", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 2, "gc": 3, "dg": -1, "pts": 1, "estado": "Clasifica provisional"}, {"group": "E", "team": "Ecuador", "flag": "🇪🇨", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 0, "gc": 1, "dg": -1, "pts": 1, "estado": "Fuera provisional"}, {"group": "B", "team": "Bosnia and Herzegovina", "flag": "🇧🇦", "pj": 2, "pg": 0, "pe": 1, "pp": 1, "gf": 2, "gc": 5, "dg": -3, "pts": 1, "estado": "Fuera provisional"}, {"group": "L", "team": "Panama", "flag": "🇵🇦", "pj": 1, "pg": 0, "pe": 0, "pp": 1, "gf": 0, "gc": 1, "dg": -1, "pts": 0, "estado": "Fuera provisional"}, {"group": "I", "team": "Senegal", "flag": "🇸🇳", "pj": 2, "pg": 0, "pe": 0, "pp": 2, "gf": 3, "gc": 6, "dg": -3, "pts": 0, "estado": "Fuera provisional"}], "bracket": [{"id": 73, "date": "2026-06-28", "time": "13:00", "phase": "Dieciseisavos", "home": "South Korea", "homeFlag": "🇰🇷", "away": "Switzerland", "awayFlag": "🇨🇭", "homeScore": null, "awayScore": null}, {"id": 74, "date": "2026-06-29", "time": "11:00", "phase": "Dieciseisavos", "home": "Brazil", "homeFlag": "🇧🇷", "away": "Japan", "awayFlag": "🇯🇵", "homeScore": null, "awayScore": null}, {"id": 75, "date": "2026-06-29", "time": "14:30", "phase": "Dieciseisavos", "home": "Germany", "homeFlag": "🇩🇪", "away": "Sweden", "awayFlag": "🇸🇪", "homeScore": null, "awayScore": null}, {"id": 76, "date": "2026-06-29", "time": "19:00", "phase": "Dieciseisavos", "home": "Netherlands", "homeFlag": "🇸🇪", "away": "Morocco", "awayFlag": "🇲🇦", "homeScore": null, "awayScore": null}, {"id": 77, "date": "2026-06-30", "time": "11:00", "phase": "Dieciseisavos", "home": "Ivory Coast", "homeFlag": "🇨🇮", "away": "Norway", "awayFlag": "🇳🇴", "homeScore": null, "awayScore": null}, {"id": 78, "date": "2026-06-30", "time": "15:00", "phase": "Dieciseisavos", "home": "France", "homeFlag": "🇫🇷", "away": "Scotland", "awayFlag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "homeScore": null, "awayScore": null}, {"id": 79, "date": "2026-06-30", "time": "19:00", "phase": "Dieciseisavos", "home": "Mexico", "homeFlag": "🇲🇽", "away": "Algeria", "awayFlag": "🇩🇿", "homeScore": null, "awayScore": null}, {"id": 80, "date": "2026-07-01", "time": "10:00", "phase": "Dieciseisavos", "home": "England", "homeFlag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away": "Paraguay", "awayFlag": "🇵🇾", "homeScore": null, "awayScore": null}, {"id": 81, "date": "2026-07-01", "time": "14:00", "phase": "Dieciseisavos", "home": "Egypt", "homeFlag": "🇪🇬", "away": "Cape Verde", "awayFlag": "🇨🇻", "homeScore": null, "awayScore": null}, {"id": 82, "date": "2026-07-01", "time": "18:00", "phase": "Dieciseisavos", "home": "United States", "homeFlag": "🇺🇸", "away": "Belgium", "awayFlag": "🇧🇪", "homeScore": null, "awayScore": null}, {"id": 83, "date": "2026-07-02", "time": "13:00", "phase": "Dieciseisavos", "home": "Spain", "homeFlag": "🇪🇸", "away": "Austria", "awayFlag": "🇦🇹", "homeScore": null, "awayScore": null}, {"id": 84, "date": "2026-07-02", "time": "17:00", "phase": "Dieciseisavos", "home": "Colombia", "homeFlag": "🇨🇴", "away": "Ghana", "awayFlag": "🇬🇭", "homeScore": null, "awayScore": null}, {"id": 85, "date": "2026-07-02", "time": "21:00", "phase": "Dieciseisavos", "home": "Canada", "homeFlag": "🇨🇦", "away": "DR Congo", "awayFlag": "🇨🇩", "homeScore": null, "awayScore": null}, {"id": 86, "date": "2026-07-03", "time": "12:00", "phase": "Dieciseisavos", "home": "Australia", "homeFlag": "🇦🇺", "away": "Iran", "awayFlag": "🇮🇷", "homeScore": null, "awayScore": null}, {"id": 87, "date": "2026-07-03", "time": "16:00", "phase": "Dieciseisavos", "home": "Argentina", "homeFlag": "🇦🇷", "away": "Uruguay", "awayFlag": "🇺🇾", "homeScore": null, "awayScore": null}, {"id": 88, "date": "2026-07-03", "time": "19:30", "phase": "Dieciseisavos", "home": "Portugal", "homeFlag": "🇵🇹", "away": "Czechia", "awayFlag": "🇨🇿", "homeScore": null, "awayScore": null}, {"id": 89, "date": "2026-07-04", "time": "11:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 90, "date": "2026-07-04", "time": "15:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 91, "date": "2026-07-05", "time": "14:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 92, "date": "2026-07-05", "time": "18:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 93, "date": "2026-07-06", "time": "13:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 94, "date": "2026-07-06", "time": "18:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 95, "date": "2026-07-07", "time": "10:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 96, "date": "2026-07-07", "time": "14:00", "phase": "Octavos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 97, "date": "2026-07-09", "time": "14:00", "phase": "Cuartos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 98, "date": "2026-07-10", "time": "13:00", "phase": "Cuartos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 99, "date": "2026-07-11", "time": "15:00", "phase": "Cuartos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 100, "date": "2026-07-11", "time": "19:00", "phase": "Cuartos", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 101, "date": "2026-07-14", "time": "13:00", "phase": "Semifinal", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 102, "date": "2026-07-15", "time": "13:00", "phase": "Semifinal", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 103, "date": "2026-07-18", "time": "15:00", "phase": "3rd Place", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}, {"id": 104, "date": "2026-07-19", "time": "13:00", "phase": "Final", "home": "Por definir", "homeFlag": "", "away": "Por definir", "awayFlag": "", "homeScore": null, "awayScore": null}]};
 const firebaseConfig = {apiKey:"AIzaSyDewn58lpNKr7X4hOa52Od5OKBjwEiWYx0",authDomain:"quiniela-pedex-2026.firebaseapp.com",projectId:"quiniela-pedex-2026",storageBucket:"quiniela-pedex-2026.firebasestorage.app",messagingSenderId:"558245358716",appId:"1:558245358716:web:38d197c2abd91014a8edf9",measurementId:"G-6GE2FJ96Z8"};
-const ADMIN_EMAIL = "pem250274@gmail.com";
+const ADMIN_EMAILS = ["pem250274@gmail.com","ceo@tourbnb.com","pestevez@jopanauticos.com"];
 const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const functions = getFunctions(app, "us-central1");
 const adminCreateApp = initializeApp(firebaseConfig, 'admin-create-app'); const adminCreateAuth = getAuth(adminCreateApp);
-let currentUser=null,currentProfile=null,users=[],predictions=[],myPred={},ranking=[],actualResults={};
+let currentUser=null,currentProfile=null,users=[],predictions=[],myPred={},ranking=[],actualResults={},manualBracket={},manualBracketPublished=false;
 
 function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
-function isAdmin(){return currentUser?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase()}
+function isAdmin(){return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes((currentUser?.email||"").toLowerCase())}
 
 const FLAG_BASE = 'img/flags/';
 const FLAG_FILES = {
-  'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'usa.svg','USA':'usa.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
+  'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-and-herzegovina.svg','Bosnia Herzegovina':'bosnia-and-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'united-states.svg','USA':'united-states.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Curaçao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Cote d Ivoire':'ivory-coast.svg','Côte d’Ivoire':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Congo DR':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
 };
-function flagSrc(team){return FLAG_BASE + (FLAG_FILES[team] || 'tbd.svg')}
+function flagSlug(team){
+  return String(team||'tbd')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/&/g,'and')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'') || 'tbd';
+}
+function flagFile(team){
+  if(!team || team==='Por definir') return 'tbd.svg';
+  return FLAG_FILES[team] || `${flagSlug(team)}.svg`;
+}
+function flagSrc(team){return FLAG_BASE + flagFile(team)}
+function normalizeFlagFile(team, savedFlag=''){
+  const flag=String(savedFlag||'').trim();
+  if(flag && flag.toLowerCase().endsWith('.svg')) return flag.includes('/') ? flag.split('/').pop() : flag;
+  return flagFile(team);
+}
 function flagImg(team,cls='flag-img-sm'){return `<img class="${cls}" src="${flagSrc(team)}" alt="${team||'Por definir'}" onerror="this.src='${FLAG_BASE}tbd.svg'">`}
 function teamLabel(team,cls='flag-img-sm'){return `${flagImg(team,cls)}<span>${team||'Por definir'}</span>`}
+function teamLabelSaved(team, savedFlag='', cls='flag-img-sm'){
+  const name=team||'Por definir';
+  const file=normalizeFlagFile(name,savedFlag).split('/').pop();
+  const src = FLAG_BASE + file;
+  return `<img class="${cls}" src="${src}" alt="${name}" onerror="this.src='${FLAG_BASE}tbd.svg'"><span>${name}</span>`;
+}
+function matchTeamLabel(m,side,cls='flag-img-sm'){
+  const team=side==='home' ? m?.home : m?.away;
+  const savedFlag=side==='home' ? m?.homeFlag : m?.awayFlag;
+  return teamLabelSaved(team,savedFlag,cls);
+}
 
 function showAuth(which){$('loginForm').classList.toggle('hidden',which!=='login');$('registerForm').classList.toggle('hidden',which!=='register');$('tabLogin').classList.toggle('active',which==='login');$('tabRegister').classList.toggle('active',which==='register')}
 function goSection(section){
   if(section==='admin' && !isAdmin()){
     alert('La zona administrativa es exclusiva del administrador.');
-    section='inicio';
+    section='pronosticos';
   }
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   $('sec-'+section)?.classList.add('active');
   document.querySelectorAll('[data-section]').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
   if(section==='perfil') renderProfile();
-  if(section==='admin' && isAdmin()){ renderAdminUsers(); renderAdminResults(); }
+  if(section==='admin' && isAdmin()){ renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); }
 }
 window.showAuth=showAuth; window.goSection=goSection;
 document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.section==='admin' && !isAdmin()) return alert('La zona administrativa es exclusiva del administrador.'); goSection(b.dataset.section); }));
@@ -462,24 +529,140 @@ window.loginUser=loginUser; window.registerUser=registerUser; window.logoutUser=
   if(el) el.addEventListener('keydown',e=>{if(e.key==='Enter') registerUser();});
 });
 
+
+function normalizeManualBracket(raw){
+  const out={};
+  Object.entries(raw||{}).forEach(([id,v])=>{
+    if(!v) return;
+    out[Number(id)]={
+      home:v.home||'Por definir',
+      away:v.away||'Por definir',
+      homeFlag:normalizeFlagFile(v.home,v.homeFlag),
+      awayFlag:normalizeFlagFile(v.away,v.awayFlag),
+      homeFrom:v.homeFrom||'Manual',
+      awayFrom:v.awayFrom||'Manual',
+      manual:true
+    };
+  });
+  return out;
+}
+function isManualBracketActive(){
+  return manualBracketPublished===true && Object.keys(manualBracket||{}).length>0;
+}
+function applyManualBracketOverridesToById(byId){
+  Object.entries(manualBracket||{}).forEach(([id,ov])=>{
+    const n=Number(id);
+    if(!byId[n] || !ov) return;
+    byId[n]={...byId[n],...ov,homeFlag:ov.homeFlag||byId[n].homeFlag||'',awayFlag:ov.awayFlag||byId[n].awayFlag||'',homeNote:'Manual',awayNote:'Manual',manual:true};
+  });
+  return byId;
+}
+function getTeamPool(){
+  const map=new Map();
+  const add=(team,flag='')=>{ if(team && team!=='Por definir' && !map.has(team)) map.set(team,flag||''); };
+  [...(DATA.matches||[]),...(DATA.pending||[]),...(DATA.bracket||[])].forEach(m=>{add(m.home,m.homeFlag);add(m.away,m.awayFlag);});
+  Object.values(manualBracket||{}).forEach(m=>{add(m.home,m.homeFlag);add(m.away,m.awayFlag);});
+  return Array.from(map.entries()).sort((a,b)=>a[0].localeCompare(b[0])).map(([team,flag])=>({team,flag}));
+}
+function getTeamFlag(team){
+  if(!team || team==='Por definir') return 'tbd.svg';
+  return flagFile(team);
+}
+
 function matchById(id){
   const n=Number(id);
+  const knockoutIds=new Set(getKnockoutPhases().flatMap(p=>p.ids));
   const dynamicBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : [];
-  const base=DATA.matches.find(m=>m.id===n)||DATA.pending.find(m=>m.id===n)||dynamicBracket.find(m=>m.id===n)||DATA.bracket.find(m=>m.id===n);
+  let base=null;
+  if(knockoutIds.has(n)){
+    base=dynamicBracket.find(m=>Number(m.id)===n)||DATA.bracket.find(m=>Number(m.id)===n)||DATA.matches.find(m=>Number(m.id)===n)||DATA.pending.find(m=>Number(m.id)===n);
+  }else{
+    base=DATA.matches.find(m=>Number(m.id)===n)||DATA.pending.find(m=>Number(m.id)===n)||dynamicBracket.find(m=>Number(m.id)===n)||DATA.bracket.find(m=>Number(m.id)===n);
+  }
   if(!base) return null;
   const real=actualResults[n];
-  return real ? {...base,homeScore:Number(real.homeScore),awayScore:Number(real.awayScore),status:'final',resultadoCerrado:true} : base;
+  const hasRealScore=real && real.homeScore!==undefined && real.awayScore!==undefined && real.homeScore!==null && real.awayScore!==null && String(real.status||'').toLowerCase()!=='open';
+  return hasRealScore ? {...base,homeScore:Number(real.homeScore),awayScore:Number(real.awayScore),penaltyWinner:real.penaltyWinner||'',status:'final',resultadoCerrado:true} : base;
 }
-function resultWinner(h,a,home,away){if(h==null||a==null)return null; h=Number(h); a=Number(a); if(h>a)return home;if(a>h)return away;return 'Empate'}
-function calcPoints(match,p){if(!match||p.homeScore==null||p.awayScore==null||match.homeScore==null||match.awayScore==null)return 0;const exact=Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore); if(exact)return 5; return resultWinner(p.homeScore,p.awayScore,match.home,match.away)===resultWinner(match.homeScore,match.awayScore,match.home,match.away)?3:0}
-function calcExact(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&Number(p.homeScore)===Number(match.homeScore)&&Number(p.awayScore)===Number(match.awayScore));}
-function calcWinnerOk(match,p){return !!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null&&resultWinner(p.homeScore,p.awayScore,match.home,match.away)===resultWinner(match.homeScore,match.awayScore,match.home,match.away));}
+function resultWinner(h,a,home,away,penaltyWinner=''){
+  if(h==null||a==null)return null;
+  h=Number(h); a=Number(a);
+  if(h>a)return home;
+  if(a>h)return away;
+  return penaltyWinner || 'Empate';
+}
+function isDrawScore(h,a){
+  return h!==undefined && a!==undefined && h!==null && a!==null && h!=='' && a!=='' && Number(h)===Number(a);
+}
+function normalizeWinnerName(v){return String(v||'').trim();}
+function calcPoints(match,p){
+  if(!match||p.homeScore==null||p.awayScore==null||match.homeScore==null||match.awayScore==null)return 0;
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  const realDraw = rh===ra;
+  const predDraw = ph===pa;
+  const realPenaltyWinner = normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+  const predPenaltyWinner = normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+
+  // Regla especial de eliminación directa:
+  // Si el partido real empata, sólo suma si el usuario también pronosticó empate
+  // y acertó el ganador por penales. En ese caso son 5 puntos; si no, 0.
+  if(realDraw){
+    return (predDraw && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner) ? 5 : 0;
+  }
+
+  const exact = ph===rh && pa===ra;
+  if(exact) return 5;
+
+  const predWinner=resultWinner(ph,pa,match.home,match.away,predPenaltyWinner);
+  const realWinner=resultWinner(rh,ra,match.home,match.away,realPenaltyWinner);
+  return predWinner===realWinner?3:0;
+}
+function calcExact(match,p){
+  if(!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null)) return false;
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  if(rh===ra){
+    const realPenaltyWinner=normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+    const predPenaltyWinner=normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+    return ph===pa && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner;
+  }
+  return ph===rh && pa===ra;
+}
+function calcWinnerOk(match,p){
+  if(!(match&&p.homeScore!=null&&p.awayScore!=null&&match.homeScore!=null&&match.awayScore!=null)) return false;
+  const ph=Number(p.homeScore), pa=Number(p.awayScore), rh=Number(match.homeScore), ra=Number(match.awayScore);
+  if(rh===ra){
+    const realPenaltyWinner=normalizeWinnerName(match.penaltyWinner||match.winnerPenalty||match.ganadorPenales||'');
+    const predPenaltyWinner=normalizeWinnerName(p.penaltyWinner||p.winner||p.ganadorPenales||'');
+    return ph===pa && realPenaltyWinner && predPenaltyWinner && predPenaltyWinner===realPenaltyWinner;
+  }
+  const predWinner=resultWinner(ph,pa,match.home,match.away,p.penaltyWinner||p.winner||'');
+  const realWinner=resultWinner(rh,ra,match.home,match.away,match.penaltyWinner||'');
+  return predWinner===realWinner;
+}
+function update16StatusBadge(){
+  const badge=$('status16Badge');
+  if(!badge) return;
+  const matches=getKnockout16Matches().filter(hasBothTeams);
+  if(!manualBracketPublished || !matches.length){
+    badge.className='status-16-badge pending';
+    badge.textContent='⚪ Próximamente';
+    return;
+  }
+  const allClosed=matches.length>0 && matches.every(m=>{
+    const r=actualResults && actualResults[Number(m.id)];
+    return r && r.homeScore!==undefined && r.awayScore!==undefined && r.homeScore!==null && r.awayScore!==null && String(r.status||'').toLowerCase()!=='open';
+  });
+  badge.className='status-16-badge '+(allClosed?'closed':'open');
+  badge.textContent=allClosed?'🔴 16avos Cerrados':'🟢 16avos Abiertos';
+}
 
 function renderHome(){
-  const officialBracket=(typeof buildOfficialBracket==='function') ? buildOfficialBracket() : DATA.bracket;
-  $('kpiPending').textContent=DATA.pending.length;
-  $('homeNext').innerHTML=DATA.pending.slice(0,4).map(m=>matchReadOnly(matchById(m.id)||m)).join('');
-  $('homeRound32').innerHTML=officialBracket.filter(b=>b.phase==='Dieciseisavos').slice(0,4).map(matchReadOnly).join('');
+  update16StatusBadge();
+  const r32=getKnockout16Matches();
+  const open=r32.filter(m=>hasBothTeams(m));
+  $('kpiPending').textContent=open.length; if($('kpiPendingLabel')) $('kpiPendingLabel').textContent='Partidos '+getCurrentPhaseLabel();
+  $('homeNext').innerHTML=open.slice(0,8).map(m=>matchReadOnly(matchById(m.id)||m)).join('') || '<div class="admin-warning">El administrador aún no ha guardado la llave de dieciseisavos.</div>';
+  $('homeRound32').innerHTML=open.slice(0,8).map(matchReadOnly).join('') || '<div class="admin-warning">Pendiente de llave manual.</div>';
   updateUserStats();
 }
 
@@ -515,48 +698,150 @@ function getJornada3PronosticoMatches(){
   return Array.from(byId.values()).sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)) || Number(a.id)-Number(b.id));
 }
 function isPronosticableMatch(m){
-  return !!(m && Number(m.id)>=49 && Number(m.id)<=104);
+  return !!(m && Number(m.id)>=73 && Number(m.id)<=88 && hasBothTeams(m));
 }
 function renderPredictions(){
-  const groupStage = getJornada3PronosticoMatches();
-  const knockout = (typeof buildUserBracket==='function' ? buildUserBracket() : DATA.bracket)
-    .filter(m=>Number(m.id)>=73)
-    .filter(m=>{
-      const homeOk = m.home && m.home !== 'Por definir' && !String(m.home).startsWith('TBD');
-      const awayOk = m.away && m.away !== 'Por definir' && !String(m.away).startsWith('TBD');
-      return homeOk && awayOk;
-    });
-  const all=[]; const seen=new Set();
-  groupStage.concat(knockout).forEach(m=>{ if(m && !seen.has(Number(m.id))){seen.add(Number(m.id)); all.push(m);} });
+  const all=getCurrentPredictionMatches();
+  const list=$('predictionList');
+  if(!list) return;
   if(!all.length){
-    $('predictionList').innerHTML='<div class="admin-warning">No se encontraron partidos de Jornada 3 para pronosticar. Revisa que el archivo incluya los partidos 49 al 72.</div>';
+    list.innerHTML='<div class="admin-warning">El administrador aún no ha dado de alta la llave de dieciseisavos. Cuando la publique, aquí aparecerán los partidos para pronosticar.</div>';
     return;
   }
-  $('predictionList').innerHTML=all.map((m)=>{
+  const total=all.length;
+  const savedCount=all.filter(m=>{ const p=myPred[m.id]||{}; return !!p.bloqueado || p.homeScore!==undefined || p.marcadorA!==undefined; }).length;
+  const pct=Math.round((savedCount/(total||1))*100);
+  const cards=all.map((m)=>{
     const p=myPred[m.id]||{};
     const alreadySaved=!!p.bloqueado;
     const closedByKickoff=isMatchClosed(m);
     const disabled=alreadySaved || closedByKickoff;
-    const phaseLabel=m.group?`Grupo ${m.group} · Jornada ${m.jornada||3}`:(m.phase||'Llave');
-    const note=alreadySaved?'Pronóstico guardado con candado. Sólo el administrador puede desbloquearlo antes de que inicie el partido.':(closedByKickoff?'No capturaste tu pronóstico antes del inicio. Este partido ya quedó cerrado.':'Captura tu pronóstico hasta antes de la hora FIFA del partido.');
-    return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" id="p${m.id}h" value="${p.homeScore??''}" ${disabled?'disabled':''}><input type="number" min="0" max="20" id="p${m.id}a" value="${p.awayScore??''}" ${disabled?'disabled':''}></div><div style="text-align:center;margin-top:10px"><button class="btn btn-gold" onclick="savePrediction(${m.id})" ${disabled?'disabled':''}>${alreadySaved?'🔒 Guardado':(closedByKickoff?'🔒 Cerrado':'Guardar pronóstico')}</button></div><div class="saved-note">${note}</div></div>`
+    const phaseLabel=getCurrentPhaseLabel();
+    const hVal=p.homeScore??p.marcadorA??'';
+    const aVal=p.awayScore??p.marcadorB??'';
+    const note=alreadySaved?'Pronóstico guardado con candado. Sólo el administrador puede desbloquearlo.':(closedByKickoff?'Este partido ya comenzó o está cerrado. Ya no se puede capturar ni modificar.':'Puedes guardar este partido ahora y continuar con los demás después.');
+    const saveButton=disabled?'':`<div class="pedex-save-one" style="display:flex;justify-content:center;margin-top:12px"><button id="saveBtn${m.id}" class="btn btn-gold" type="button" onclick="savePrediction(${m.id})">Guardar este partido</button></div>`;
+    return `<div class="match-card" data-pred-card="${m.id}"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}h" value="${hVal}" ${disabled?'disabled':''}><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}a" value="${aVal}" ${disabled?'disabled':''}></div><div class="saved-note">${note}</div>${saveButton}</div>`;
   }).join('');
+  list.innerHTML=`<div class="card" style="border-color:rgba(245,196,0,.38)"><h3>Avance de captura</h3><p class="muted">Puedes guardar cada partido por separado. Cada partido se bloquea automáticamente cuando comienza.</p><div class="capture-bar"><div class="capture-fill green" style="width:${pct}%"></div></div><p class="small">${savedCount} / ${total} partidos guardados.</p></div>`+cards;
+}
+
+function getOpen16ForBulkSave(){
+  return getCurrentPredictionMatches().filter(m=>!(myPred[m.id]||{}).bloqueado && !isMatchClosed(m));
+}
+function validateBulk16Predictions(){
+  const matches=getOpen16ForBulkSave();
+  if(!matches.length){toast('No hay pronósticos abiertos para guardar.'); return null;}
+  for(const m of matches){
+    const h=$('p'+m.id+'h'), a=$('p'+m.id+'a');
+    if(!h || !a || h.value==='' || a.value===''){
+      toast('Falta capturar marcador en el partido #'+m.id);
+      h?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return null;
+    }
+    if(Number(h.value)===Number(a.value)){
+      const pen=$('pedexFinalPenSel'+m.id);
+      if(pen && !pen.value){
+        toast('Empate en partido #'+m.id+': elige quién avanza por penales.');
+        pen.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+        return null;
+      }
+    }
+  }
+  return matches;
+}
+function pedexPrepareSave16vos(){
+  const matches=validateBulk16Predictions();
+  if(!matches) return;
+  const box=$('pedexConfirmBox16');
+  if(box){box.classList.remove('hidden'); box.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+function pedexCancelConfirm16vos(){
+  $('pedexConfirmBox16')?.classList.add('hidden');
+}
+async function pedexConfirmSave16vos(){
+  if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
+  const matches=validateBulk16Predictions();
+  if(!matches) return;
+  for(const m of matches){
+    const h=Number($('p'+m.id+'h').value);
+    const a=Number($('p'+m.id+'a').value);
+    const pen=$('pedexFinalPenSel'+m.id);
+    const penaltyWinner=(h===a && pen) ? pen.value : '';
+    const winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
+    await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
+      userId:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email,
+      email:currentUser.email,
+      partidoId:Number(m.id),
+      fase:m.phase||'Dieciseisavos',
+      equipoA:m.home,
+      equipoB:m.away,
+      marcadorA:h,
+      marcadorB:a,
+      homeScore:h,
+      awayScore:a,
+      penaltyWinner,
+      winner,
+      bloqueado:true,
+      cerradoPorInicio:false,
+      actualizado:serverTimestamp()
+    },{merge:true});
+  }
+  toast('Pronósticos guardados y bloqueados.');
+  renderPredictions();
 }
 async function savePrediction(id){
-  if(!currentUser)return;
-  const m=matchById(id) || getJornada3PronosticoMatches().find(x=>Number(x.id)===Number(id));
-  if(!isPronosticableMatch(m)) return alert('Este partido no está disponible para pronosticar.');
-  if(isMatchClosed(m)) return alert('Este partido ya comenzó o terminó. Ya no se puede capturar marcador.');
-  const existing=myPred[id]||{};
-  if(existing.bloqueado) return alert('Este pronóstico ya está guardado y bloqueado.');
-  const h=$('p'+id+'h').value,a=$('p'+id+'a').value;
-  if(h===''||a==='')return alert('Captura ambos marcadores.');
-  if(!confirm('Después de guardar este pronóstico no podrás modificarlo, salvo que el administrador lo desbloquee antes de que inicie el partido. ¿Deseas guardar?'))return;
-  if(isMatchClosed(m)) return alert('El partido acaba de cerrar por hora de inicio. Ya no se puede guardar.');
-  await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${id}`),{userId:currentUser.uid,nombre:currentProfile?.nombre||currentUser.email,email:currentUser.email,partidoId:id,fase:m.phase||'Grupo '+m.group,equipoA:m.home,equipoB:m.away,marcadorA:Number(h),marcadorB:Number(a),homeScore:Number(h),awayScore:Number(a),bloqueado:true,cerradoPorInicio:false,actualizado:serverTimestamp()},{merge:true});
-  toast('Pronóstico guardado');
+  if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
+  const m=getCurrentPredictionMatches().find(x=>Number(x.id)===Number(id));
+  if(!m) return toast('No encontré ese partido.');
+  if(isMatchClosed(m)){ toast('Este partido ya comenzó o está cerrado. Ya no se puede guardar.'); renderPredictions(); return; }
+  const hEl=$('p'+id+'h');
+  const aEl=$('p'+id+'a');
+  if(!hEl || !aEl || hEl.value==='' || aEl.value===''){
+    toast('Captura ambos marcadores antes de guardar este partido.');
+    hEl?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  const h=Number(hEl.value); const a=Number(aEl.value);
+  if(!Number.isFinite(h) || !Number.isFinite(a) || h<0 || a<0){ toast('Revisa el marcador de este partido.'); return; }
+  const pen=$('pedexFinalPenSel'+id);
+  const penaltyWinner=(h===a && pen) ? pen.value : '';
+  if(h===a && !penaltyWinner){ toast('Empate: elige quién avanza por penales antes de guardar.'); pen?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  const winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
+  const btn=$('saveBtn'+id);
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  try{
+    await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
+      userId:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email,
+      email:currentUser.email,
+      partidoId:Number(m.id),
+      fase:m.phase||'Dieciseisavos',
+      equipoA:m.home,
+      equipoB:m.away,
+      marcadorA:h,
+      marcadorB:a,
+      homeScore:h,
+      awayScore:a,
+      penaltyWinner,
+      winner,
+      bloqueado:true,
+      borrador:false,
+      cerradoPorInicio:false,
+      actualizado:serverTimestamp()
+    },{merge:true});
+    toast('Partido guardado y bloqueado.');
+    renderPredictions();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Guardar este partido';}
+    alert('No se pudo guardar este partido: '+(e.message||e));
+  }
 }
 window.savePrediction=savePrediction;
+window.pedexPrepareSave16vos=pedexPrepareSave16vos;
+window.pedexConfirmSave16vos=pedexConfirmSave16vos;
+window.pedexCancelConfirm16vos=pedexCancelConfirm16vos;
 
 function groupMatchList(){
   const byId=new Map();
@@ -667,6 +952,7 @@ function buildOfficialBracket(){
   const byId={};
   r32.forEach(m=>byId[Number(m.id)]={...m});
   DATA.bracket.filter(m=>Number(m.id)>=89).forEach(m=>byId[Number(m.id)]={...m});
+  applyManualBracketOverridesToById(byId);
   const scoreFor=(m)=>{
     if(!m) return null;
     const real=actualResults[Number(m.id)];
@@ -688,6 +974,7 @@ function buildOfficialBracket(){
   };
   const pairMap={89:[73,74],90:[75,76],91:[77,78],92:[79,80],93:[81,82],94:[83,84],95:[85,86],96:[87,88],97:[89,90],98:[91,92],99:[93,94],100:[95,96],101:[97,98],102:[99,100],104:[101,102]};
   Object.entries(pairMap).forEach(([target,sources])=>{
+    applyManualBracketOverridesToById(byId);
     const a=byId[Number(sources[0])], b=byId[Number(sources[1])];
     const wa=winner(a), wb=winner(b);
     const t=byId[Number(target)];
@@ -697,7 +984,65 @@ function buildOfficialBracket(){
   const l101=loser(byId[101]), l102=loser(byId[102]);
   if(byId[103] && l101){byId[103].home=l101.team; byId[103].homeFlag=l101.flag; byId[103].homeFrom=l101.from;}
   if(byId[103] && l102){byId[103].away=l102.team; byId[103].awayFlag=l102.flag; byId[103].awayFrom=l102.from;}
+  applyManualBracketOverridesToById(byId);
   return Object.values(byId).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+
+function hasBothTeams(m){
+  return !!(m && m.home && m.away && m.home!=='Por definir' && m.away!=='Por definir' && !String(m.home).startsWith('TBD') && !String(m.away).startsWith('TBD'));
+}
+
+function getKnockoutPhases(){
+  return [
+    {name:'Dieciseisavos', short:'16avos', ids:[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]},
+    {name:'Octavos', short:'Octavos', ids:[89,90,91,92,93,94,95,96]},
+    {name:'Cuartos', short:'Cuartos', ids:[97,98,99,100]},
+    {name:'Semifinal', short:'Semifinales', ids:[101,102]},
+    {name:'Final', short:'Final', ids:[104]}
+  ];
+}
+function getResultForMatchId(id){
+  const r=actualResults && actualResults[Number(id)];
+  if(!r) return null;
+  const hasScore=r.homeScore!==undefined && r.awayScore!==undefined && r.homeScore!==null && r.awayScore!==null;
+  return hasScore ? r : null;
+}
+function isFinalResultClosed(id){
+  const r=getResultForMatchId(id);
+  return !!(r && String(r.status||'').toLowerCase()!=='open');
+}
+function getAllPublishedKnockoutMatches(){
+  if(!isManualBracketActive()) return [];
+  const bracket=(typeof buildOfficialBracket==='function' ? buildOfficialBracket() : DATA.bracket) || [];
+  const ids=new Set(getKnockoutPhases().flatMap(p=>p.ids));
+  return bracket.filter(m=>ids.has(Number(m.id)) && hasBothTeams(m)).sort((a,b)=>Number(a.id)-Number(b.id));
+}
+function getActivePhaseInfo(){
+  if(!isManualBracketActive()) return {name:'Dieciseisavos',short:'16avos',ids:getKnockoutPhases()[0].ids,matches:[]};
+  const bracket=(typeof buildOfficialBracket==='function' ? buildOfficialBracket() : DATA.bracket) || [];
+  let fallback=null;
+  for(const ph of getKnockoutPhases()){
+    const matches=bracket.filter(m=>ph.ids.includes(Number(m.id)) && hasBothTeams(m)).sort((a,b)=>Number(a.id)-Number(b.id));
+    if(matches.length){
+      fallback={...ph,matches};
+      const allClosed=matches.every(m=>isFinalResultClosed(m.id));
+      if(!allClosed) return {...ph,matches};
+    }
+  }
+  return fallback || {name:'Dieciseisavos',short:'16avos',ids:getKnockoutPhases()[0].ids,matches:[]};
+}
+function getCurrentPredictionMatches(){
+  return getActivePhaseInfo().matches || [];
+}
+function getCurrentPredictionTotal(){
+  return getCurrentPredictionMatches().length;
+}
+function getCurrentPhaseLabel(){
+  return getActivePhaseInfo().short || '16avos';
+}
+function getKnockout16Matches(){
+  // Mantiene compatibilidad con el resto del archivo, pero ahora devuelve la fase activa de eliminación directa.
+  return getCurrentPredictionMatches();
 }
 function renderGroups(){
   const liveGroups=computeLiveGroups();
@@ -750,20 +1095,37 @@ function renderBracket(){
 }
 
 function capturedCountForUser(uid){
-  const ids=new Set(DATA.pending.map(m=>Number(m.id)));
+  const ids=new Set(getCurrentPredictionMatches().map(m=>Number(m.id)));
   return predictions.filter(p=>p.userId===uid && ids.has(Number(p.partidoId)) && p.homeScore!=null && p.awayScore!=null && p.homeScore!=='' && p.awayScore!=='').length;
 }
 function captureMeta(uid){
-  const total=DATA.pending.length;
+  const total=getCurrentPredictionTotal();
   const captured=capturedCountForUser(uid);
   const pct=total?Math.round((captured/total)*100):0;
   const cls=pct>=100?'green':pct>=90?'blue':pct>=50?'yellow':'red';
   return {captured,total,pct,cls};
 }
 function captureBar(meta){return `<div class="capture-bar"><div class="capture-fill ${meta.cls}" style="width:${meta.pct}%"></div></div>`;}
-function computeRanking(){const map={}; users.forEach(u=>map[u.id]={...u,puntos:Number(u.ajustePuntos||0),aciertos:0,exactos:0,pronosticados:0}); predictions.forEach(p=>{const uid=p.userId; if(!map[uid]) map[uid]={id:uid,nombre:p.nombre||p.email||'Participante',email:p.email||'',puntos:0,aciertos:0,exactos:0,pronosticados:0}; const m=matchById(p.partidoId); const pts=calcPoints(m,p); map[uid].puntos+=pts; map[uid].pronosticados++; if(calcWinnerOk(m,p)) map[uid].aciertos++; if(calcExact(m,p)) map[uid].exactos++;}); ranking=Object.values(map).map(r=>({...r,...captureMeta(r.id)})).sort((a,b)=>(b.puntos||0)-(a.puntos||0)||(b.exactos||0)-(a.exactos||0)||(a.nombre||'').localeCompare(b.nombre||'')); renderRanking(); updateUserStats();}
+function computeRanking(){
+  const validIds=new Set(getAllPublishedKnockoutMatches().map(m=>Number(m.id)));
+  const map={};
+  users.forEach(u=>map[u.id]={...u,puntos:Number(u.ajustePuntos||0),aciertos:0,exactos:0,pronosticados:0});
+  predictions.forEach(p=>{
+    if(!validIds.has(Number(p.partidoId))) return;
+    const uid=p.userId;
+    if(!map[uid]) map[uid]={id:uid,nombre:p.nombre||p.email||'Participante',email:p.email||'',puntos:0,aciertos:0,exactos:0,pronosticados:0};
+    const m=matchById(p.partidoId);
+    const pts=calcPoints(m,p);
+    map[uid].puntos+=pts;
+    map[uid].pronosticados++;
+    if(calcWinnerOk(m,p)) map[uid].aciertos++;
+    if(calcExact(m,p)) map[uid].exactos++;
+  });
+  ranking=Object.values(map).map(r=>({...r,...captureMeta(r.id)})).sort((a,b)=>(b.puntos||0)-(a.puntos||0)||(b.exactos||0)-(a.exactos||0)||(b.aciertos||0)-(a.aciertos||0)||(a.nombre||'').localeCompare(b.nombre||''));
+  renderRanking(); updateUserStats();
+}
 function renderRanking(){
-  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Pronósticos capturados</th><th>Avance de captura</th><th>Pronósticos</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r,i)=>{
+  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Capturados</th><th>Avance</th><th>Jugados</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r,i)=>{
     const foto=r.fotoURL||r.photoURL||'assets/persona-perfil.png';
     const nombre=r.nombre||'Participante';
     const correo=r.email||'';
@@ -772,14 +1134,28 @@ function renderRanking(){
       <td><div class="rank-user"><img class="rank-photo" src="${foto}" onerror="this.src='assets/persona-perfil.png'"><div><b>${nombre}</b><small>${correo}</small></div></div></td>
       <td class="pts">${r.puntos||0}</td>
       <td>${Number(r.ajustePuntos||0)}</td>
-      <td><b>${r.captured||0} / ${r.total||DATA.pending.length}</b></td>
+      <td><b>${r.captured||0} / ${r.total||getCurrentPredictionTotal()||0}</b></td>
       <td>${captureBar(r)} ${r.pct||0}%</td>
       <td>${r.pronosticados||0}</td>
       <td>${r.aciertos||0}</td>
       <td>${r.exactos||0}</td>
     </tr>`}).join('')}</tbody></table>`;
 }
-function updateUserStats(){if(!currentUser)return; const me=ranking.find(r=>r.id===currentUser.uid)||{puntos:0,pronosticados:0,exactos:0,aciertos:0,captured:0,total:DATA.pending.length,pct:0}; const place=ranking.findIndex(r=>r.id===currentUser.uid)+1; $('kpiMine').textContent=`${me.captured||0}/${me.total||DATA.pending.length}`; $('kpiPoints').textContent=me.puntos||0; $('kpiPlace').textContent=place?place+'°':'--'; $('headerRank').textContent=`Lugar: ${place?place+'°':'--'} · ${me.puntos||0} pts · ${me.captured||0}/${me.total||DATA.pending.length} pronósticos`; $('profilePlace').textContent=place?place+'°':'--'; $('profilePoints').textContent=me.puntos||0; $('profilePredCount').textContent=`${me.captured||0}/${me.total||DATA.pending.length}`; $('profileExactos').textContent=me.exactos||0;}
+function updateUserStats(){
+  if(!currentUser)return;
+  const emptyTotal=getCurrentPredictionTotal();
+  const me=ranking.find(r=>r.id===currentUser.uid)||{puntos:0,pronosticados:0,exactos:0,aciertos:0,captured:0,total:emptyTotal,pct:0};
+  const total=me.total||emptyTotal||16;
+  const place=ranking.findIndex(r=>r.id===currentUser.uid)+1;
+  $('kpiMine').textContent=`${me.captured||0}/${total}`;
+  $('kpiPoints').textContent=me.puntos||0;
+  $('kpiPlace').textContent=place?place+'°':'--';
+  $('headerRank').textContent=`Lugar: ${place?place+'°':'--'} · ${me.puntos||0} pts · ${me.captured||0}/${total} pronósticos`;
+  $('profilePlace').textContent=place?place+'°':'--';
+  $('profilePoints').textContent=me.puntos||0;
+  $('profilePredCount').textContent=`${me.captured||0}/${total}`;
+  $('profileExactos').textContent=me.exactos||0;
+}
 
 function readImageAsDataURL(file){
   return new Promise((resolve,reject)=>{
@@ -822,9 +1198,69 @@ async function adminUpdateUserPhoto(uid){
 }
 window.updateMyProfilePhoto=updateMyProfilePhoto; window.adminUpdateUserPhoto=adminUpdateUserPhoto;
 
-function renderProfile(){if(!currentUser)return; const photo=currentProfile?.fotoURL||'assets/persona-perfil.png'; $('profileName').textContent=currentProfile?.nombre||currentUser.email; $('profileEmail').textContent=currentProfile?.email||currentUser.email; $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email; const my=predictions.filter(p=>p.userId===currentUser.uid); $('myReport').innerHTML=`<table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody>${my.map(p=>{const m=matchById(p.partidoId)||{home:p.equipoA,away:p.equipoB}; return `<tr><td>${p.partidoId}</td><td class="team-cell">${teamLabel(m.home)} vs ${teamLabel(m.away)}</td><td>${p.homeScore??p.marcadorA} - ${p.awayScore??p.marcadorB}</td><td>${m.homeScore!=null?m.homeScore+' - '+m.awayScore:'Pendiente'}</td><td class="pts">${calcPoints(m,p)}</td></tr>`}).join('')}</tbody></table>`; updateUserStats();}
+function phaseLabelForMatch(m){
+  const ph=String(m?.phase||'');
+  if(ph==='Dieciseisavos') return 'Dieciseisavos';
+  if(ph==='Octavos') return 'Octavos';
+  if(ph==='Cuartos') return 'Cuartos de final';
+  if(ph==='Semifinal') return 'Semifinales';
+  if(ph==='Final') return 'Final';
+  if(ph==='3rd Place') return 'Tercer lugar';
+  return ph || 'Eliminación directa';
+}
+function formatPenaltyLabel(winner){return winner ? ` <small class="muted">Penales: ${teamLabel(winner)}</small>` : ''; }
+function formatPredictionScore(p){
+  if(!p || p.homeScore==null || p.awayScore==null || p.homeScore==='' || p.awayScore==='') return 'Sin capturar';
+  const draw=Number(p.homeScore)===Number(p.awayScore);
+  const pen=p.penaltyWinner||p.winner||p.ganadorPenales||'';
+  return `${p.homeScore} - ${p.awayScore}${draw?formatPenaltyLabel(pen):''}`;
+}
+function formatOfficialScore(m){
+  if(!m || m.homeScore==null || m.awayScore==null) return 'Pendiente';
+  const draw=Number(m.homeScore)===Number(m.awayScore);
+  return `${m.homeScore} - ${m.awayScore}${draw?formatPenaltyLabel(m.penaltyWinner||m.winnerPenalty||m.ganadorPenales||''):''}`;
+}
+function renderProfile(){
+  if(!currentUser)return;
+  const photo=currentProfile?.fotoURL||'assets/persona-perfil.png';
+  $('profileName').textContent=currentProfile?.nombre||currentUser.email;
+  $('profileEmail').textContent=currentProfile?.email||currentUser.email;
+  $('profilePhoto').src=photo; $('headerPhoto').src=photo; $('headerName').textContent=currentProfile?.nombre||currentUser.email;
 
-function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button></div>`}).join('');}
+  const validMatches=getAllPublishedKnockoutMatches().filter(hasBothTeams).sort((a,b)=>Number(a.id)-Number(b.id));
+  const validIds=new Set(validMatches.map(m=>Number(m.id)));
+  const predMap={};
+  predictions.filter(p=>p.userId===currentUser.uid && validIds.has(Number(p.partidoId))).forEach(p=>{predMap[Number(p.partidoId)]=p;});
+
+  if(!validMatches.length){
+    $('myReport').innerHTML='<div class="admin-warning">Aún no hay fases de eliminación directa publicadas por el administrador.</div>';
+    updateUserStats();
+    return;
+  }
+
+  let totalPts=0, exactos=0, aciertos=0;
+  const sections=[];
+  const orderedPhases=['Dieciseisavos','Octavos','Cuartos','Semifinal','Final'];
+  orderedPhases.forEach(ph=>{
+    const rows=validMatches.filter(m=>String(m.phase)===ph).map(m=>{
+      const p=predMap[Number(m.id)]||null;
+      const fullMatch=matchById(m.id)||m;
+      const pts=p?calcPoints(fullMatch,p):0;
+      totalPts+=pts;
+      if(p && calcWinnerOk(fullMatch,p)) aciertos++;
+      if(p && calcExact(fullMatch,p)) exactos++;
+      const ok=pts>0?'✅':'—';
+      return `<tr><td>${m.id}</td><td class="team-cell">${matchTeamLabel(fullMatch,'home')} <b class="vs">vs</b> ${matchTeamLabel(fullMatch,'away')}</td><td>${formatPredictionScore(p)}</td><td>${formatOfficialScore(fullMatch)}</td><td>${ok}</td><td class="pts">${pts}</td></tr>`;
+    }).join('');
+    if(rows){
+      sections.push(`<h3 style="margin-top:18px;color:var(--gold)">${phaseLabelForMatch({phase:ph})}</h3><div class="table-wrap"><table><thead><tr><th>#</th><th>Partido</th><th>Mi marcador</th><th>Resultado oficial</th><th>Acierto</th><th>Puntos</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+    }
+  });
+  $('myReport').innerHTML=`<div class="admin-warning"><b>Acumulado eliminación directa:</b> ${totalPts} puntos · ${aciertos} aciertos · ${exactos} exactos. Sólo cuenta Dieciseisavos, Octavos, Cuartos, Semifinales y Final.</div>${sections.join('')}`;
+  updateUserStats();
+}
+
+function renderAdminUsers(){if(!isAdmin())return; const source=(ranking.length?ranking:users.map(u=>({...u,...captureMeta(u.id)}))); $('adminUsers').innerHTML=source.map((u,i)=>{const meta=u.total!==undefined?u:captureMeta(u.id);return `<div class="admin-user-card"><img src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><b>${u.nombre||'Participante'}</b><br><small class="${u.activo===false?'status-off':'status-ok'}">${u.activo===false?'Baja':'Activo'}</small></div><div>${u.email||''}</div><b class="pts">${i+1}°</b><b>${u.puntos||0} pts</b><div><b>${meta.captured||0}/${meta.total||DATA.pending.length} pronósticos</b>${captureBar(meta)} <small>${meta.pct||0}%</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-gold" onclick="openAdminUser('${u.id}')">Abrir ficha</button><button class="btn btn-outline" onclick="adminUnlockUserAllPredictions('${u.id}')">Desbloquear marcadores</button></div></div>`}).join('');}
 async function adminCreateUser(){if(!isAdmin())return; const name=$('newUserName').value.trim(), email=$('newUserEmail').value.trim(), pass=$('newUserPassword').value; if(!name||!email||!pass)return alert('Completa nombre, email y password inicial.'); if(pass.length<6)return alert('El password debe tener al menos 6 caracteres.'); try{const cred=await createUserWithEmailAndPassword(adminCreateAuth,email,pass); await setDoc(doc(db,'usuarios',cred.user.uid),{nombre:name,email,activo:true,puntos:0,ajustePuntos:0,exactos:0,aciertos:0,fotoURL:'assets/persona-perfil.png',creadoPorAdmin:true,fechaRegistro:serverTimestamp()},{merge:true}); await signOut(adminCreateAuth); $('newUserName').value='';$('newUserEmail').value='';$('newUserPassword').value=''; toast('Usuario creado');}catch(e){alert('No se pudo crear usuario: '+e.message)}}
 function canUnlockPrediction(m){
   if(!m) return false;
@@ -844,12 +1280,12 @@ async function openAdminUser(uid){
   const detail=$('adminDetail');
   detail.classList.remove('hidden');
   const preds=predictions.filter(p=>p.userId===uid);
-  const allMatches=DATA.pending.concat(DATA.bracket);
+  const allMatches=getAllPublishedKnockoutMatches().filter(hasBothTeams);
   detail.innerHTML=`<h2>Ficha completa del usuario</h2>
     <div class="profile-top"><img id="adminUserPhoto" class="profile-photo" src="${u.fotoURL||'assets/persona-perfil.png'}" onerror="this.src='assets/persona-perfil.png'"><div><h2>${u.nombre||'Usuario'}</h2><p class="muted">${u.email||''}</p><div class="photo-tools"><input id="adminPhotoInput" type="file" accept="image/*"><button class="btn btn-gold" onclick="adminUpdateUserPhoto('${uid}')">Cambiar foto del usuario</button><small>También se reflejará en su perfil y en el encabezado cuando inicie sesión.</small></div><div class="kpis"><div class="kpi"><small>Puntos</small><strong>${u.puntos||0}</strong></div><div class="kpi"><small>Pronósticos</small><strong>${u.pronosticados||0}</strong></div><div class="kpi"><small>Aciertos</small><strong>${u.aciertos||0}</strong></div><div class="kpi"><small>Exactos</small><strong>${u.exactos||0}</strong></div></div></div></div>
     <div class="admin-warning"><b>Administración:</b> puedes dar de alta, dar de baja, eliminar de la quiniela, actualizar nombre/email visible y ajustar puntos. Si ya desplegaste la Cloud Function <code>deleteUserCompletely</code>, el botón <b>Eliminar completo Auth + Quiniela</b> borra también el acceso de Firebase Authentication y libera el correo. Para contraseña, este panel envía un correo de recuperación.</div>
     <div class="grid3"><label>Nombre<input id="editName" value="${u.nombre||''}"></label><label>Email visible<input id="editEmail" value="${u.email||''}"></label><label>Ajuste manual de puntos<input id="editPoints" type="number" value="${Number(u.ajustePuntos||0)}"></label></div>
-    <div class="admin-detail-actions"><button class="btn btn-gold" onclick="saveAdminProfile('${uid}')">Guardar perfil/puntos</button><button class="btn btn-outline" onclick="adminResetPassword('${uid}')">Enviar reset password</button><button class="btn btn-outline" onclick="adminToggleActive('${uid}',${u.activo===false?'true':'false'})">${u.activo===false?'Reactivar usuario':'Dar de baja usuario'}</button><button class="btn btn-outline" onclick="adminDeleteProfile('${uid}')">Eliminar solo quiniela</button><button class="btn btn-gold" onclick="adminDeleteComplete('${uid}')">Eliminar completo Auth + Quiniela</button></div>
+    <div class="admin-detail-actions"><button class="btn btn-gold" onclick="saveAdminProfile('${uid}')">Guardar perfil/puntos</button><button class="btn btn-outline" onclick="adminResetPassword('${uid}')">Enviar reset password</button><button class="btn btn-outline" onclick="adminToggleActive('${uid}',${u.activo===false?'true':'false'})">${u.activo===false?'Reactivar usuario':'Dar de baja usuario'}</button><button class="btn btn-outline" onclick="adminUnlockUserAllPredictions('${uid}')">Desbloquear todos sus marcadores</button><button class="btn btn-outline" onclick="adminDeleteProfile('${uid}')">Eliminar solo quiniela</button><button class="btn btn-gold" onclick="adminDeleteComplete('${uid}')">Eliminar completo Auth + Quiniela</button></div>
     <h3>Desbloqueo de pronósticos</h3>
     <p class="muted">Pronósticos capturados: <b>${captureMeta(uid).captured} / ${captureMeta(uid).total}</b> (${captureMeta(uid).pct}%). El administrador ya no cambia marcadores. Sólo puede desbloquear un pronóstico para que el usuario lo vuelva a capturar, siempre que el partido no haya empezado ni terminado.</p>
     <div class="match-list">${allMatches.map(m=>{const p=preds.find(x=>Number(x.partidoId)===Number(m.id))||{}; const h=p.homeScore??p.marcadorA; const a=p.awayScore??p.marcadorB; const status=unlockStatusText(m,p); const can=!!p.id && !!p.bloqueado && canUnlockPrediction(m); return `<div class="match-card"><div class="match-head"><span>#${m.id} · ${m.date} · ${m.time}</span><span>${m.phase||('Grupo '+m.group)}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="admin-warning" style="margin-top:12px"><b>Pronóstico:</b> ${h!==undefined && h!=='' ? h+' - '+a : 'Sin captura'}<br><b>Estado:</b> ${status}</div><div class="score-inputs" style="margin-top:10px"><input type="number" min="0" max="20" id="adminPred_${uid}_${m.id}_h" value="${h!==undefined?h:''}"><input type="number" min="0" max="20" id="adminPred_${uid}_${m.id}_a" value="${a!==undefined?a:''}"></div><div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-gold" onclick="adminSaveUserPrediction('${uid}',${m.id})">Guardar pronóstico como admin</button><button class="btn btn-outline" onclick="adminUnlockPrediction('${uid}',${m.id})" ${can?'':'disabled'}>${can?'Desbloquear para usuario':'No disponible'}</button></div></div>`}).join('')}</div>`;
@@ -862,7 +1298,7 @@ async function saveAdminProfile(uid){
 }
 async function adminSaveUserPrediction(uid,id){
   if(!isAdmin()) return;
-  const m=matchById(id) || getJornada3PronosticoMatches().find(x=>Number(x.id)===Number(id)) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
+  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
   if(!m) return alert('Partido no encontrado.');
   const hEl=$(`adminPred_${uid}_${id}_h`);
   const aEl=$(`adminPred_${uid}_${id}_a`);
@@ -896,8 +1332,21 @@ async function adminUnlockPrediction(uid,id){
   const pred=predictions.find(p=>p.userId===uid && Number(p.partidoId)===Number(id));
   if(!pred) return alert('Este usuario aún no tiene pronóstico guardado para ese partido.');
   if(!confirm('Se desbloqueará este pronóstico para que el usuario lo vuelva a capturar. ¿Continuar?')) return;
-  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
+  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
   toast('Pronóstico desbloqueado para el usuario');
+  await openAdminUser(uid);
+}
+async function adminUnlockUserAllPredictions(uid){
+  if(!isAdmin()) return;
+  const user=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid)||{};
+  const userPreds=predictions.filter(p=>p.userId===uid && p.bloqueado!==false);
+  const unlockable=userPreds.filter(p=>canUnlockPrediction(matchById(p.partidoId)));
+  if(!unlockable.length) return alert('No hay marcadores bloqueados disponibles para desbloquear de este usuario.');
+  if(!confirm(`Se desbloquearán ${unlockable.length} marcador(es) de ${user.nombre||user.email||'este usuario'} para que los pueda modificar. ¿Continuar?`)) return;
+  for(const p of unlockable){
+    await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
+  }
+  toast('Marcadores desbloqueados para el usuario');
   await openAdminUser(uid);
 }
 async function adminResetPassword(uid){const u=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid); if(!u?.email)return alert('Este usuario no tiene email.'); try{await sendPasswordResetEmail(auth,u.email); toast('Correo de recuperación enviado');}catch(e){alert('No se pudo enviar reset: '+e.message)}}
@@ -922,16 +1371,17 @@ async function adminDeleteComplete(uid){
   }
 }
 window.adminClearJornada3Predictions=adminClearJornada3Predictions; window.adminCreateUser=adminCreateUser; window.openAdminUser=openAdminUser; window.saveAdminProfile=saveAdminProfile; window.adminUnlockPrediction=adminUnlockPrediction; window.adminSaveUserPrediction=adminSaveUserPrediction; window.adminResetPassword=adminResetPassword; window.adminToggleActive=adminToggleActive; window.adminDeleteProfile=adminDeleteProfile; window.adminDeleteComplete=adminDeleteComplete;
+window.adminUnlockUserAllPredictions=adminUnlockUserAllPredictions;
 
 async function adminClearJornada3Predictions(){
   if(!isAdmin()) return;
-  const ids=new Set(getJornada3PronosticoMatches().map(m=>Number(m.id)));
+  const ids=new Set(getKnockout16Matches().map(m=>Number(m.id)));
   const related=predictions.filter(p=>ids.has(Number(p.partidoId)));
-  if(!related.length){ alert('No hay pronósticos previos de Jornada 3 para limpiar.'); return; }
-  if(!confirm(`Se eliminarán ${related.length} pronósticos previos de Jornada 3 capturados antes de esta corrección. Esta acción no elimina usuarios ni resultados oficiales. ¿Continuar?`)) return;
+  if(!related.length){ alert('No hay pronósticos de dieciseisavos para limpiar.'); return; }
+  if(!confirm(`Se eliminarán ${related.length} pronósticos de dieciseisavos capturados. Esta acción no elimina usuarios ni resultados oficiales. ¿Continuar?`)) return;
   try{
     for(const p of related){ await deleteDoc(doc(db,'pronosticos',p.id)); }
-    toast('Pronósticos previos de Jornada 3 eliminados');
+    toast('Pronósticos de dieciseisavos eliminados');
   }catch(e){
     console.error('No se pudieron limpiar pronósticos Jornada 3',e);
     alert('No se pudieron eliminar los pronósticos. Revisa permisos de Firestore para borrar documentos en pronosticos. Detalle: '+(e.message||e));
@@ -942,6 +1392,7 @@ function adminSwitchPanel(panel){
   document.querySelectorAll('[data-admin-panel-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminPanelTab===panel));
   if(panel==='partidos') renderAdminResults();
   if(panel==='usuarios') renderAdminUsers();
+  if(panel==='llave') renderAdminManualBracket();
   renderAdminDashboard();
 }
 function renderAdminDashboard(){
@@ -953,7 +1404,7 @@ function renderAdminDashboard(){
 }
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
-  const show=getJornada3PronosticoMatches();
+  const show=getKnockout16Matches().filter(hasBothTeams);
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
     const hasScore=real.homeScore!==undefined || real.marcadorA!==undefined;
@@ -961,27 +1412,26 @@ function renderAdminResults(){
     const openUsers=real.adminPronosticosAbiertos===true;
     const hs=real.homeScore ?? real.marcadorA ?? '';
     const as=real.awayScore ?? real.marcadorB ?? '';
-    const phaseLabel='Grupo '+(m.group||'');
     const statusText=openUsers ? '🔓 Resultado y pronósticos abiertos por admin' : (final ? '🔒 Resultado real cerrado' : (String(real.status||'').toLowerCase()==='open' ? '🔓 Resultado abierto para editar' : '⏳ Pendiente de resultado real'));
     return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
-        <small class="muted">${phaseLabel} · Jornada 3 · ${m.date} · ${m.time} CDMX · ${statusText}</small>
+        <small class="muted">${m.phase||getCurrentPhaseLabel()} · ${m.date||''} · ${m.time||''} CDMX · ${statusText}</small>
       </div>
       <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
       <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
       <div class="admin-result-actions">
         <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado real y cerrar</button>
         <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir solo resultado</button>
-        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Abrir resultado + pronósticos</button>
+        <button class="btn btn-outline" onclick="adminOpenResultAndPredictions(${m.id})">Desbloquear pronósticos de este partido</button>
       </div>
     </div>`;
-  }).join('') || '<p class="muted">No hay partidos de tercera jornada disponibles para captura.</p>';
+  }).join('') || '<div class="admin-warning">Primero da de alta la llave manual de dieciseisavos para poder capturar resultados reales.</div>';
   renderAdminDashboard();
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
-  const m=matchById(id) || DATA.matches.find(x=>Number(x.id)===Number(id)) || DATA.bracket.find(x=>Number(x.id)===Number(id));
+  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
@@ -1018,13 +1468,153 @@ async function adminOpenResultAndPredictions(id){
     await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
     const docs=predictions.filter(p=>Number(p.partidoId)===Number(id));
     for(const p of docs){
-      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),actualizado:serverTimestamp()},{merge:true});
+      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
     }
     renderPredictions();
     toast('Resultado y pronósticos abiertos para corrección');
   }catch(e){alert('No se pudo abrir resultado y pronósticos. Detalle: '+(e.message||e));}
 }
-window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions;
+
+function manualSelectHtml(id,side,value){
+  const options=['Por definir',...getTeamPool().map(t=>t.team)];
+  return `<select id="manual${id}${side}">${options.map(team=>`<option value="${team.replace(/"/g,'&quot;')}" ${team===value?'selected':''}>${team}</option>`).join('')}</select>`;
+}
+function renderAdminManualBracket(){
+  if(!isAdmin() || !$('adminManualBracket')) return;
+  const status=$('adminManualBracketStatus');
+  if(status) status.innerHTML = manualBracketPublished ? '<b>Llave dada de alta:</b> los usuarios ya pueden pronosticar los partidos guardados.' : '<b>Llave en borrador:</b> todavía no aparece a los usuarios. Presiona <b>Dar de alta llave y abrir pronósticos</b> cuando esté lista.';
+  const bracket=buildOfficialBracket();
+  const phases=['Dieciseisavos'];
+  $('adminManualBracket').innerHTML=phases.map(ph=>{
+    const rows=bracket.filter(m=>m.phase===ph);
+    if(!rows.length) return '';
+    return `<div class="manual-bracket-phase"><h3>${ph==='3rd Place'?'Tercer lugar':ph}</h3><div class="manual-bracket-grid">${rows.map(m=>{
+      const real=actualResults[Number(m.id)]||{};
+      const hs=real.homeScore ?? real.marcadorA ?? '';
+      const as=real.awayScore ?? real.marcadorB ?? '';
+      const isManual=!!manualBracket[Number(m.id)];
+      return `<div class="manual-bracket-card ${isManual?'manual':''}">
+        <div>
+          <div class="manual-bracket-meta">#${m.id} · ${m.date||''} · ${m.time||''} · ${isManual?'Manual':'Automático/provisional'}</div>
+          <label>Local ${manualSelectHtml(m.id,'h',m.home||'Por definir')}</label>
+        </div>
+        <label>Visitante ${manualSelectHtml(m.id,'a',m.away||'Por definir')}</label>
+        <label>Goles local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
+        <label>Goles visita<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+        <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado</button>
+      </div>`;
+    }).join('')}</div></div>`;
+  }).join('');
+}
+async function adminSaveManualBracket(){
+  if(!isAdmin()) return;
+  const bracket=buildOfficialBracket();
+  const payload={};
+  bracket.forEach(m=>{
+    const home=$(`manual${m.id}h`)?.value || 'Por definir';
+    const away=$(`manual${m.id}a`)?.value || 'Por definir';
+    if(home!=='Por definir' || away!=='Por definir'){
+      payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true};
+    }
+  });
+  try{
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    manualBracket=normalizeManualBracket(payload);
+    manualBracketPublished=false;
+    renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket();
+    toast('Borrador de llave guardado. Falta darla de alta para abrir pronósticos.');
+  }catch(e){alert('No se pudo guardar la llave manual. Revisa permisos de Firestore. Detalle: '+(e.message||e));}
+}
+async function adminPublishManualBracket(){
+  if(!isAdmin()) return;
+  const bracket=buildOfficialBracket().filter(m=>Number(m.id)>=73 && Number(m.id)<=88);
+  const payload={};
+  const missing=[];
+  bracket.forEach(m=>{
+    const home=$(`manual${m.id}h`)?.value || 'Por definir';
+    const away=$(`manual${m.id}a`)?.value || 'Por definir';
+    if(home==='Por definir' || away==='Por definir') missing.push(`#${m.id}`);
+    payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true,date:m.date||'',time:m.time||'',phase:'Dieciseisavos'};
+  });
+  if(missing.length) return alert('Faltan equipos en estos partidos: '+missing.join(', '));
+  if(!confirm('Se dará de alta la llave de dieciseisavos y se abrirá en el área de Pronósticos para todos los usuarios. ¿Continuar?')) return;
+  try{
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:true,phase:'Dieciseisavos',actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    for(const m of bracket){
+      await setDoc(doc(db,'resultados',String(m.id)),{partidoId:Number(m.id),status:'open',cerrado:false,adminPronosticosAbiertos:false,homeScore:null,awayScore:null,marcadorA:null,marcadorB:null,llavePublicada:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:true});
+    }
+    manualBracket=normalizeManualBracket(payload);
+    manualBracketPublished=true;
+    renderHome(); renderBracket(); renderPredictions(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();
+    toast('Llave dada de alta. Pronósticos abiertos para usuarios.');
+  }catch(e){
+    console.error('Error publicando llave manual',e);
+    alert('No se pudo dar de alta la llave. Revisa permisos de Firestore para configuracion/llaveManual y resultados. Detalle: '+(e.message||e));
+  }
+}
+function winnerFromActualMatch(m){
+  const real=actualResults[Number(m.id)];
+  if(!m || !real || real.homeScore===undefined || real.awayScore===undefined || real.homeScore===null || real.awayScore===null) return null;
+  const h=Number(real.homeScore), a=Number(real.awayScore);
+  if(h>a) return {team:m.home,flag:m.homeFlag||''};
+  if(a>h) return {team:m.away,flag:m.awayFlag||''};
+  return {team:m.home,flag:m.homeFlag||''};
+}
+async function adminAutofillManualFromResults(){
+  if(!isAdmin()) return;
+  const bracket=buildOfficialBracket();
+  const byId={}; bracket.forEach(m=>byId[Number(m.id)]={...m});
+  const payload=normalizeManualBracket(manualBracket);
+  const pairMap={89:[73,74],90:[75,76],91:[77,78],92:[79,80],93:[81,82],94:[83,84],95:[85,86],96:[87,88],97:[89,90],98:[91,92],99:[93,94],100:[95,96],101:[97,98],102:[99,100],104:[101,102]};
+  Object.entries(pairMap).forEach(([target,sources])=>{
+    const a=winnerFromActualMatch(byId[Number(sources[0])]);
+    const b=winnerFromActualMatch(byId[Number(sources[1])]);
+    if(!payload[Number(target)]) payload[Number(target)]={home:'Por definir',away:'Por definir',homeFlag:'',awayFlag:'',manual:true};
+    if(a){payload[Number(target)].home=a.team; payload[Number(target)].homeFlag=a.flag; payload[Number(target)].homeFrom=`Ganador #${sources[0]}`;}
+    if(b){payload[Number(target)].away=b.team; payload[Number(target)].awayFlag=b.flag; payload[Number(target)].awayFrom=`Ganador #${sources[1]}`;}
+  });
+  const l101=byId[101], l102=byId[102];
+  const loser=(m)=>{
+    const real=actualResults[Number(m?.id)]; if(!m||!real||real.homeScore===undefined||real.awayScore===undefined||real.homeScore===null||real.awayScore===null) return null;
+    const h=Number(real.homeScore), a=Number(real.awayScore);
+    if(h>a) return {team:m.away,flag:m.awayFlag||''};
+    if(a>h) return {team:m.home,flag:m.homeFlag||''};
+    return {team:m.away,flag:m.awayFlag||''};
+  };
+  const la=loser(l101), lb=loser(l102);
+  if(la || lb){ if(!payload[103]) payload[103]={home:'Por definir',away:'Por definir',homeFlag:'',awayFlag:'',manual:true}; if(la){payload[103].home=la.team;payload[103].homeFlag=la.flag;} if(lb){payload[103].away=lb.team;payload[103].awayFlag=lb.flag;} }
+  try{
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:manualBracketPublished,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    manualBracket=normalizeManualBracket(payload);
+    renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket();
+    toast('Ganadores autollenados en la llave');
+  }catch(e){alert('No se pudo autollenar la llave. Detalle: '+(e.message||e));}
+}
+async function adminLoadOfficialIntoManual(){
+  if(!isAdmin()) return;
+  const payload={};
+  buildOfficialBracket().forEach(m=>{payload[Number(m.id)]={home:m.home||'Por definir',away:m.away||'Por definir',homeFlag:m.homeFlag||'',awayFlag:m.awayFlag||'',homeFrom:m.homeFrom||'Automático',awayFrom:m.awayFrom||'Automático',manual:true};});
+  try{
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    manualBracket=normalizeManualBracket(payload);
+    manualBracketPublished=false;
+    renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket();
+    toast('Llave automática cargada como manual');
+  }catch(e){alert('No se pudo cargar la llave automática. Detalle: '+(e.message||e));}
+}
+async function adminClearManualBracket(){
+  if(!isAdmin()) return;
+  if(!confirm('Se borrará la llave manual y volverá a usarse la llave automática/provisional. ¿Continuar?')) return;
+  try{
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:{},published:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    manualBracket={};
+    manualBracketPublished=false;
+    renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket();
+    toast('Llave manual borrada');
+  }catch(e){alert('No se pudo borrar la llave manual. Detalle: '+(e.message||e));}
+}
+
+window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminManualBracket=renderAdminManualBracket; window.adminSaveManualBracket=adminSaveManualBracket; window.adminPublishManualBracket=adminPublishManualBracket; window.adminAutofillManualFromResults=adminAutofillManualFromResults; window.adminLoadOfficialIntoManual=adminLoadOfficialIntoManual; window.adminClearManualBracket=adminClearManualBracket;
 
 
 
@@ -1124,17 +1714,8 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   renderAdminUsers = function(){ const r = oldRenderAdminUsers.apply(this, arguments); setTimeout(patchAdminGolf, 60); return r; };
 
   function get16Matches(){
-    const arr=[];
-    try{ if(typeof buildUserBracket === 'function') arr.push(...buildUserBracket()); }catch(e){}
-    try{ if(DATA && Array.isArray(DATA.bracket)) arr.push(...DATA.bracket); }catch(e){}
-    const map = new Map();
-    arr.forEach(m=>{
-      const id = Number(m.id);
-      const phase = String(m.phase||m.fase||'').toLowerCase();
-      const looks16 = (id>=73 && id<=88) || phase.includes('dieciseis');
-      if(looks16 && m.home && m.away && m.home !== 'Por definir' && m.away !== 'Por definir' && !String(m.home).startsWith('TBD') && !String(m.away).startsWith('TBD')) map.set(id,m);
-    });
-    return Array.from(map.values()).sort((a,b)=>Number(a.id)-Number(b.id));
+    try{ if(typeof getCurrentPredictionMatches === 'function') return getCurrentPredictionMatches(); }catch(e){}
+    return [];
   }
 
   function ensurePenaltySelectors(){
@@ -1175,53 +1756,16 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
     const appVisible = byId('app') && !byId('app').classList.contains('hidden');
     float.style.display = (currentUser && appVisible) ? 'flex' : 'none';
     const matches = get16Matches();
-    const total = matches.length || 16;
+    const total = matches.length || getCurrentPredictionTotal() || 0;
     const completed = matches.length ? matches.filter(complete16).length : 0;
     const pct = total ? Math.round((completed/total)*100) : 0;
     byId('pedexFinalCircle16')?.style.setProperty('--p', pct);
     if(byId('pedexFinalPct16')) byId('pedexFinalPct16').textContent = pct + '%';
+    if(byId('pedexFinalPhase16')) byId('pedexFinalPhase16').textContent = getCurrentPhaseLabel();
     if(byId('pedexFinalStatus16')) byId('pedexFinalStatus16').textContent = `${completed} / ${total} capturados`;
   }
 
-  window.pedexFinalSave16vos = async function(){
-    if(!currentUser) return alert('Inicia sesión para guardar tus pronósticos.');
-    const matches = get16Matches().filter(m=>!(myPred && myPred[m.id]?.bloqueado) && !(typeof isMatchClosed==='function' && isMatchClosed(m)));
-    const missing = matches.filter(m=>!complete16(m));
-    if(missing.length){
-      toast(`Faltan ${missing.length} partido(s) de 16vos.`);
-      byId('p'+missing[0].id+'h')?.closest('.match-card')?.scrollIntoView({behavior:'smooth',block:'center'});
-      return;
-    }
-    if(!matches.length) return toast('No hay 16vos abiertos para guardar.');
-    if(!confirm('Vas a guardar todos tus pronósticos de 16vos. Después quedarán con candado. ¿Continuar?')) return;
-    for(const m of matches){
-      const h = Number(byId('p'+m.id+'h').value);
-      const a = Number(byId('p'+m.id+'a').value);
-      const pen = byId('pedexFinalPenSel'+m.id);
-      const penaltyWinner = (h===a && pen) ? pen.value : '';
-      const winner = h>a ? m.home : (a>h ? m.away : penaltyWinner);
-      await setDoc(doc(db,'pronosticos',`${currentUser.uid}_${m.id}`),{
-        userId:currentUser.uid,
-        nombre:currentProfile?.nombre||currentUser.email,
-        email:currentUser.email,
-        partidoId:Number(m.id),
-        fase:m.phase||'Dieciseisavos',
-        equipoA:m.home,
-        equipoB:m.away,
-        marcadorA:h,
-        marcadorB:a,
-        homeScore:h,
-        awayScore:a,
-        penaltyWinner,
-        winner,
-        bloqueado:true,
-        cerradoPorInicio:false,
-        actualizado:serverTimestamp()
-      },{merge:true});
-    }
-    toast('Pronósticos de 16vos guardados.');
-    renderPredictions();
-  };
+  window.pedexFinalSave16vos = function(){ pedexPrepareSave16vos(); };
 
   const oldRenderPredictions = renderPredictions;
   renderPredictions = function(){ const r = oldRenderPredictions.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors(); updateFloat16();}, 90); return r; };
@@ -1242,327 +1786,14 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1600);
 })();
 
-onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); renderProfile(); renderPredictions();});
-onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminDashboard();}});
+onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge();});
+onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
+onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket(); renderAdminResults(); update16StatusBadge();});
 
-renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminDashboard();
+renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); update16StatusBadge();
 </script>
-<script>
 
-/* =========================
-   PEDEX FIX FINAL NO DESTRUCTIVO
-   ========================= */
-(function(){
-  const byId = (id)=>document.getElementById(id);
-
-  function badge(label){
-    const tied = String(label||"").startsWith("T");
-    return `<span class="pedex-golf-badge ${tied?'tie':''}">${label||'--'}</span>`;
-  }
-
-  function scoreRowsFromRankingArray(){
-    if(!Array.isArray(window.ranking)) return [];
-    return ranking.map((r,i)=>({
-      source:r,
-      index:i,
-      id:r.id||r.uid||r.userId||r.email||"",
-      name:r.nombre||r.name||r.displayName||r.email||"Participante",
-      email:r.email||"",
-      points:Number(r.puntos||r.points||0)
-    }));
-  }
-
-  function assignGolf(items){
-    const arr=[...items].sort((a,b)=>{
-      if(b.points!==a.points) return b.points-a.points;
-      return String(a.name||"").localeCompare(String(b.name||""));
-    });
-    let prev=null, rank=0;
-    arr.forEach((x,i)=>{
-      if(prev===null || x.points!==prev){
-        rank=i+1;
-        prev=x.points;
-      }
-      x.rank=rank;
-    });
-    const counts={};
-    arr.forEach(x=>counts[x.rank]=(counts[x.rank]||0)+1);
-    arr.forEach(x=>{
-      x.tied=counts[x.rank]>1;
-      x.label=x.tied ? "T"+x.rank : String(x.rank);
-      if(x.source){
-        x.source.golfRank=x.rank;
-        x.source.golfLabel=x.label;
-        x.source.golfTied=x.tied;
-      }
-    });
-    return arr;
-  }
-
-  function applyGolfData(){
-    const rows=scoreRowsFromRankingArray();
-    if(rows.length) return assignGolf(rows);
-    return [];
-  }
-
-  function patchRankingTable(){
-    const data=applyGolfData();
-    if(!data.length) return;
-
-    const mapByEmail={}, mapByName={};
-    data.forEach(x=>{
-      if(x.email) mapByEmail[x.email]=x;
-      if(x.name) mapByName[x.name]=x;
-    });
-
-    const table=byId("rankingTable")?.querySelector("table");
-    if(table){
-      Array.from(table.querySelectorAll("tbody tr")).forEach(tr=>{
-        const txt=tr.textContent||"";
-        let item=null;
-        for(const email in mapByEmail){ if(email && txt.includes(email)){ item=mapByEmail[email]; break; } }
-        if(!item){
-          for(const name in mapByName){ if(name && txt.includes(name)){ item=mapByName[name]; break; } }
-        }
-        if(!item) return;
-        if(tr.children[0]) tr.children[0].innerHTML=badge(item.label);
-      });
-    }
-  }
-
-  function currentGolf(){
-    const data=applyGolfData();
-    if(!data.length) return {label:"--",points:0,tied:false};
-    const uid=window.currentUser?.uid||"";
-    const email=window.currentUser?.email||"";
-    let me=data.find(x=>uid && x.id===uid) || data.find(x=>email && x.email===email) || data[0];
-    return me || {label:"--",points:0,tied:false};
-  }
-
-  function patchProfileAndHeader(){
-    const me=currentGolf();
-    if(byId("kpiPlace")) byId("kpiPlace").innerHTML=badge(me.label);
-    if(byId("profilePlace")) byId("profilePlace").innerHTML=badge(me.label);
-    if(byId("headerRank")) byId("headerRank").innerHTML=`Lugar: ${badge(me.label)} · ${me.points||0} pts`;
-  }
-
-  function patchAdminUsers(){
-    const data=applyGolfData();
-    if(!data.length) return;
-    const cards=Array.from(document.querySelectorAll(".admin-user-card,.admin-row"));
-    cards.forEach(card=>{
-      const txt=card.textContent||"";
-      const item=data.find(x=>(x.email && txt.includes(x.email)) || (x.name && txt.includes(x.name)));
-      if(!item) return;
-      let holder=card.querySelector(".pedex-admin-golf-holder");
-      if(!holder){
-        holder=document.createElement("span");
-        holder.className="pedex-admin-golf-holder";
-        const img=card.querySelector("img");
-        if(img) img.insertAdjacentElement("afterend",holder);
-        else card.insertBefore(holder,card.firstChild);
-      }
-      holder.innerHTML=badge(item.label);
-      Array.from(card.querySelectorAll("button,a")).forEach(btn=>{
-        if((btn.textContent||"").toLowerCase().includes("abrir ficha")){
-          btn.style.marginLeft="auto";
-          card.appendChild(btn);
-        }
-      });
-    });
-  }
-
-  function patchAllGolf(){
-    patchRankingTable();
-    patchProfileAndHeader();
-    patchAdminUsers();
-  }
-
-  const oldCompute=window.computeRanking;
-  if(typeof oldCompute==="function"){
-    window.computeRanking=function(){
-      const r=oldCompute.apply(this,arguments);
-      applyGolfData();
-      setTimeout(patchAllGolf,60);
-      return r;
-    };
-  }
-
-  const oldRenderRanking=window.renderRanking;
-  if(typeof oldRenderRanking==="function"){
-    window.renderRanking=function(){
-      const r=oldRenderRanking.apply(this,arguments);
-      setTimeout(patchAllGolf,60);
-      return r;
-    };
-  }
-
-  const oldUpdateUserStats=window.updateUserStats;
-  if(typeof oldUpdateUserStats==="function"){
-    window.updateUserStats=function(){
-      const r=oldUpdateUserStats.apply(this,arguments);
-      setTimeout(patchProfileAndHeader,60);
-      return r;
-    };
-  }
-
-  const oldRenderAdminUsers=window.renderAdminUsers;
-  if(typeof oldRenderAdminUsers==="function"){
-    window.renderAdminUsers=function(){
-      const r=oldRenderAdminUsers.apply(this,arguments);
-      setTimeout(patchAdminUsers,60);
-      return r;
-    };
-  }
-
-  function get16Matches(){
-    const arr=[];
-    try{ if(typeof window.buildUserBracket==="function") arr.push(...buildUserBracket()); }catch(e){}
-    try{ if(window.DATA && Array.isArray(DATA.bracket)) arr.push(...DATA.bracket); }catch(e){}
-    const map=new Map();
-    arr.forEach(m=>{
-      const id=Number(m.id);
-      if(id>=73 && id<=88 && m.home && m.away && m.home!=="Por definir" && m.away!=="Por definir" && !String(m.home).startsWith("TBD") && !String(m.away).startsWith("TBD")){
-        map.set(id,m);
-      }
-    });
-    return Array.from(map.values()).sort((a,b)=>Number(a.id)-Number(b.id));
-  }
-
-  function ensurePenaltySelectors(){
-    get16Matches().forEach(m=>{
-      const h=byId("p"+m.id+"h");
-      const a=byId("p"+m.id+"a");
-      if(!h || !a) return;
-      let box=byId("pedexFinalPen"+m.id);
-      if(!box){
-        box=document.createElement("div");
-        box.id="pedexFinalPen"+m.id;
-        box.className="pedex-final-penalty";
-        box.innerHTML=`<select id="pedexFinalPenSel${m.id}">
-          <option value="">Empate: ¿quién avanza por penales?</option>
-          <option value="${m.home}">${m.home}</option>
-          <option value="${m.away}">${m.away}</option>
-        </select>`;
-        const card=h.closest(".match-card");
-        const note=card?.querySelector(".saved-note");
-        if(note) card.insertBefore(box,note); else card?.appendChild(box);
-        box.querySelector("select").addEventListener("change",updateFloat);
-      }
-      const draw=h.value!=="" && a.value!=="" && Number(h.value)===Number(a.value);
-      box.classList.toggle("show",draw);
-      if(!h.dataset.pedexFinalBind){
-        h.dataset.pedexFinalBind="1";
-        h.addEventListener("input",()=>{ensurePenaltySelectors();updateFloat();});
-      }
-      if(!a.dataset.pedexFinalBind){
-        a.dataset.pedexFinalBind="1";
-        a.addEventListener("input",()=>{ensurePenaltySelectors();updateFloat();});
-      }
-    });
-  }
-
-  function complete16(m){
-    if(window.myPred && myPred[m.id] && myPred[m.id].bloqueado) return true;
-    const h=byId("p"+m.id+"h");
-    const a=byId("p"+m.id+"a");
-    if(!h || !a || h.value==="" || a.value==="") return false;
-    if(Number(h.value)===Number(a.value)){
-      const pen=byId("pedexFinalPenSel"+m.id);
-      return !!(pen && pen.value);
-    }
-    return true;
-  }
-
-  function isAppVisible(){
-    const app=byId("app");
-    return app && !app.classList.contains("hidden") && getComputedStyle(app).display!=="none";
-  }
-
-  function updateFloat(){
-    const float=byId("pedexFinalFloat16");
-    if(!float) return;
-    const show=isAppVisible() && document.body.classList.contains("logged-in");
-    float.style.display=show ? "flex" : "none";
-    const matches=get16Matches();
-    const total=matches.length || 16;
-    const completed=matches.length ? matches.filter(complete16).length : 0;
-    const pct=total ? Math.round(completed/total*100) : 0;
-    if(byId("pedexFinalCircle16")) byId("pedexFinalCircle16").style.setProperty("--p",pct);
-    if(byId("pedexFinalPct16")) byId("pedexFinalPct16").textContent=pct+"%";
-    if(byId("pedexFinalStatus16")) byId("pedexFinalStatus16").textContent=`${completed} / ${total} capturados`;
-  }
-
-  window.pedexFinalSave16vos=async function(){
-    if(!window.currentUser) return alert("Inicia sesión para guardar tus pronósticos.");
-    const matches=get16Matches().filter(m=>!(window.myPred && myPred[m.id]?.bloqueado) && !(typeof window.isMatchClosed==="function" && isMatchClosed(m)));
-    const missing=matches.filter(m=>!complete16(m));
-    if(missing.length){
-      if(typeof toast==="function") toast(`Faltan ${missing.length} partido(s) de 16vos.`);
-      const first=missing[0];
-      byId("p"+first.id+"h")?.closest(".match-card")?.scrollIntoView({behavior:"smooth",block:"center"});
-      return;
-    }
-    if(!matches.length){
-      return typeof toast==="function" ? toast("No hay 16vos abiertos para guardar.") : alert("No hay 16vos abiertos para guardar.");
-    }
-    if(!confirm("Vas a guardar todos tus pronósticos de 16vos. Después quedarán con candado. ¿Continuar?")) return;
-    for(const m of matches){
-      const h=Number(byId("p"+m.id+"h").value);
-      const a=Number(byId("p"+m.id+"a").value);
-      const pen=byId("pedexFinalPenSel"+m.id);
-      const penaltyWinner=(h===a && pen) ? pen.value : "";
-      const winner=h>a ? m.home : (a>h ? m.away : penaltyWinner);
-      await setDoc(doc(db,"pronosticos",`${currentUser.uid}_${m.id}`),{
-        userId:currentUser.uid,
-        nombre:currentProfile?.nombre||currentUser.email,
-        email:currentUser.email,
-        partidoId:Number(m.id),
-        fase:m.phase||"Dieciseisavos",
-        equipoA:m.home,
-        equipoB:m.away,
-        marcadorA:h,
-        marcadorB:a,
-        homeScore:h,
-        awayScore:a,
-        penaltyWinner,
-        winner,
-        bloqueado:true,
-        cerradoPorInicio:false,
-        actualizado:serverTimestamp()
-      },{merge:true});
-    }
-    if(typeof toast==="function") toast("Pronósticos de 16vos guardados.");
-    if(typeof renderPredictions==="function") renderPredictions();
-  };
-
-  const oldRenderPredictions=window.renderPredictions;
-  if(typeof oldRenderPredictions==="function"){
-    window.renderPredictions=function(){
-      const r=oldRenderPredictions.apply(this,arguments);
-      setTimeout(()=>{ensurePenaltySelectors();updateFloat();},80);
-      return r;
-    };
-  }
-
-  const oldGoSection=window.goSection;
-  if(typeof oldGoSection==="function"){
-    window.goSection=function(){
-      const r=oldGoSection.apply(this,arguments);
-      setTimeout(()=>{ensurePenaltySelectors();updateFloat();patchAllGolf();},100);
-      return r;
-    };
-  }
-
-  document.addEventListener("input",()=>setTimeout(updateFloat,30),true);
-  document.addEventListener("change",()=>setTimeout(updateFloat,30),true);
-  setInterval(()=>{ensurePenaltySelectors();updateFloat();patchAllGolf();},1200);
-  setTimeout(()=>{ensurePenaltySelectors();updateFloat();patchAllGolf();},500);
-  setTimeout(()=>{ensurePenaltySelectors();updateFloat();patchAllGolf();},1600);
-})();
-
-</script>
 </body>
 </html>
