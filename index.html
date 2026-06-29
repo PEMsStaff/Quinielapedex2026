@@ -343,6 +343,25 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
   .pred-alert{font-size:11px;padding:11px 12px;}
 }
 
+
+
+/* === V5 Admin: pronosticos de usuarios + fases completas === */
+.admin-user-pred-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px;align-items:center}
+.admin-user-pred-toolbar select,.admin-user-pred-toolbar input{border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:11px;min-width:220px}
+.admin-user-pred-grid{display:grid;gap:12px}
+.admin-user-pred-card{display:grid;grid-template-columns:1.3fr 82px 82px 1fr auto;gap:10px;align-items:end;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}
+.admin-user-pred-card label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}
+.admin-user-pred-card input,.admin-user-pred-card select{width:100%;border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:10px}
+.admin-phase-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.admin-phase-tabs button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:10px 12px;font-weight:900;font-size:12px}
+.admin-phase-tabs button.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#071A3A;border-color:transparent}
+.manual-bracket-phase.active-phase{border:1px solid rgba(245,196,0,.44);border-radius:22px;padding:14px;background:rgba(245,196,0,.06)}
+.manual-bracket-phase.closed-phase{opacity:.78}
+.phase-status-pill{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900;border:1px solid rgba(255,255,255,.16);color:var(--muted)}
+.phase-status-pill.active{color:var(--green);border-color:rgba(112,225,166,.45);background:rgba(112,225,166,.12)}
+.phase-status-pill.closed{color:var(--muted);background:rgba(255,255,255,.07)}
+@media(max-width:920px){.admin-user-pred-card{grid-template-columns:1fr}.admin-user-pred-toolbar select,.admin-user-pred-toolbar input{width:100%;min-width:0}.admin-user-pred-card .btn{width:100%}}
+
 </style>
 
 <style id="pedexNoFloatPerMatchFix">
@@ -350,6 +369,25 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
 .pedex-save-one .btn{min-width:210px}
 .pedex-save-one .btn:before{content:"💾";margin-right:6px}
 @media(max-width:920px){.main{padding-bottom:96px!important}}
+
+
+/* === V5 Admin: pronosticos de usuarios + fases completas === */
+.admin-user-pred-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px;align-items:center}
+.admin-user-pred-toolbar select,.admin-user-pred-toolbar input{border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:11px;min-width:220px}
+.admin-user-pred-grid{display:grid;gap:12px}
+.admin-user-pred-card{display:grid;grid-template-columns:1.3fr 82px 82px 1fr auto;gap:10px;align-items:end;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}
+.admin-user-pred-card label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}
+.admin-user-pred-card input,.admin-user-pred-card select{width:100%;border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:10px}
+.admin-phase-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.admin-phase-tabs button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:10px 12px;font-weight:900;font-size:12px}
+.admin-phase-tabs button.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#071A3A;border-color:transparent}
+.manual-bracket-phase.active-phase{border:1px solid rgba(245,196,0,.44);border-radius:22px;padding:14px;background:rgba(245,196,0,.06)}
+.manual-bracket-phase.closed-phase{opacity:.78}
+.phase-status-pill{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900;border:1px solid rgba(255,255,255,.16);color:var(--muted)}
+.phase-status-pill.active{color:var(--green);border-color:rgba(112,225,166,.45);background:rgba(112,225,166,.12)}
+.phase-status-pill.closed{color:var(--muted);background:rgba(255,255,255,.07)}
+@media(max-width:920px){.admin-user-pred-card{grid-template-columns:1fr}.admin-user-pred-toolbar select,.admin-user-pred-toolbar input{width:100%;min-width:0}.admin-user-pred-card .btn{width:100%}}
+
 </style>
 </head>
 <body>
@@ -429,7 +467,8 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
       <div class="admin-tabs-panel">
         <button type="button" class="active" data-admin-panel-tab="dashboard" onclick="adminSwitchPanel('dashboard')">🏠 Dashboard</button>
         <button type="button" data-admin-panel-tab="llave" onclick="adminSwitchPanel('llave')">🏆 Llave manual</button>
-        <button type="button" data-admin-panel-tab="partidos" onclick="adminSwitchPanel('partidos')">⚽ Resultados 16vos</button>
+        <button type="button" data-admin-panel-tab="partidos" onclick="adminSwitchPanel('partidos')">⚽ Resultados reales</button>
+        <button type="button" data-admin-panel-tab="pronosticosAdmin" onclick="adminSwitchPanel('pronosticosAdmin')">📝 Pronósticos usuarios</button>
         <button type="button" data-admin-panel-tab="usuarios" onclick="adminSwitchPanel('usuarios')">👥 Usuarios</button>
       </div>
 
@@ -442,15 +481,16 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
           <div class="admin-mini-card"><small>Resultados reales</small><b id="adminDashResults">0</b></div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-gold" onclick="adminSwitchPanel('partidos')">Ir a Resultados 16vos</button>
+          <button class="btn btn-gold" onclick="adminSwitchPanel('partidos')">Ir a Resultados reales</button>
+          <button class="btn btn-outline" onclick="adminSwitchPanel('pronosticosAdmin')">Editar pronósticos</button>
           <button class="btn btn-outline" onclick="adminSwitchPanel('usuarios')">Ir a Usuarios</button>
           <button class="btn btn-outline" onclick="adminSwitchPanel('llave')">Ir a Llave manual</button>
         </div>
       </div>
 
       <div class="card admin-panel-block" data-admin-panel="partidos" id="adminResultadosCard" style="border-color:rgba(245,196,0,.45);box-shadow:0 18px 60px rgba(245,196,0,.10)">
-        <h2>Capturar resultados reales · Dieciseisavos</h2>
-        <p class="muted"><b>Esta sección es para capturar los marcadores oficiales de los partidos de dieciseisavos que el administrador haya cargado en la llave manual.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
+        <h2>Capturar resultados reales · Fase activa</h2>
+        <p class="muted"><b>Esta sección es para capturar los marcadores oficiales de los partidos de la fase activa que el administrador haya cargado en la llave manual.</b> El calendario está basado en el fixture oficial de FIFA; se muestran las banderas del sistema, campos simples de marcador y candado automático después de guardar.</p>
         <div class="admin-warning"><b>Flujo:</b> 1) Primero guarda la llave manual. 2) Captura marcador oficial local/visitante. 3) Presiona <b>Guardar resultado real y cerrar</b>. 4) El partido queda con candado para los usuarios. 5) El administrador puede abrir resultado o pronósticos si necesita corregir.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
@@ -462,8 +502,8 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
 
       <div class="card admin-panel-block" data-admin-panel="llave" id="adminLlaveManualCard" style="border-color:rgba(245,196,0,.45)">
         <h2>Panel manual de eliminación directa</h2>
-        <p class="muted"><b>Este panel es la fuente principal de la quiniela. Lo que guardes aquí será exactamente lo que verán los usuarios para pronosticar.</b> Selecciona los 16 partidos de Dieciseisavos y guarda. Al guardar, esos partidos quedan abiertos para pronósticos y también para capturar resultados reales.</p>
-        <div class="admin-warning"><b>Flujo recomendado:</b> 1) Selecciona equipos en Dieciseisavos. 2) Guarda la llave manual. 3) Los usuarios ya podrán pronosticar esos partidos. 4) Después podrás capturar resultados reales y cerrar cada partido.</div>
+        <p class="muted"><b>Este panel es la fuente principal de la quiniela. Lo que guardes aquí será exactamente lo que verán los usuarios para pronosticar.</b> Carga manualmente Dieciseisavos, Octavos, Cuartos, Semifinales, Tercer lugar y Final conforme se vayan definiendo. La fase activa aparecerá arriba y las fases cerradas bajarán al histórico.</p>
+        <div class="admin-warning"><b>Flujo recomendado:</b> 1) Selecciona equipos en la fase correspondiente. 2) Guarda borrador o publica. 3) Los usuarios verán sólo la fase activa. 4) Al cerrar todos los partidos de una fase, la siguiente fase sube arriba automáticamente.</div>
         <div class="admin-bracket-controls">
           <button class="btn btn-outline" onclick="adminSaveManualBracket()">Guardar borrador de llave</button>
           <button class="btn btn-gold" onclick="adminPublishManualBracket()">Dar de alta llave y abrir pronósticos</button>
@@ -473,6 +513,19 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
         </div>
         <div id="adminManualBracketStatus" class="admin-warning"></div>
         <div id="adminManualBracket"></div>
+      </div>
+
+      <div class="card admin-panel-block" data-admin-panel="pronosticosAdmin" id="adminPronosticosUsuariosCard" style="border-color:rgba(245,196,0,.45)">
+        <h2>Pronósticos de usuarios · Corrección administrativa</h2>
+        <p class="muted"><b>Exclusivo administrador.</b> Desde aquí puedes corregir marcadores de cualquier jugador, incluso si el partido ya inició o está cerrado. Esta función no abre la captura para usuarios normales.</p>
+        <div class="admin-warning"><b>Regla:</b> los usuarios siguen bloqueados después del inicio del partido. Sólo el administrador puede editar o desbloquear capturas cerradas desde este panel.</div>
+        <div class="admin-user-pred-toolbar">
+          <select id="adminPredUserSelect" onchange="renderAdminUserPredictions()"></select>
+          <select id="adminPredPhaseSelect" onchange="renderAdminUserPredictions()"></select>
+          <input id="adminPredSearch" placeholder="Buscar partido o equipo" oninput="renderAdminUserPredictions()">
+          <button class="btn btn-outline" onclick="renderAdminUserPredictions()">Actualizar</button>
+        </div>
+        <div id="adminUserPredictions" class="admin-user-pred-grid"></div>
       </div>
 
       <div class="card admin-panel-block" data-admin-panel="usuarios">
@@ -596,7 +649,7 @@ function goSection(section){
   $('sec-'+section)?.classList.add('active');
   document.querySelectorAll('[data-section]').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
   if(section==='perfil') renderProfile();
-  if(section==='admin' && isAdmin()){ renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); }
+  if(section==='admin' && isAdmin()){ renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminUserPredictions(); }
 }
 window.showAuth=showAuth; window.goSection=goSection;
 document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.section==='admin' && !isAdmin()) return alert('La zona administrativa es exclusiva del administrador.'); goSection(b.dataset.section); }));
@@ -1114,6 +1167,7 @@ function getKnockoutPhases(){
     {name:'Octavos', short:'Octavos', ids:[89,90,91,92,93,94,95,96]},
     {name:'Cuartos', short:'Cuartos', ids:[97,98,99,100]},
     {name:'Semifinal', short:'Semifinales', ids:[101,102]},
+    {name:'Tercer lugar', short:'Tercer lugar', ids:[103]},
     {name:'Final', short:'Final', ids:[104]}
   ];
 }
@@ -1417,44 +1471,61 @@ async function saveAdminProfile(uid){
 }
 async function adminSaveUserPrediction(uid,id){
   if(!isAdmin()) return;
-  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
+  const m=buildOfficialBracket().find(x=>Number(x.id)===Number(id)) || getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
   if(!m) return alert('Partido no encontrado.');
   const hEl=$(`adminPred_${uid}_${id}_h`);
   const aEl=$(`adminPred_${uid}_${id}_a`);
-  const h=hEl?.value, a=aEl?.value;
+  const penEl=$(`adminPred_${uid}_${id}_pen`);
+  const h=hEl?.value, a=aEl?.value, pen=penEl?.value || '';
   if(h===''||a===''||h==null||a==null) return alert('Captura ambos marcadores.');
+  if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no negativo.');
+  if(Number(h)===Number(a) && !pen) return alert('Si el marcador queda empatado, selecciona quién avanza por penales.');
   const u=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid)||{};
   if(!confirm('Guardar/corregir este pronóstico como administrador aunque el partido ya haya iniciado?')) return;
   await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{
     userId:uid,
     nombre:u.nombre||'Participante',
     email:u.email||'',
-    partidoId:id,
-    fase:m.phase||('Grupo '+(m.group||'')),
+    userName:u.nombre||'Participante',
+    userEmail:u.email||'',
+    partidoId:Number(id),
+    fase:m.phase||phaseNameById(id),
     equipoA:m.home,
     equipoB:m.away,
+    home:m.home,
+    away:m.away,
     marcadorA:Number(h),
     marcadorB:Number(a),
     homeScore:Number(h),
     awayScore:Number(a),
+    penaltyWinner:pen,
+    ganadorPenales:pen,
     bloqueado:true,
     corregidoPorAdmin:true,
-    actualizado:serverTimestamp()
+    actualizado:serverTimestamp(),
+    actualizadoPor:currentUser.email
   },{merge:true});
   toast('Pronóstico actualizado por administrador');
-  await openAdminUser(uid);
+  renderAdminUserPredictions(); computeRanking(); renderRanking(); renderProfile();
+  const detail=$('adminDetail'); if(detail && !detail.classList.contains('hidden')) await openAdminUser(uid);
 }
+
 async function adminUnlockPrediction(uid,id){
   if(!isAdmin()) return;
-  const m=matchById(id);
-  if(!canUnlockPrediction(m)) return alert('No se puede desbloquear: el partido ya empezó o ya concluyó.');
+  const m=buildOfficialBracket().find(x=>Number(x.id)===Number(id)) || matchById(id);
+  const started=hasMatchStarted(m);
   const pred=predictions.find(p=>p.userId===uid && Number(p.partidoId)===Number(id));
-  if(!pred) return alert('Este usuario aún no tiene pronóstico guardado para ese partido.');
-  if(!confirm('Se desbloqueará este pronóstico para que el usuario lo vuelva a capturar. ¿Continuar?')) return;
-  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
-  toast('Pronóstico desbloqueado para el usuario');
-  await openAdminUser(uid);
+  if(!pred && !started) return alert('Este usuario aún no tiene pronóstico guardado para ese partido.');
+  const msg=started
+    ? 'El partido ya inició/cerró. Se desbloqueará sólo para edición administrativa; el usuario seguirá bloqueado. ¿Continuar?'
+    : 'Se desbloqueará este pronóstico para que el usuario lo vuelva a capturar antes del inicio. ¿Continuar?';
+  if(!confirm(msg)) return;
+  await setDoc(doc(db,'pronosticos',`${uid}_${id}`),{userId:uid,partidoId:Number(id),bloqueado:started ? true : false,soloAdminEdicion:started,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
+  toast(started?'Pronóstico habilitado sólo para corrección administrativa':'Pronóstico desbloqueado para el usuario');
+  renderAdminUserPredictions(); renderPredictions();
+  const detail=$('adminDetail'); if(detail && !detail.classList.contains('hidden')) await openAdminUser(uid);
 }
+
 async function adminUnlockUserAllPredictions(uid){
   if(!isAdmin()) return;
   const user=users.find(x=>x.id===uid)||ranking.find(x=>x.id===uid)||{};
@@ -1568,6 +1639,7 @@ function adminSwitchPanel(panel){
   document.querySelectorAll('[data-admin-panel]').forEach(el=>el.classList.toggle('active',el.dataset.adminPanel===panel));
   document.querySelectorAll('[data-admin-panel-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminPanelTab===panel));
   if(panel==='partidos') renderAdminResults();
+  if(panel==='pronosticosAdmin') renderAdminUserPredictions();
   if(panel==='usuarios') renderAdminUsers();
   if(panel==='llave') renderAdminManualBracket();
   renderAdminDashboard();
@@ -1640,17 +1712,20 @@ async function adminOpenResultOnly(id){
 }
 async function adminOpenResultAndPredictions(id){
   if(!isAdmin()) return;
-  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
-  if(hasMatchStarted(m)) return alert('Este partido ya inició. Por regla de la quiniela, ya no se pueden desbloquear pronósticos para usuarios.');
-  if(!confirm('Esto permitirá que los usuarios vuelvan a editar sus marcadores de este partido antes de que inicie. Úsalo sólo para corrección excepcional. ¿Continuar?')) return;
+  const m=getAllPublishedKnockoutMatches().find(x=>Number(x.id)===Number(id)) || matchById(id) || (DATA.bracket||[]).find(x=>Number(x.id)===Number(id));
+  const started=hasMatchStarted(m);
+  const msg=started
+    ? 'Este partido ya inició o está cerrado. Los usuarios NO podrán editarlo, pero el administrador sí podrá corregir marcadores desde Pronósticos de usuarios. ¿Continuar?'
+    : 'Esto desbloqueará los pronósticos guardados de este partido para corrección antes del inicio. ¿Continuar?';
+  if(!confirm(msg)) return;
   try{
-    await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
+    await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:!started,adminEdicionActiva:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
     const docs=predictions.filter(p=>Number(p.partidoId)===Number(id));
     for(const p of docs){
-      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:false,desbloqueadoPorAdmin:true,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
+      await setDoc(doc(db,'pronosticos',p.id),{bloqueado:started ? true : false,desbloqueadoPorAdmin:true,soloAdminEdicion:started,desbloqueadoAt:serverTimestamp(),desbloqueadoPor:currentUser.email,actualizado:serverTimestamp()},{merge:true});
     }
-    renderPredictions();
-    toast('Resultado y pronósticos abiertos para corrección');
+    renderPredictions(); renderAdminUserPredictions();
+    toast(started?'Partido habilitado para corrección administrativa. Usuarios siguen bloqueados.':'Resultado y pronósticos abiertos para usuarios antes del inicio.');
   }catch(e){alert('No se pudo abrir resultado y pronósticos. Detalle: '+(e.message||e));}
 }
 
@@ -1658,16 +1733,77 @@ function manualSelectHtml(id,side,value){
   const options=['Por definir',...getTeamPool().map(t=>t.team)];
   return `<select id="manual${id}${side}">${options.map(team=>`<option value="${team.replace(/"/g,'&quot;')}" ${team===value?'selected':''}>${team}</option>`).join('')}</select>`;
 }
+function getAdminSelectedUser(){
+  const sel=$('adminPredUserSelect');
+  return sel?.value || users[0]?.id || '';
+}
+function syncAdminPredControls(){
+  const userSel=$('adminPredUserSelect');
+  const phaseSel=$('adminPredPhaseSelect');
+  if(userSel){
+    const current=userSel.value;
+    userSel.innerHTML=users.map(u=>`<option value="${u.id}" ${u.id===current?'selected':''}>${u.nombre||u.email||'Usuario'} · ${u.email||''}</option>`).join('');
+    if(current && users.some(u=>u.id===current)) userSel.value=current;
+  }
+  if(phaseSel){
+    const current=phaseSel.value || getActivePhaseInfo().name;
+    phaseSel.innerHTML=getKnockoutPhases().map(ph=>`<option value="${ph.name}" ${ph.name===current?'selected':''}>${ph.name}</option>`).join('');
+    if(current) phaseSel.value=current;
+  }
+}
+function renderAdminUserPredictions(){
+  if(!isAdmin() || !$('adminUserPredictions')) return;
+  syncAdminPredControls();
+  const userId=getAdminSelectedUser();
+  const phName=$('adminPredPhaseSelect')?.value || getActivePhaseInfo().name;
+  const search=String($('adminPredSearch')?.value||'').toLowerCase().trim();
+  const user=users.find(u=>u.id===userId);
+  const ph=getKnockoutPhases().find(p=>p.name===phName) || getActivePhaseInfo();
+  const bracket=buildOfficialBracket();
+  let rows=bracket.filter(m=>(ph.ids||[]).includes(Number(m.id)) && hasBothTeams(m)).sort((a,b)=>Number(a.id)-Number(b.id));
+  if(search) rows=rows.filter(m=>String(`${m.id} ${m.home} ${m.away} ${m.phase}`).toLowerCase().includes(search));
+  if(!userId){ $('adminUserPredictions').innerHTML='<div class="admin-warning">No hay usuarios cargados todavía.</div>'; return; }
+  if(!rows.length){ $('adminUserPredictions').innerHTML='<div class="admin-warning">No hay partidos cargados para esta fase.</div>'; return; }
+  $('adminUserPredictions').innerHTML=`<div class="admin-warning"><b>Editando:</b> ${user?.nombre||user?.email||'Usuario'} · ${phName}. Estos cambios son administrativos y no abren la captura al usuario.</div>`+rows.map(m=>{
+    const p=predictions.find(x=>x.userId===userId && Number(x.partidoId)===Number(m.id)) || {};
+    const h=p.homeScore ?? p.marcadorA ?? '';
+    const a=p.awayScore ?? p.marcadorB ?? '';
+    const pen=p.penaltyWinner || p.ganadorPenales || '';
+    const closed=isMatchClosed(m);
+    return `<div class="admin-user-pred-card">
+      <div><b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br><small class="muted">${m.date||''} · ${m.time||''} CDMX · ${closed?'Bloqueado para usuarios':'Abierto para usuarios'}</small></div>
+      <label>Local<input type="number" min="0" max="30" id="adminPred_${userId}_${m.id}_h" value="${h}" placeholder="0"></label>
+      <label>Visitante<input type="number" min="0" max="30" id="adminPred_${userId}_${m.id}_a" value="${a}" placeholder="0"></label>
+      <label>Penales si empata<select id="adminPred_${userId}_${m.id}_pen"><option value="">Sin penales</option><option value="${m.home}" ${pen===m.home?'selected':''}>${m.home}</option><option value="${m.away}" ${pen===m.away?'selected':''}>${m.away}</option></select></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-gold" onclick="adminSaveUserPrediction('${userId}',${m.id})">Guardar corrección</button><button class="btn btn-outline" onclick="adminUnlockPrediction('${userId}',${m.id})">Desbloquear sólo este</button></div>
+    </div>`;
+  }).join('');
+}
+function phaseSlug(name){return String(name||'fase').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+function getPhaseStatusInfo(ph, bracket){
+  const matches=(bracket||buildOfficialBracket()).filter(m=>ph.ids.includes(Number(m.id)) && hasBothTeams(m)).sort((a,b)=>Number(a.id)-Number(b.id));
+  const allClosed=matches.length>0 && matches.every(m=>isFinalResultClosed(m.id));
+  return {matches, allClosed, isActive:getActivePhaseInfo().name===ph.name};
+}
 function renderAdminManualBracket(){
   if(!isAdmin() || !$('adminManualBracket')) return;
   const status=$('adminManualBracketStatus');
-  if(status) status.innerHTML = manualBracketPublished ? '<b>Llave dada de alta:</b> los usuarios ya pueden pronosticar los partidos guardados.' : '<b>Llave en borrador:</b> todavía no aparece a los usuarios. Presiona <b>Dar de alta llave y abrir pronósticos</b> cuando esté lista.';
+  const active=getActivePhaseInfo();
+  if(status) status.innerHTML = manualBracketPublished ? `<b>Llave publicada:</b> fase activa actual: <b>${active.name}</b>. Los usuarios sólo ven la fase activa; las fases cerradas bajan al histórico.` : '<b>Llave en borrador:</b> todavía no aparece a los usuarios. Presiona <b>Dar de alta llave y abrir pronósticos</b> cuando esté lista.';
   const bracket=buildOfficialBracket();
-  const phases=['Dieciseisavos'];
-  $('adminManualBracket').innerHTML=phases.map(ph=>{
-    const rows=bracket.filter(m=>m.phase===ph);
+  const phases=getKnockoutPhases();
+  const ordered=[...phases].sort((a,b)=>{
+    const ia=getPhaseStatusInfo(a,bracket), ib=getPhaseStatusInfo(b,bracket);
+    if(ia.isActive!==ib.isActive) return ia.isActive?-1:1;
+    if(ia.allClosed!==ib.allClosed) return ia.allClosed?1:-1;
+    return phases.indexOf(a)-phases.indexOf(b);
+  });
+  $('adminManualBracket').innerHTML=`<div class="admin-phase-tabs">${ordered.map(ph=>`<button type="button" class="${getPhaseStatusInfo(ph,bracket).isActive?'active':''}" onclick="document.getElementById('manualPhase-${phaseSlug(ph.name)}')?.scrollIntoView({behavior:'smooth',block:'start'})">${ph.name}</button>`).join('')}</div>`+ordered.map(ph=>{
+    const info=getPhaseStatusInfo(ph,bracket);
+    const rows=bracket.filter(m=>ph.ids.includes(Number(m.id))).sort((a,b)=>Number(a.id)-Number(b.id));
     if(!rows.length) return '';
-    return `<div class="manual-bracket-phase"><h3>${ph==='3rd Place'?'Tercer lugar':ph}</h3><div class="manual-bracket-grid">${rows.map(m=>{
+    const pill=info.isActive?'<span class="phase-status-pill active">Activa</span>':(info.allClosed?'<span class="phase-status-pill closed">Histórico / cerrado</span>':'<span class="phase-status-pill">Pendiente / futura</span>');
+    return `<div class="manual-bracket-phase ${info.isActive?'active-phase':''} ${info.allClosed?'closed-phase':''}" id="manualPhase-${phaseSlug(ph.name)}"><h3>${ph.name} ${pill}</h3><div class="manual-bracket-grid">${rows.map(m=>{
       const real=actualResults[Number(m.id)]||{};
       const hs=real.homeScore ?? real.marcadorA ?? '';
       const as=real.awayScore ?? real.marcadorB ?? '';
@@ -1685,6 +1821,7 @@ function renderAdminManualBracket(){
     }).join('')}</div></div>`;
   }).join('');
 }
+
 async function adminSaveManualBracket(){
   if(!isAdmin()) return;
   const bracket=buildOfficialBracket();
@@ -1693,7 +1830,7 @@ async function adminSaveManualBracket(){
     const home=$(`manual${m.id}h`)?.value || 'Por definir';
     const away=$(`manual${m.id}a`)?.value || 'Por definir';
     if(home!=='Por definir' || away!=='Por definir'){
-      payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true};
+      payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true,date:m.date||'',time:m.time||'',phase:m.phase||phaseNameById(m.id)};
     }
   });
   try{
@@ -1704,33 +1841,40 @@ async function adminSaveManualBracket(){
     toast('Borrador de llave guardado. Falta darla de alta para abrir pronósticos.');
   }catch(e){alert('No se pudo guardar la llave manual. Revisa permisos de Firestore. Detalle: '+(e.message||e));}
 }
+function phaseNameById(id){
+  const ph=getKnockoutPhases().find(p=>p.ids.includes(Number(id)));
+  return ph ? ph.name : 'Eliminatoria';
+}
 async function adminPublishManualBracket(){
   if(!isAdmin()) return;
-  const bracket=buildOfficialBracket().filter(m=>Number(m.id)>=73 && Number(m.id)<=88);
+  const bracket=buildOfficialBracket();
   const payload={};
-  const missing=[];
   bracket.forEach(m=>{
     const home=$(`manual${m.id}h`)?.value || 'Por definir';
     const away=$(`manual${m.id}a`)?.value || 'Por definir';
-    if(home==='Por definir' || away==='Por definir') missing.push(`#${m.id}`);
-    payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true,date:m.date||'',time:m.time||'',phase:'Dieciseisavos'};
+    if(home!=='Por definir' && away!=='Por definir'){
+      payload[Number(m.id)]={home,away,homeFlag:getTeamFlag(home),awayFlag:getTeamFlag(away),homeFrom:'Manual',awayFrom:'Manual',manual:true,date:m.date||'',time:m.time||'',phase:phaseNameById(m.id)};
+    }
   });
-  if(missing.length) return alert('Faltan equipos en estos partidos: '+missing.join(', '));
-  if(!confirm('Se dará de alta la llave de dieciseisavos y se abrirá en el área de Pronósticos para todos los usuarios. ¿Continuar?')) return;
+  const ids=Object.keys(payload);
+  if(!ids.length) return alert('Primero captura al menos un partido completo en la llave manual.');
+  if(!confirm(`Se publicarán ${ids.length} partidos de eliminación directa. Los usuarios verán sólo la fase activa. ¿Continuar?`)) return;
   try{
-    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:true,phase:'Dieciseisavos',actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
-    for(const m of bracket){
-      await setDoc(doc(db,'resultados',String(m.id)),{partidoId:Number(m.id),status:'pending',cerrado:false,adminPronosticosAbiertos:false,llavePublicada:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
+    for(const id of ids){
+      const m=payload[id];
+      await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'pending',cerrado:false,adminPronosticosAbiertos:false,llavePublicada:true,phase:m.phase||phaseNameById(id),actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:true});
     }
     manualBracket=normalizeManualBracket(payload);
     manualBracketPublished=true;
-    renderHome(); renderBracket(); renderPredictions(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();
-    toast('Llave dada de alta. Pronósticos abiertos para usuarios.');
+    renderHome(); renderBracket(); renderPredictions(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); renderAdminUserPredictions();
+    toast('Llave publicada. La fase activa quedó abierta para usuarios.');
   }catch(e){
     console.error('Error publicando llave manual',e);
     alert('No se pudo dar de alta la llave. Revisa permisos de Firestore para configuracion/llaveManual y resultados. Detalle: '+(e.message||e));
   }
 }
+
 function winnerFromActualMatch(m){
   const real=actualResults[Number(m.id)];
   if(!m || !real || real.homeScore===undefined || real.awayScore===undefined || real.homeScore===null || real.awayScore===null) return null;
@@ -1793,7 +1937,7 @@ async function adminClearManualBracket(){
   }catch(e){alert('No se pudo borrar la llave manual. Detalle: '+(e.message||e));}
 }
 
-window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminManualBracket=renderAdminManualBracket; window.adminSaveManualBracket=adminSaveManualBracket; window.adminPublishManualBracket=adminPublishManualBracket; window.adminAutofillManualFromResults=adminAutofillManualFromResults; window.adminLoadOfficialIntoManual=adminLoadOfficialIntoManual; window.adminClearManualBracket=adminClearManualBracket;
+window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminUserPredictions=renderAdminUserPredictions; window.renderAdminManualBracket=renderAdminManualBracket; window.adminSaveManualBracket=adminSaveManualBracket; window.adminPublishManualBracket=adminPublishManualBracket; window.adminAutofillManualFromResults=adminAutofillManualFromResults; window.adminLoadOfficialIntoManual=adminLoadOfficialIntoManual; window.adminClearManualBracket=adminClearManualBracket;
 
 
 
@@ -1968,10 +2112,10 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge(); if(isAdmin()) setTimeout(()=>{adminAutoResetPredictionsOnce(); adminAutoResetRealResultsOnce();},900);});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
-onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
-onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket(); renderAdminResults(); update16StatusBadge();});
+onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile(); renderAdminUserPredictions();});
+onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket(); renderAdminResults(); renderAdminUserPredictions(); update16StatusBadge();});
 
-renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); update16StatusBadge();
+renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); renderAdminUserPredictions(); update16StatusBadge();
 </script>
 
 </body>
