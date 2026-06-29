@@ -362,6 +362,20 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
 .phase-status-pill.closed{color:var(--muted);background:rgba(255,255,255,.07)}
 @media(max-width:920px){.admin-user-pred-card{grid-template-columns:1fr}.admin-user-pred-toolbar select,.admin-user-pred-toolbar input{width:100%;min-width:0}.admin-user-pred-card .btn{width:100%}}
 
+
+.admin-phase-summary{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:12px 0 18px}
+.admin-phase-summary button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#fff;border-radius:18px;padding:12px;text-align:left;font-weight:900}
+.admin-phase-summary button small{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.25}
+.admin-phase-summary button.active{border-color:rgba(245,196,0,.58);background:rgba(245,196,0,.15);color:var(--gold)}
+.admin-phase-summary button.closed{opacity:.75}
+.manual-phase-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.manual-phase-header h3{margin:0 0 5px!important}
+.manual-bracket-card{grid-template-columns:minmax(180px,1.2fr) minmax(180px,1.2fr) 100px 100px minmax(210px,auto)!important}
+.manual-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.manual-card-actions .btn{padding:10px 12px;font-size:12px;white-space:nowrap}
+@media(max-width:1100px){.admin-phase-summary{grid-template-columns:repeat(3,1fr)}.manual-bracket-card{grid-template-columns:1fr 1fr!important}.manual-card-actions{grid-column:1/-1}.manual-card-actions .btn{flex:1}}
+@media(max-width:720px){.admin-phase-summary{grid-template-columns:1fr}.manual-phase-header{display:block}.manual-phase-header .btn{width:100%;margin-top:10px}.manual-bracket-card{grid-template-columns:1fr!important}.manual-card-actions .btn{width:100%;flex:auto}}
+
 </style>
 
 <style id="pedexNoFloatPerMatchFix">
@@ -603,7 +617,7 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function isAdmin(){return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes((currentUser?.email||"").toLowerCase())}
 
-const FLAG_BASE = 'flags/';
+const FLAG_BASE = 'img/flags/';
 const FLAG_FILES = {
   'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-and-herzegovina.svg','Bosnia Herzegovina':'bosnia-and-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'united-states.svg','USA':'united-states.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Curaçao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Cote d Ivoire':'ivory-coast.svg','Côte d’Ivoire':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Congo DR':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
 };
@@ -1788,37 +1802,69 @@ function getPhaseStatusInfo(ph, bracket){
 function renderAdminManualBracket(){
   if(!isAdmin() || !$('adminManualBracket')) return;
   const status=$('adminManualBracketStatus');
-  const active=getActivePhaseInfo();
-  if(status) status.innerHTML = manualBracketPublished ? `<b>Llave publicada:</b> fase activa actual: <b>${active.name}</b>. Los usuarios sólo ven la fase activa; las fases cerradas bajan al histórico.` : '<b>Llave en borrador:</b> todavía no aparece a los usuarios. Presiona <b>Dar de alta llave y abrir pronósticos</b> cuando esté lista.';
-  const bracket=buildOfficialBracket();
   const phases=getKnockoutPhases();
+  const bracket=buildOfficialBracket();
+  const active=getActivePhaseInfo();
+  if(status){
+    status.innerHTML = manualBracketPublished
+      ? `<b>Llave publicada:</b> fase activa actual: <b>${active.name}</b>. Puedes capturar o preparar también Octavos, Cuartos, Semifinales, Tercer lugar y Final desde este mismo panel.`
+      : '<b>Llave en borrador:</b> captura cualquier fase que ya conozcas. Presiona <b>Dar de alta llave y abrir pronósticos</b> cuando esté lista.';
+  }
+
+  const phaseInfo = (ph)=>{
+    const rows=ph.ids.map(id=>{
+      const existing=bracket.find(m=>Number(m.id)===Number(id)) || DATA.bracket.find(m=>Number(m.id)===Number(id)) || {id:Number(id),phase:ph.name,home:'Por definir',away:'Por definir',homeFlag:'',awayFlag:'',homeScore:null,awayScore:null};
+      return {...existing,id:Number(id),phase:ph.name,home:existing.home||'Por definir',away:existing.away||'Por definir'};
+    }).sort((a,b)=>Number(a.id)-Number(b.id));
+    const loaded=rows.filter(m=>hasBothTeams(m)).length;
+    const closed=rows.filter(m=>isFinalResultClosed(m.id)).length;
+    const allClosed=loaded>0 && loaded===rows.length && closed===rows.length;
+    const isActive=active.name===ph.name;
+    return {rows,loaded,closed,allClosed,isActive};
+  };
+
   const ordered=[...phases].sort((a,b)=>{
-    const ia=getPhaseStatusInfo(a,bracket), ib=getPhaseStatusInfo(b,bracket);
+    const ia=phaseInfo(a), ib=phaseInfo(b);
     if(ia.isActive!==ib.isActive) return ia.isActive?-1:1;
     if(ia.allClosed!==ib.allClosed) return ia.allClosed?1:-1;
     return phases.indexOf(a)-phases.indexOf(b);
   });
-  $('adminManualBracket').innerHTML=`<div class="admin-phase-tabs">${ordered.map(ph=>`<button type="button" class="${getPhaseStatusInfo(ph,bracket).isActive?'active':''}" onclick="document.getElementById('manualPhase-${phaseSlug(ph.name)}')?.scrollIntoView({behavior:'smooth',block:'start'})">${ph.name}</button>`).join('')}</div>`+ordered.map(ph=>{
-    const info=getPhaseStatusInfo(ph,bracket);
-    const rows=bracket.filter(m=>ph.ids.includes(Number(m.id))).sort((a,b)=>Number(a.id)-Number(b.id));
-    if(!rows.length) return '';
+
+  const summary=`<div class="admin-phase-summary">${phases.map(ph=>{
+    const info=phaseInfo(ph);
+    const cls=info.isActive?'active':(info.allClosed?'closed':'');
+    return `<button type="button" class="${cls}" onclick="document.getElementById('manualPhase-${phaseSlug(ph.name)}')?.scrollIntoView({behavior:'smooth',block:'start'})"><b>${ph.name}</b><small>${info.loaded}/${info.rows.length} cargados · ${info.closed}/${info.rows.length} cerrados</small></button>`;
+  }).join('')}</div>`;
+
+  $('adminManualBracket').innerHTML=summary+`<div class="admin-phase-tabs">${ordered.map(ph=>`<button type="button" class="${phaseInfo(ph).isActive?'active':''}" onclick="document.getElementById('manualPhase-${phaseSlug(ph.name)}')?.scrollIntoView({behavior:'smooth',block:'start'})">${ph.name}</button>`).join('')}</div>`+ordered.map(ph=>{
+    const info=phaseInfo(ph);
     const pill=info.isActive?'<span class="phase-status-pill active">Activa</span>':(info.allClosed?'<span class="phase-status-pill closed">Histórico / cerrado</span>':'<span class="phase-status-pill">Pendiente / futura</span>');
-    return `<div class="manual-bracket-phase ${info.isActive?'active-phase':''} ${info.allClosed?'closed-phase':''}" id="manualPhase-${phaseSlug(ph.name)}"><h3>${ph.name} ${pill}</h3><div class="manual-bracket-grid">${rows.map(m=>{
-      const real=actualResults[Number(m.id)]||{};
-      const hs=real.homeScore ?? real.marcadorA ?? '';
-      const as=real.awayScore ?? real.marcadorB ?? '';
-      const isManual=!!manualBracket[Number(m.id)];
-      return `<div class="manual-bracket-card ${isManual?'manual':''}">
-        <div>
-          <div class="manual-bracket-meta">#${m.id} · ${m.date||''} · ${m.time||''} · ${isManual?'Manual':'Automático/provisional'}</div>
-          <label>Local ${manualSelectHtml(m.id,'h',m.home||'Por definir')}</label>
-        </div>
-        <label>Visitante ${manualSelectHtml(m.id,'a',m.away||'Por definir')}</label>
-        <label>Goles local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
-        <label>Goles visita<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
-        <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado</button>
-      </div>`;
-    }).join('')}</div></div>`;
+    return `<div class="manual-bracket-phase ${info.isActive?'active-phase':''} ${info.allClosed?'closed-phase':''}" id="manualPhase-${phaseSlug(ph.name)}">
+      <div class="manual-phase-header">
+        <div><h3>${ph.name} ${pill}</h3><p class="muted">${info.loaded}/${info.rows.length} partidos cargados · ${info.closed}/${info.rows.length} cerrados.</p></div>
+        <button type="button" class="btn btn-outline" onclick="adminAutofillManualFromResults()">Copiar ganadores a la siguiente fase</button>
+      </div>
+      <div class="manual-bracket-grid">${info.rows.map(m=>{
+        const real=actualResults[Number(m.id)]||{};
+        const hs=real.homeScore ?? real.marcadorA ?? '';
+        const as=real.awayScore ?? real.marcadorB ?? '';
+        const isManual=!!manualBracket[Number(m.id)];
+        const closed=isFinalResultClosed(m.id);
+        return `<div class="manual-bracket-card ${isManual?'manual':''}">
+          <div>
+            <div class="manual-bracket-meta">#${m.id} · ${m.date||''} · ${m.time||''} CDMX · ${closed?'Cerrado':'Abierto/Pendiente'} · ${isManual?'Manual':'Automático/provisional'}</div>
+            <label>Local ${manualSelectHtml(m.id,'h',m.home||'Por definir')}</label>
+          </div>
+          <label>Visitante ${manualSelectHtml(m.id,'a',m.away||'Por definir')}</label>
+          <label>Goles local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
+          <label>Goles visita<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+          <div class="manual-card-actions">
+            <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado</button>
+            <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Desbloquear</button>
+          </div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
   }).join('');
 }
 
