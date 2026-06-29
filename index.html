@@ -1043,8 +1043,11 @@ async function savePrediction(id){
       cerradoPorInicio:false,
       actualizado:serverTimestamp()
     },{merge:true});
+    const localPred={userId:currentUser.uid,nombre:currentProfile?.nombre||currentUser.email,email:currentUser.email,partidoId:Number(m.id),fase:m.phase||getCurrentPhaseLabel(),equipoA:m.home,equipoB:m.away,marcadorA:h,marcadorB:a,homeScore:h,awayScore:a,penaltyWinner,winner,bloqueado:true,borrador:false};
+    predictions=predictions.filter(x=>!(x.userId===currentUser.uid && Number(x.partidoId)===Number(m.id))).concat(localPred);
+    myPred[m.id]=localPred;
+    pedexRefreshPublicViews();
     toast('Pronóstico guardado correctamente.');
-    renderPredictions();
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='Guardar este partido';}
     alert('No se pudo guardar este partido: '+(e.message||e));
@@ -1320,6 +1323,7 @@ function captureMeta(uid){
 }
 function captureBar(meta){return `<div class="capture-bar"><div class="capture-fill ${meta.cls}" style="width:${meta.pct}%"></div></div>`;}
 function computeRanking(){
+  try{ pedexBuildUsersFromPredictionsFallback(); }catch(e){}
   const validIds=new Set(getAllPublishedKnockoutMatches().map(m=>Number(m.id)));
   const map={};
   users.forEach(u=>map[u.id]={...u,puntos:Number(u.ajustePuntos||0),aciertos:0,exactos:0,pronosticados:0});
@@ -1678,6 +1682,68 @@ window.adminDeleteAllRealResults=adminDeleteAllRealResults;
 window.adminClearAllRealResults=adminClearAllRealResults;
 window.adminAutoResetRealResultsOnce=adminAutoResetRealResultsOnce;
 
+
+
+/* === PEDEX V7: avance automático de llaves FIFA ===
+   Cuando el admin cierra un partido, el ganador se coloca en la siguiente fase.
+   El admin conserva control manual porque puede cambiar equipos desde Llave manual. */
+const PEDEX_ADVANCE_MAP={
+  73:{target:89,side:'home'},74:{target:89,side:'away'},75:{target:90,side:'home'},76:{target:90,side:'away'},
+  77:{target:91,side:'home'},78:{target:91,side:'away'},79:{target:92,side:'home'},80:{target:92,side:'away'},
+  81:{target:93,side:'home'},82:{target:93,side:'away'},83:{target:94,side:'home'},84:{target:94,side:'away'},
+  85:{target:95,side:'home'},86:{target:95,side:'away'},87:{target:96,side:'home'},88:{target:96,side:'away'},
+  89:{target:97,side:'home'},90:{target:97,side:'away'},91:{target:98,side:'home'},92:{target:98,side:'away'},
+  93:{target:99,side:'home'},94:{target:99,side:'away'},95:{target:100,side:'home'},96:{target:100,side:'away'},
+  97:{target:101,side:'home'},98:{target:101,side:'away'},99:{target:102,side:'home'},100:{target:102,side:'away'},
+  101:{target:104,side:'home',thirdTarget:103,thirdSide:'home'},102:{target:104,side:'away',thirdTarget:103,thirdSide:'away'}
+};
+function peDexWinnerLoserFromScores(match,homeScore,awayScore,penaltyWinner=''){
+  const h=Number(homeScore), a=Number(awayScore);
+  if(!match || Number.isNaN(h) || Number.isNaN(a)) return {winner:null,loser:null};
+  if(h>a) return {winner:{team:match.home,flag:match.homeFlag||''},loser:{team:match.away,flag:match.awayFlag||''}};
+  if(a>h) return {winner:{team:match.away,flag:match.awayFlag||''},loser:{team:match.home,flag:match.homeFlag||''}};
+  const pen=String(penaltyWinner||'').trim();
+  if(pen && pen===match.away) return {winner:{team:match.away,flag:match.awayFlag||''},loser:{team:match.home,flag:match.homeFlag||''}};
+  return {winner:{team:match.home,flag:match.homeFlag||''},loser:{team:match.away,flag:match.awayFlag||''}};
+}
+async function peDexAdvanceWinnerAfterResult(id,match,homeScore,awayScore,penaltyWinner=''){
+  if(!isAdmin()) return '';
+  const rule=PEDEX_ADVANCE_MAP[Number(id)];
+  if(!rule || !match) return '';
+  const {winner,loser}=peDexWinnerLoserFromScores(match,homeScore,awayScore,penaltyWinner);
+  if(!winner || !winner.team || winner.team==='Por definir') return '';
+  const payload=normalizeManualBracket(manualBracket||{});
+  const bracket=buildOfficialBracket();
+  const ensureTarget=(targetId)=>{
+    const base=payload[Number(targetId)] || bracket.find(x=>Number(x.id)===Number(targetId)) || DATA.bracket.find(x=>Number(x.id)===Number(targetId)) || {id:Number(targetId),home:'Por definir',away:'Por definir',homeFlag:'',awayFlag:'',phase:phaseNameById(targetId)};
+    payload[Number(targetId)]={
+      home:base.home||'Por definir',away:base.away||'Por definir',
+      homeFlag:normalizeFlagFile(base.home,base.homeFlag),awayFlag:normalizeFlagFile(base.away,base.awayFlag),
+      homeFrom:base.homeFrom||'Manual',awayFrom:base.awayFrom||'Manual',
+      phase:base.phase||phaseNameById(targetId),date:base.date||'',time:base.time||'',manual:true
+    };
+    return payload[Number(targetId)];
+  };
+  const target=ensureTarget(rule.target);
+  if(rule.side==='home'){
+    target.home=winner.team; target.homeFlag=normalizeFlagFile(winner.team,winner.flag); target.homeFrom=`Ganador #${id}`;
+  }else{
+    target.away=winner.team; target.awayFlag=normalizeFlagFile(winner.team,winner.flag); target.awayFrom=`Ganador #${id}`;
+  }
+  if(rule.thirdTarget && loser && loser.team){
+    const third=ensureTarget(rule.thirdTarget);
+    if(rule.thirdSide==='home'){
+      third.home=loser.team; third.homeFlag=normalizeFlagFile(loser.team,loser.flag); third.homeFrom=`Perdedor #${id}`;
+    }else{
+      third.away=loser.team; third.awayFlag=normalizeFlagFile(loser.team,loser.flag); third.awayFrom=`Perdedor #${id}`;
+    }
+  }
+  await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email,avanceAutomatico:true,ultimoAvance:`#${id} -> #${rule.target}`},{merge:false});
+  manualBracket=normalizeManualBracket(payload);
+  manualBracketPublished=true;
+  return ` Ganador avanzado automáticamente a #${rule.target}.`;
+}
+
 function adminSwitchPanel(panel){
   document.querySelectorAll('[data-admin-panel]').forEach(el=>el.classList.toggle('active',el.dataset.adminPanel===panel));
   document.querySelectorAll('[data-admin-panel-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminPanelTab===panel));
@@ -1723,26 +1789,38 @@ function renderAdminResults(){
 }
 async function adminSaveResult(id){
   if(!isAdmin()) return;
-  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
+  const m=getAllPublishedKnockoutMatches().find(x=>Number(x.id)===Number(id)) || getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
   const h=$('res'+id+'h')?.value, a=$('res'+id+'a')?.value;
   if(h==='' || a==='' || h===undefined || a===undefined) return alert('Captura marcador local y visitante.');
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
-  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'} y se cerrarán los pronósticos de usuarios. ¿Continuar?`)) return;
-  const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),status:'final',cerrado:true,adminPronosticosAbiertos:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
+  let penaltyWinner='';
+  if(Number(h)===Number(a)){
+    penaltyWinner=prompt(`El marcador está empatado. Escribe exactamente quién avanzó por penales:
+
+${m?.home||'Local'}
+${m?.away||'Visitante'}`, m?.home||'') || '';
+    penaltyWinner=penaltyWinner.trim();
+    if(penaltyWinner!==m?.home && penaltyWinner!==m?.away) return alert('Para empate debes escribir exactamente el nombre del equipo que avanzó por penales.');
+  }
+  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'} y se cerrarán los pronósticos de usuarios. El ganador avanzará automáticamente en la llave FIFA. ¿Continuar?`)) return;
+  const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),penaltyWinner,ganadorPenales:penaltyWinner,status:'final',cerrado:true,adminPronosticosAbiertos:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
   try{
     await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
     actualResults[Number(id)]={...payload,id:String(id)};
+    const avanceMsg=await peDexAdvanceWinnerAfterResult(id,m,Number(h),Number(a),penaltyWinner);
     computeRanking();
     renderGroups();
     renderHome();
     renderBracket();
     renderPredictions();
     renderAdminResults();
+    renderAdminManualBracket();
     renderAdminDashboard();
-    toast('Resultado oficial guardado/corregido. Pronósticos cerrados y ranking recalculado.');
+    renderAdminUserPredictions();
+    toast('Resultado guardado. Ranking recalculado.'+avanceMsg);
   }catch(e){
     console.error('Error guardando resultado oficial',e);
-    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en resultados al administrador. Detalle: '+(e.message||e));
+    alert('No se pudo guardar el resultado oficial. Revisa las reglas de Firebase para permitir escritura en resultados y configuracion/llaveManual al administrador. Detalle: '+(e.message||e));
   }
 }
 async function adminOpenResultOnly(id){
@@ -2184,11 +2262,78 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   setTimeout(()=>{ensurePenaltySelectors();  patchAllGolf();}, 1600);
 })();
 
+
+
+/* === PEDEX V8: ranking visible para usuarios normales === */
+let pedexReadErrors={usuarios:false,pronosticos:false,resultados:false};
+function pedexEnsureCurrentUserInUsers(){
+  if(!currentUser) return;
+  if(!Array.isArray(users)) users=[];
+  const exists=users.some(u=>u.id===currentUser.uid);
+  if(!exists){
+    users.push({
+      id:currentUser.uid,
+      nombre:currentProfile?.nombre||currentUser.email||'Participante',
+      email:currentProfile?.email||currentUser.email||'',
+      fotoURL:currentProfile?.fotoURL||'assets/persona-perfil.png',
+      activo:true
+    });
+  }
+}
+function pedexBuildUsersFromPredictionsFallback(){
+  if(!Array.isArray(users)) users=[];
+  const byId=new Map(users.map(u=>[u.id,u]));
+  (predictions||[]).forEach(p=>{
+    if(!p.userId || byId.has(p.userId)) return;
+    byId.set(p.userId,{
+      id:p.userId,
+      nombre:p.nombre||p.email||'Participante',
+      email:p.email||'',
+      fotoURL:'assets/persona-perfil.png',
+      activo:true,
+      desdePronostico:true
+    });
+  });
+  users=Array.from(byId.values());
+  pedexEnsureCurrentUserInUsers();
+}
+function pedexRefreshPublicViews(){
+  try{ pedexBuildUsersFromPredictionsFallback(); }catch(e){ console.warn('fallback usuarios',e); }
+  try{ computeRanking(); }catch(e){ console.error('computeRanking',e); }
+  try{ renderRanking(); }catch(e){}
+  try{ updateUserStats(); }catch(e){}
+  try{ renderProfile(); }catch(e){}
+  try{ renderHome(); }catch(e){}
+  try{ renderPredictions(); }catch(e){}
+  try{ renderBracket(); }catch(e){}
+  if(isAdmin()){
+    try{ renderAdminUsers(); }catch(e){}
+    try{ renderAdminDashboard(); }catch(e){}
+  }
+}
+function pedexRankingReadWarning(){
+  const table=$('rankingTable');
+  if(!table) return;
+  if(!(pedexReadErrors.usuarios||pedexReadErrors.pronosticos||pedexReadErrors.resultados)) return;
+  const missing=[];
+  if(pedexReadErrors.usuarios) missing.push('usuarios');
+  if(pedexReadErrors.pronosticos) missing.push('pronosticos');
+  if(pedexReadErrors.resultados) missing.push('resultados');
+  table.insertAdjacentHTML('afterbegin',`<div class="admin-warning"><b>Ranking parcialmente limitado:</b> Firebase no permitió leer ${missing.join(', ')} para este usuario. Para que todos vean ranking, puntos y avance, esas colecciones deben tener lectura habilitada para usuarios autenticados.</div>`);
+}
+const pedexOldRenderRankingPublic=renderRanking;
+renderRanking=function(){
+  const r=pedexOldRenderRankingPublic.apply(this,arguments);
+  setTimeout(pedexRankingReadWarning,30);
+  return r;
+};
+window.renderRanking=renderRanking;
+
 onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge(); if(isAdmin()) setTimeout(()=>{adminAutoResetPredictionsOnce(); adminAutoResetRealResultsOnce();},900);});
-onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}});
-onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
-onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile(); renderAdminUserPredictions();});
-onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; renderHome(); renderGroups(); renderBracket(); renderPredictions(); renderAdminManualBracket(); renderAdminResults(); renderAdminUserPredictions(); update16StatusBadge();});
+onSnapshot(collection(db,'usuarios'), snap=>{pedexReadErrors.usuarios=false;users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} pedexRefreshPublicViews(); if(isAdmin()){renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}}, err=>{console.warn('No se pudo leer usuarios para ranking',err); pedexReadErrors.usuarios=true; pedexRefreshPublicViews();});
+onSnapshot(collection(db,'pronosticos'), snap=>{pedexReadErrors.pronosticos=false;predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); pedexRefreshPublicViews();}, err=>{console.warn('No se pudo leer pronosticos para ranking',err); pedexReadErrors.pronosticos=true; pedexRefreshPublicViews();});
+onSnapshot(collection(db,'resultados'), snap=>{pedexReadErrors.resultados=false;actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); pedexRefreshPublicViews(); renderGroups(); renderAdminResults(); renderAdminDashboard(); renderAdminUserPredictions();}, err=>{console.warn('No se pudo leer resultados para ranking',err); pedexReadErrors.resultados=true; pedexRefreshPublicViews();});
+onSnapshot(doc(db,'configuracion','llaveManual'), snap=>{const cfg=snap.exists()?snap.data():{}; manualBracket=normalizeManualBracket(cfg.matches||{}); manualBracketPublished=!!cfg.published; pedexRefreshPublicViews(); renderGroups(); renderAdminManualBracket(); renderAdminResults(); renderAdminUserPredictions(); update16StatusBadge();}, err=>{console.warn('No se pudo leer configuracion/llaveManual',err);});
 
 renderHome(); renderPredictions(); renderGroups(); renderRanking(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard(); renderAdminUserPredictions(); update16StatusBadge();
 </script>
