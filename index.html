@@ -268,6 +268,81 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
   .admin-result-actions .btn,.admin-bracket-controls .btn,.admin-detail-actions .btn{width:100%;}
 }
 
+
+
+/* === PEDEX V3: alertas por partido, ranking estable y botones alineados === */
+.pred-alert{
+  margin:12px auto 0;
+  max-width:620px;
+  border-radius:16px;
+  padding:12px 14px;
+  font-size:12px;
+  line-height:1.45;
+  font-weight:800;
+  text-align:left;
+}
+.pred-alert.open{
+  color:#fff;
+  background:rgba(245,196,0,.13);
+  border:1px solid rgba(245,196,0,.42);
+}
+.pred-alert.closed{
+  color:#fff;
+  background:rgba(255,85,112,.13);
+  border:1px solid rgba(255,85,112,.42);
+}
+.pred-alert.saved{
+  color:#fff;
+  background:rgba(112,225,166,.13);
+  border:1px solid rgba(112,225,166,.42);
+}
+.pedex-save-one .btn.saved-ok{
+  background:linear-gradient(135deg,var(--green),#b9ffd6)!important;
+  color:#071A3A!important;
+}
+#rankingTable table{
+  table-layout:fixed;
+  min-width:980px;
+}
+#rankingTable th,#rankingTable td{
+  height:66px;
+  vertical-align:middle;
+}
+#rankingTable th:nth-child(1),#rankingTable td:nth-child(1){width:82px;text-align:center;}
+#rankingTable th:nth-child(2),#rankingTable td:nth-child(2){width:290px;}
+#rankingTable th:nth-child(3),#rankingTable td:nth-child(3){width:82px;text-align:center;}
+#rankingTable th:nth-child(4),#rankingTable td:nth-child(4){width:82px;text-align:center;}
+#rankingTable th:nth-child(5),#rankingTable td:nth-child(5){width:125px;text-align:center;}
+#rankingTable th:nth-child(6),#rankingTable td:nth-child(6){width:155px;}
+#rankingTable th:nth-child(7),#rankingTable td:nth-child(7),
+#rankingTable th:nth-child(8),#rankingTable td:nth-child(8),
+#rankingTable th:nth-child(9),#rankingTable td:nth-child(9){width:90px;text-align:center;}
+#rankingTable .rank-user{
+  min-width:0;
+  max-width:270px;
+  overflow:hidden;
+}
+#rankingTable .rank-user>div{
+  min-width:0;
+  overflow:hidden;
+}
+#rankingTable .rank-user b,#rankingTable .rank-user small{
+  max-width:205px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#rankingTable .rank-photo{
+  width:42px!important;
+  height:42px!important;
+  flex:0 0 42px;
+  display:block;
+}
+@media(max-width:920px){
+  #rankingTable table{min-width:920px;}
+  .pred-alert{font-size:11px;padding:11px 12px;}
+}
+
 </style>
 
 <style id="pedexNoFloatPerMatchFix">
@@ -380,6 +455,7 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px">
           <button class="btn btn-outline" onclick="renderAdminResults()">Actualizar lista</button>
           <button class="btn btn-outline" onclick="adminClearJornada3Predictions()">Borrar TODOS los pronósticos capturados</button>
+          <button class="btn btn-outline" onclick="adminClearAllRealResults()">Limpiar resultados reales</button>
         </div>
         <div id="adminResults" class="admin-results-grid"></div>
       </div>
@@ -474,7 +550,7 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function isAdmin(){return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes((currentUser?.email||"").toLowerCase())}
 
-const FLAG_BASE = 'img/flags/';
+const FLAG_BASE = 'flags/';
 const FLAG_FILES = {
   'Mexico':'mexico.svg','South Africa':'south-africa.svg','South Korea':'south-korea.svg','Czechia':'czechia.svg','Canada':'canada.svg','Bosnia and Herzegovina':'bosnia-and-herzegovina.svg','Bosnia Herzegovina':'bosnia-and-herzegovina.svg','Qatar':'qatar.svg','Switzerland':'switzerland.svg','Brazil':'brazil.svg','Morocco':'morocco.svg','Haiti':'haiti.svg','Scotland':'scotland.svg','United States':'united-states.svg','USA':'united-states.svg','Paraguay':'paraguay.svg','Australia':'australia.svg','Turkey':'turkey.svg','Germany':'germany.svg','Curacao':'curacao.svg','Curaçao':'curacao.svg','Ivory Coast':'ivory-coast.svg','Cote d Ivoire':'ivory-coast.svg','Côte d’Ivoire':'ivory-coast.svg','Ecuador':'ecuador.svg','Netherlands':'netherlands.svg','Japan':'japan.svg','Sweden':'sweden.svg','Tunisia':'tunisia.svg','Belgium':'belgium.svg','Egypt':'egypt.svg','Iran':'iran.svg','New Zealand':'new-zealand.svg','Spain':'spain.svg','Cape Verde':'cape-verde.svg','Saudi Arabia':'saudi-arabia.svg','Uruguay':'uruguay.svg','France':'france.svg','Senegal':'senegal.svg','Iraq':'iraq.svg','Norway':'norway.svg','Argentina':'argentina.svg','Algeria':'algeria.svg','Austria':'austria.svg','Jordan':'jordan.svg','Portugal':'portugal.svg','DR Congo':'dr-congo.svg','Congo DR':'dr-congo.svg','Uzbekistan':'uzbekistan.svg','Colombia':'colombia.svg','England':'england.svg','Croatia':'croatia.svg','Ghana':'ghana.svg','Panama':'panama.svg','Por definir':'tbd.svg','TBD':'tbd.svg'
 };
@@ -703,11 +779,15 @@ function hasMatchStarted(m){
 function isMatchClosed(m){
   if(!m) return true;
   const real=actualResults && actualResults[Number(m.id)] ? actualResults[Number(m.id)] : null;
-  // Apertura excepcional del administrador: permite que usuarios corrijan pronósticos aunque el partido ya haya iniciado o tenga resultado.
-  if(real && real.adminPronosticosAbiertos===true) return false;
-  if(real && String(real.status||'').toLowerCase()==='open') return false;
+  const status=String(real?.status||m.status||'').toLowerCase();
+  const hasRealScore=real && real.homeScore!==undefined && real.awayScore!==undefined && real.homeScore!==null && real.awayScore!==null && real.homeScore!=='' && real.awayScore!=='';
+  // Regla principal: si el partido ya inició o ya tiene resultado real cerrado, ningún usuario puede capturar ni modificar.
   if(String(m.status||'').toLowerCase()==='final') return true;
-  return hasMatchStarted(m);
+  if(hasRealScore && status!=='open') return true;
+  if(hasMatchStarted(m)) return true;
+  // El administrador sólo puede desbloquear pronósticos ANTES del inicio del partido.
+  if(real && real.adminPronosticosAbiertos===true) return false;
+  return false;
 }
 function formatKickoff(m){return `${m.date} · ${m.time} CDMX`;}
 function captureDeadlineText(m){return isMatchClosed(m)?'🔒 Cerrado por inicio del partido':'Abierto hasta antes del inicio';}
@@ -744,10 +824,12 @@ function renderPredictions(){
     const aVal=p.awayScore??p.marcadorB??'';
     const currentPenalty=p.penaltyWinner||'';
     const showPenalty=(hVal!=='' && aVal!=='' && Number(hVal)===Number(aVal));
-    const note=alreadySaved?'Pronóstico guardado con candado. Sólo el administrador puede desbloquearlo.':(closedByKickoff?'Este partido ya comenzó o está cerrado. Ya no se puede capturar ni modificar.':'Puedes guardar este partido ahora y continuar con los demás después.');
-    const saveButton=disabled?'':`<div class="pedex-save-one"><button id="saveBtn${m.id}" class="btn btn-gold" type="button" onclick="savePrediction(${m.id})">Guardar este partido</button></div>`;
+    const note=alreadySaved?'✓ Pronóstico guardado correctamente. Este partido quedó bloqueado.':(closedByKickoff?'🔒 Partido bloqueado. Ya no es posible capturar o modificar este pronóstico.':'Puedes guardar este partido ahora y continuar con los demás después.');
+    const alertClass=alreadySaved?'saved':(closedByKickoff?'closed':'open');
+    const alertText=alreadySaved?'✓ Tu pronóstico quedó guardado. Sólo el administrador puede desbloquearlo si fuera necesario.':(closedByKickoff?'🔒 El encuentro ya comenzó o fue cerrado, por lo que ya no podrás registrar ni modificar tu pronóstico.':'⚠️ Importante: deberás pronosticar y guardar tu marcador antes de que inicie el partido. Si no lo haces antes del inicio, ya no podrás capturarlo.');
+    const saveButton=alreadySaved?`<div class="pedex-save-one"><button class="btn saved-ok" type="button" disabled>✓ Pronóstico guardado</button></div>`:(closedByKickoff?'':`<div class="pedex-save-one"><button id="saveBtn${m.id}" class="btn btn-gold" type="button" onclick="savePrediction(${m.id})">Guardar este partido</button></div>`);
     const penaltyBlock=`<div id="pedexFinalPen${m.id}" class="pedex-final-penalty ${showPenalty?'show':''}"><select id="pedexFinalPenSel${m.id}" ${disabled?'disabled':''}><option value="">Empate: ¿quién avanza por penales?</option><option value="${m.home}" ${currentPenalty===m.home?'selected':''}>${m.home}</option><option value="${m.away}" ${currentPenalty===m.away?'selected':''}>${m.away}</option></select></div>`;
-    return `<div class="match-card" data-pred-card="${m.id}"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}h" value="${hVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}a" value="${aVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"></div>${penaltyBlock}<div class="saved-note">${note}</div>${saveButton}</div>`;
+    return `<div class="match-card" data-pred-card="${m.id}"><div class="match-head"><span>#${m.id} · ${formatKickoff(m)}</span><span>${phaseLabel}</span></div><div class="teams"><div class="team">${teamLabel(m.home)}</div><div class="vs">VS</div><div class="team">${teamLabel(m.away)}</div></div><div class="score-inputs"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}h" value="${hVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"><input type="number" min="0" max="20" inputmode="numeric" id="p${m.id}a" value="${aVal}" ${disabled?'disabled':''} oninput="togglePenaltyForMatch(${m.id})"></div>${penaltyBlock}<div class="saved-note">${note}</div>${saveButton}<div class="pred-alert ${alertClass}">${alertText}</div></div>`;
   }).join('');
   list.innerHTML=`<div class="card" style="border-color:rgba(245,196,0,.38)"><h3>Avance de captura</h3><p class="muted">Puedes guardar cada partido por separado. Cada partido se bloquea automáticamente cuando comienza.</p><div class="capture-bar"><div class="capture-fill green" style="width:${pct}%"></div></div><p class="small">${savedCount} / ${total} partidos guardados.</p></div>`+cards;
 }
@@ -865,7 +947,7 @@ async function savePrediction(id){
       cerradoPorInicio:false,
       actualizado:serverTimestamp()
     },{merge:true});
-    toast('Partido guardado y bloqueado.');
+    toast('Pronóstico guardado correctamente.');
     renderPredictions();
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='Guardar este partido';}
@@ -1159,13 +1241,16 @@ function computeRanking(){
   renderRanking(); updateUserStats();
 }
 function renderRanking(){
-  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Capturados</th><th>Avance</th><th>Jugados</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranking.map((r,i)=>{
+  let prevPts=null, currentRank=0, counts={};
+  const ranked=ranking.map((r,i)=>{ const pts=Number(r.puntos||0); if(prevPts===null || pts!==prevPts){currentRank=i+1; prevPts=pts;} const item={...r,golfRank:currentRank}; counts[currentRank]=(counts[currentRank]||0)+1; return item; });
+  $('rankingTable').innerHTML=`<table><thead><tr><th>Pos</th><th>Jugador</th><th>PTS</th><th>Ajuste</th><th>Capturados</th><th>Avance</th><th>Jugados</th><th>Aciertos</th><th>Exactos</th></tr></thead><tbody>${ranked.map((r)=>{
     const foto=r.fotoURL||r.photoURL||'assets/persona-perfil.png';
     const nombre=r.nombre||'Participante';
     const correo=r.email||'';
+    const label=(counts[r.golfRank]>1?'T':'')+r.golfRank;
     return `<tr>
-      <td class="pts">${i+1}°</td>
-      <td><div class="rank-user"><img class="rank-photo" src="${foto}" onerror="this.src='assets/persona-perfil.png'"><div><b>${nombre}</b><small>${correo}</small></div></div></td>
+      <td class="pts"><span class="pedex-golf-badge ${counts[r.golfRank]>1?'tie':''}">${label}</span></td>
+      <td><div class="rank-user"><img class="rank-photo" loading="lazy" src="${foto}" onerror="this.src='assets/persona-perfil.png'"><div><b title="${nombre}">${nombre}</b><small title="${correo}">${correo}</small></div></div></td>
       <td class="pts">${r.puntos||0}</td>
       <td>${Number(r.ajustePuntos||0)}</td>
       <td><b>${r.captured||0} / ${r.total||getCurrentPredictionTotal()||0}</b></td>
@@ -1408,7 +1493,7 @@ window.adminClearJornada3Predictions=adminClearJornada3Predictions; window.admin
 window.adminUnlockUserAllPredictions=adminUnlockUserAllPredictions;
 
 
-const PEDEx_RESET_PREDICTIONS_VERSION='reset-2026-06-29-guardar-por-partido-v2';
+const PEDEx_RESET_PREDICTIONS_VERSION='reset-2026-06-29-v3-limpieza-total-alertas-flags';
 async function adminDeleteAllUserPredictions(reason='manual'){
   if(!isAdmin()) return;
   try{
@@ -1442,6 +1527,43 @@ async function adminClearJornada3Predictions(){
   await adminDeleteAllUserPredictions('admin-button');
   renderPredictions(); renderRanking(); renderProfile(); renderAdminDashboard(); renderAdminUsers();
 }
+
+async function adminDeleteAllRealResults(reason='manual'){
+  if(!isAdmin()) return 0;
+  try{
+    const snap=await getDocs(collection(db,'resultados'));
+    const docs=[];
+    snap.forEach(d=>docs.push(d.id));
+    if(!docs.length){ toast('La sección de resultados reales ya estaba en cero.'); return 0; }
+    for(const id of docs){ await deleteDoc(doc(db,'resultados',id)); }
+    actualResults={};
+    toast(`Resultados reales eliminados: ${docs.length}. La sección quedó en cero.`);
+    return docs.length;
+  }catch(e){
+    console.error('No se pudieron borrar resultados reales', e);
+    alert('No se pudieron borrar los resultados reales. Revisa permisos de Firestore para borrar documentos en resultados. Detalle: '+(e.message||e));
+    return 0;
+  }
+}
+async function adminClearAllRealResults(){
+  if(!isAdmin()) return;
+  if(!confirm('Se borrarán TODOS los resultados reales capturados y la sección quedará en cero. No se eliminan usuarios ni pronósticos. ¿Continuar?')) return;
+  await adminDeleteAllRealResults('admin-button');
+  computeRanking(); renderPredictions(); renderRanking(); renderProfile(); renderAdminResults(); renderAdminDashboard(); renderBracket(); renderHome();
+}
+const PEDEX_RESET_RESULTS_VERSION='reset-2026-06-29-v4-resultados-cero';
+async function adminAutoResetRealResultsOnce(){
+  if(!isAdmin() || !currentUser) return;
+  const key='pedex_'+PEDEX_RESET_RESULTS_VERSION+'_'+currentUser.uid;
+  if(localStorage.getItem(key)==='done') return;
+  localStorage.setItem(key,'done');
+  await adminDeleteAllRealResults('auto-results-reset');
+  computeRanking(); renderPredictions(); renderRanking(); renderProfile(); renderAdminResults(); renderAdminDashboard(); renderBracket(); renderHome();
+}
+window.adminDeleteAllRealResults=adminDeleteAllRealResults;
+window.adminClearAllRealResults=adminClearAllRealResults;
+window.adminAutoResetRealResultsOnce=adminAutoResetRealResultsOnce;
+
 function adminSwitchPanel(panel){
   document.querySelectorAll('[data-admin-panel]').forEach(el=>el.classList.toggle('active',el.dataset.adminPanel===panel));
   document.querySelectorAll('[data-admin-panel-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminPanelTab===panel));
@@ -1455,19 +1577,19 @@ function renderAdminDashboard(){
   const u=$('adminDashUsers'), p=$('adminDashPreds'), r=$('adminDashResults');
   if(u) u.textContent=users.length || 0;
   if(p) p.textContent=predictions.length || 0;
-  if(r) r.textContent=Object.keys(actualResults||{}).length || 0;
+  if(r) r.textContent=Object.values(actualResults||{}).filter(x=>x && x.homeScore!==undefined && x.awayScore!==undefined && x.homeScore!==null && x.awayScore!==null && x.homeScore!=='' && x.awayScore!=='').length || 0;
 }
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
   const show=getKnockout16Matches().filter(hasBothTeams);
   $('adminResults').innerHTML=show.map(m=>{
     const real=actualResults[Number(m.id)]||{};
-    const hasScore=real.homeScore!==undefined || real.marcadorA!==undefined;
+    const hasScore=(real.homeScore!==undefined && real.homeScore!==null && real.homeScore!=='') || (real.marcadorA!==undefined && real.marcadorA!==null && real.marcadorA!=='');
     const final=hasScore && String(real.status||'').toLowerCase()!=='open';
-    const openUsers=real.adminPronosticosAbiertos===true;
-    const hs=real.homeScore ?? real.marcadorA ?? '';
-    const as=real.awayScore ?? real.marcadorB ?? '';
-    const statusText=openUsers ? '🔓 Resultado y pronósticos abiertos por admin' : (final ? '🔒 Resultado real cerrado' : (String(real.status||'').toLowerCase()==='open' ? '🔓 Resultado abierto para editar' : '⏳ Pendiente de resultado real'));
+    const openUsers=real.adminPronosticosAbiertos===true && !hasMatchStarted(m);
+    const hs=hasScore ? (real.homeScore ?? real.marcadorA ?? '') : '';
+    const as=hasScore ? (real.awayScore ?? real.marcadorB ?? '') : '';
+    const statusText=openUsers ? '🔓 Pronósticos abiertos por admin antes del inicio' : (final ? '🔒 Resultado real cerrado' : (String(real.status||'').toLowerCase()==='open' ? '🔓 Resultado abierto para editar' : '⏳ Pendiente de resultado real'));
     return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
@@ -1518,7 +1640,9 @@ async function adminOpenResultOnly(id){
 }
 async function adminOpenResultAndPredictions(id){
   if(!isAdmin()) return;
-  if(!confirm('Esto permitirá que los usuarios vuelvan a editar sus marcadores de este partido. Úsalo sólo para corrección excepcional. ¿Continuar?')) return;
+  const m=getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
+  if(hasMatchStarted(m)) return alert('Este partido ya inició. Por regla de la quiniela, ya no se pueden desbloquear pronósticos para usuarios.');
+  if(!confirm('Esto permitirá que los usuarios vuelvan a editar sus marcadores de este partido antes de que inicie. Úsalo sólo para corrección excepcional. ¿Continuar?')) return;
   try{
     await setDoc(doc(db,'resultados',String(id)),{partidoId:Number(id),status:'open',cerrado:false,adminPronosticosAbiertos:true,abiertoPronosticosAt:serverTimestamp(),abiertoPronosticosPor:currentUser.email},{merge:true});
     const docs=predictions.filter(p=>Number(p.partidoId)===Number(id));
@@ -1596,7 +1720,7 @@ async function adminPublishManualBracket(){
   try{
     await setDoc(doc(db,'configuracion','llaveManual'),{matches:payload,published:true,phase:'Dieciseisavos',actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
     for(const m of bracket){
-      await setDoc(doc(db,'resultados',String(m.id)),{partidoId:Number(m.id),status:'open',cerrado:false,adminPronosticosAbiertos:false,homeScore:null,awayScore:null,marcadorA:null,marcadorB:null,llavePublicada:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:true});
+      await setDoc(doc(db,'resultados',String(m.id)),{partidoId:Number(m.id),status:'pending',cerrado:false,adminPronosticosAbiertos:false,llavePublicada:true,actualizado:serverTimestamp(),actualizadoPor:currentUser.email},{merge:false});
     }
     manualBracket=normalizeManualBracket(payload);
     manualBracketPublished=true;
@@ -1791,8 +1915,8 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
       }
       const draw = h.value !== '' && a.value !== '' && Number(h.value) === Number(a.value);
       box.classList.toggle('show', draw);
-      if(!h.dataset.pedexFinalBind){ h.dataset.pedexFinalBind='1'; h.addEventListener('input',()=>{ensurePenaltySelectors(); updateFloat16();}); }
-      if(!a.dataset.pedexFinalBind){ a.dataset.pedexFinalBind='1'; a.addEventListener('input',()=>{ensurePenaltySelectors(); updateFloat16();}); }
+      if(!h.dataset.pedexFinalBind){ h.dataset.pedexFinalBind='1'; h.addEventListener('input',()=>{ensurePenaltySelectors(); }); }
+      if(!a.dataset.pedexFinalBind){ a.dataset.pedexFinalBind='1'; a.addEventListener('input',()=>{ensurePenaltySelectors(); }); }
     });
   }
 
@@ -1823,10 +1947,10 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
   window.pedexFinalSave16vos = function(){ pedexPrepareSave16vos(); };
 
   const oldRenderPredictions = renderPredictions;
-  renderPredictions = function(){ const r = oldRenderPredictions.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors(); updateFloat16();}, 90); return r; };
+  renderPredictions = function(){ const r = oldRenderPredictions.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors();}, 90); return r; };
 
   const oldGoSection = goSection;
-  goSection = function(){ const r = oldGoSection.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 100); return r; };
+  goSection = function(){ const r = oldGoSection.apply(this, arguments); setTimeout(()=>{ensurePenaltySelectors();  patchAllGolf();}, 100); return r; };
   window.goSection = goSection;
   window.renderPredictions = renderPredictions;
   window.renderRanking = renderRanking;
@@ -1836,12 +1960,12 @@ window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdmi
 
   document.addEventListener('input',()=>setTimeout(updateFloat16,30),true);
   document.addEventListener('change',()=>setTimeout(updateFloat16,30),true);
-  setInterval(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1200);
-  setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 500);
-  setTimeout(()=>{ensurePenaltySelectors(); updateFloat16(); patchAllGolf();}, 1600);
+  setInterval(()=>{ensurePenaltySelectors();  patchAllGolf();}, 1200);
+  setTimeout(()=>{ensurePenaltySelectors();  patchAllGolf();}, 500);
+  setTimeout(()=>{ensurePenaltySelectors();  patchAllGolf();}, 1600);
 })();
 
-onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge(); if(isAdmin()) setTimeout(()=>adminAutoResetPredictionsOnce(),900);});
+onAuthStateChanged(auth, async user=>{currentUser=user;if(!user){$('loginScreen').classList.remove('hidden');$('app').classList.add('hidden');document.body.classList.remove('is-admin');document.body.classList.remove('logged-in');return;} $('loginScreen').classList.add('hidden');$('app').classList.remove('hidden'); document.body.classList.add('logged-in'); document.body.classList.toggle('is-admin',isAdmin()); if(!isAdmin()){ const ad=$('adminDetail'); if(ad) ad.innerHTML=''; } const ref=doc(db,'usuarios',user.uid); let snap=await getDoc(ref); if(!snap.exists()){await setDoc(ref,{nombre:user.email,email:user.email,activo:true,fotoURL:'assets/persona-perfil.png',fechaRegistro:serverTimestamp()},{merge:true}); snap=await getDoc(ref);} currentProfile={id:user.uid,...snap.data()}; if(currentProfile.activo===false && !isAdmin()){alert('Tu usuario está dado de baja. Contacta al administrador.'); await signOut(auth); return;} $('headerName').textContent=currentProfile.nombre||user.email; applyVisiblePhoto(currentProfile.fotoURL||'assets/persona-perfil.png'); goSection('pronosticos'); renderProfile(); renderPredictions(); update16StatusBadge(); if(isAdmin()) setTimeout(()=>{adminAutoResetPredictionsOnce(); adminAutoResetRealResultsOnce();},900);});
 onSnapshot(collection(db,'usuarios'), snap=>{users=[];snap.forEach(d=>users.push({id:d.id,...d.data()})); if(currentUser){const fresh=users.find(u=>u.id===currentUser.uid); if(fresh){currentProfile=fresh; $('headerName').textContent=fresh.nombre||currentUser.email; applyVisiblePhoto(fresh.fotoURL||'assets/persona-perfil.png');}} computeRanking(); if(isAdmin()){renderAdminUsers(); renderAdminResults(); renderAdminManualBracket(); renderAdminDashboard();}});
 onSnapshot(collection(db,'pronosticos'), snap=>{predictions=[];myPred={};snap.forEach(d=>{const p={id:d.id,...d.data()}; p.homeScore=p.homeScore??p.marcadorA; p.awayScore=p.awayScore??p.marcadorB; predictions.push(p); if(currentUser&&p.userId===currentUser.uid)myPred[p.partidoId]=p;}); computeRanking(); renderPredictions(); renderProfile(); renderBracket();});
 onSnapshot(collection(db,'resultados'), snap=>{actualResults={};snap.forEach(d=>{const r=d.data(); actualResults[Number(r.partidoId||d.id)]={id:d.id,...r};}); computeRanking(); renderPredictions(); renderGroups(); renderHome(); renderAdminResults(); renderAdminDashboard(); renderProfile();});
