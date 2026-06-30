@@ -36,7 +36,7 @@ button,input,select{font:inherit} button{cursor:pointer} a{color:inherit;text-de
 .admin-create label,.admin-detail label{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase}.admin-detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.admin-warning{background:rgba(245,196,0,.12);border:1px solid rgba(245,196,0,.35);color:#fff;border-radius:16px;padding:12px;margin:12px 0}.admin-user-card{display:grid;grid-template-columns:54px 1.1fr 1.3fr .7fr .7fr .7fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-user-card img{width:46px;height:46px;border-radius:14px;object-fit:cover}.status-ok{color:#7cffb2}.status-off{color:#ffb4b4}@media(max-width:820px){.admin-create,.admin-user-card{grid-template-columns:1fr}.admin-user-card img{width:58px;height:58px}.admin-detail-actions .btn{width:100%}}
 
 .capture-bar{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;min-width:110px}.capture-fill{height:100%;border-radius:999px;background:var(--gold)}.capture-fill.red{background:var(--red)}.capture-fill.yellow{background:var(--gold)}.capture-fill.blue{background:#5aa8ff}.capture-fill.green{background:var(--green)}.lock-note{font-size:12px;text-align:center;margin-top:8px;font-weight:900}.lock-note.open{color:var(--green)}.lock-note.closed{color:var(--red)}.fifa-link{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.35);background:rgba(245,196,0,.12);color:var(--gold);border-radius:999px;padding:9px 12px;font-weight:900;font-size:12px}.fifa-link:hover{background:rgba(245,196,0,.2)}
-.admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input{width:76px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}.bottom-nav button.admin-only{display:none!important}body.is-admin.logged-in .bottom-nav button.admin-only{display:grid!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
+.admin-results-grid{display:grid;gap:12px}.admin-result-card{display:grid;grid-template-columns:1.4fr .8fr .8fr .95fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:12px}.admin-result-card input{width:76px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#fff;border-radius:13px;padding:10px;text-align:center}.admin-real-penalty{display:none;gap:6px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}.admin-real-penalty.show{display:grid}.admin-real-penalty select{width:100%;border:1px solid rgba(245,196,0,.38);background:#071A3A;color:#fff;border-radius:13px;padding:10px}.bracket-predicted{border-color:rgba(245,196,0,.42);background:linear-gradient(145deg,rgba(245,196,0,.10),rgba(255,255,255,.04))}.bracket-winner{color:var(--green);font-size:11px;font-weight:900;margin-top:6px}.bracket-score{color:var(--gold);font-size:12px;font-weight:900;margin-top:5px}@media(max-width:920px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}.bottom-nav button.admin-only{display:none!important}body.is-admin.logged-in .bottom-nav button.admin-only{display:grid!important}.admin-result-card{grid-template-columns:1fr}.admin-result-card input{width:100%}}
 
 
 /* FIX MOVIL LOGIN: oculta nav inferior hasta iniciar sesion y evita overlays sobre login */
@@ -1760,6 +1760,18 @@ function renderAdminDashboard(){
   if(p) p.textContent=predictions.length || 0;
   if(r) r.textContent=Object.values(actualResults||{}).filter(x=>x && x.homeScore!==undefined && x.awayScore!==undefined && x.homeScore!==null && x.awayScore!==null && x.homeScore!=='' && x.awayScore!=='').length || 0;
 }
+function adminResultPenaltyValue(real){
+  return (real?.penaltyWinner || real?.ganadorPenales || real?.winnerPenalty || '').trim();
+}
+function adminResultTogglePenalty(id){
+  const h=$('res'+id+'h')?.value;
+  const a=$('res'+id+'a')?.value;
+  const wrap=$('res'+id+'PenaltyWrap');
+  const sel=$('res'+id+'Penalty');
+  const isDraw=h!=='' && a!=='' && h!==undefined && a!==undefined && Number(h)===Number(a);
+  if(wrap) wrap.classList.toggle('show', !!isDraw);
+  if(sel && !isDraw) sel.value='';
+}
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
   const show=getKnockout16Matches().filter(hasBothTeams);
@@ -1776,8 +1788,15 @@ function renderAdminResults(){
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
         <small class="muted">${m.phase||getCurrentPhaseLabel()} · ${m.date||''} · ${m.time||''} CDMX · ${statusText}</small>
       </div>
-      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0"></label>
-      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0"></label>
+      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" oninput="adminResultTogglePenalty(${m.id})" onchange="adminResultTogglePenalty(${m.id})"></label>
+      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" oninput="adminResultTogglePenalty(${m.id})" onchange="adminResultTogglePenalty(${m.id})"></label>
+      <label id="res${m.id}PenaltyWrap" class="admin-real-penalty ${(hs!=='' && as!=='' && Number(hs)===Number(as))?'show':''}">Ganador en penales
+        <select id="res${m.id}Penalty">
+          <option value="">Selecciona ganador</option>
+          <option value="${m.home}" ${adminResultPenaltyValue(real)===m.home?'selected':''}>${teamLabel(m.home)}</option>
+          <option value="${m.away}" ${adminResultPenaltyValue(real)===m.away?'selected':''}>${teamLabel(m.away)}</option>
+        </select>
+      </label>
       <div class="admin-result-actions">
         <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado real y cerrar</button>
         <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir solo resultado</button>
@@ -1795,14 +1814,14 @@ async function adminSaveResult(id){
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
   let penaltyWinner='';
   if(Number(h)===Number(a)){
-    penaltyWinner=prompt(`El marcador está empatado. Escribe exactamente quién avanzó por penales:
-
-${m?.home||'Local'}
-${m?.away||'Visitante'}`, m?.home||'') || '';
-    penaltyWinner=penaltyWinner.trim();
-    if(penaltyWinner!==m?.home && penaltyWinner!==m?.away) return alert('Para empate debes escribir exactamente el nombre del equipo que avanzó por penales.');
+    penaltyWinner=($('res'+id+'Penalty')?.value || '').trim();
+    if(penaltyWinner!==m?.home && penaltyWinner!==m?.away){
+      adminResultTogglePenalty(id);
+      return alert('El marcador real está empatado. Selecciona quién ganó en penales.');
+    }
   }
-  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'} y se cerrarán los pronósticos de usuarios. El ganador avanzará automáticamente en la llave FIFA. ¿Continuar?`)) return;
+  const penMsg=penaltyWinner ? ` · Gana en penales: ${penaltyWinner}` : '';
+  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'}${penMsg} y se cerrarán los pronósticos de usuarios. El ganador avanzará automáticamente en la llave FIFA. ¿Continuar?`)) return;
   const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),penaltyWinner,ganadorPenales:penaltyWinner,status:'final',cerrado:true,adminPronosticosAbiertos:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
   try{
     await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
