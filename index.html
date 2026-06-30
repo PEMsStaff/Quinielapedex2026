@@ -378,20 +378,10 @@ body.logged-in #pedexFinalFloat16{display:flex!important}
 
 
 
-/* === FIX Resultados reales: ganador por penales === */
-.admin-real-penalty{
-  display:none;
-  grid-column:1 / -1;
-  margin-top:6px;
-  padding:12px;
-  border:1px solid rgba(245,196,0,.38);
-  background:rgba(245,196,0,.09);
-  border-radius:16px;
-}
-.admin-real-penalty.show{display:block;}
-.admin-real-penalty label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;max-width:420px;}
-.admin-real-penalty select{width:100%;border:1px solid rgba(255,255,255,.14);background:#071A3A;color:#fff;border-radius:13px;padding:11px;}
-.admin-real-penalty small{display:block;color:var(--muted);margin-top:8px;text-transform:none;font-weight:700;font-size:11px;}
+/* === FIX RESULTADOS REALES: penales igual que pronósticos === */
+.admin-result-card .pedex-final-penalty{grid-column:1/-1;width:100%;}
+.admin-result-card .pedex-final-penalty select{max-width:420px;}
+@media(max-width:920px){.admin-result-card .pedex-final-penalty select{max-width:none;}}
 </style>
 
 <style id="pedexNoFloatPerMatchFix">
@@ -1296,6 +1286,9 @@ function winnerFromScore(match,p){
   const h=Number(p.homeScore), a=Number(p.awayScore);
   if(h>a) return {team:match.home, flag:match.homeFlag||'', score:`${h}-${a}`};
   if(a>h) return {team:match.away, flag:match.awayFlag||'', score:`${h}-${a}`};
+  const pen=String(p.penaltyWinner||p.winner||p.ganadorPenales||'').trim();
+  if(pen===match.away) return {team:match.away, flag:match.awayFlag||'', score:`${h}-${a}`, note:'Avanza por penales'};
+  if(pen===match.home) return {team:match.home, flag:match.homeFlag||'', score:`${h}-${a}`, note:'Avanza por penales'};
   return {team:match.home, flag:match.homeFlag||'', score:`${h}-${a}`, note:'Avanza local por desempate provisional'};
 }
 function loserFromScore(match,p){
@@ -1303,6 +1296,8 @@ function loserFromScore(match,p){
   const h=Number(p.homeScore), a=Number(p.awayScore);
   if(h>a) return {team:match.away, flag:match.awayFlag||'', score:`${h}-${a}`};
   if(a>h) return {team:match.home, flag:match.homeFlag||'', score:`${h}-${a}`};
+  const pen=String(p.penaltyWinner||p.winner||p.ganadorPenales||'').trim();
+  if(pen===match.away) return {team:match.home, flag:match.homeFlag||'', score:`${h}-${a}`};
   return {team:match.away, flag:match.awayFlag||'', score:`${h}-${a}`};
 }
 function buildUserBracket(){
@@ -1781,17 +1776,6 @@ function renderAdminDashboard(){
   if(p) p.textContent=predictions.length || 0;
   if(r) r.textContent=Object.values(actualResults||{}).filter(x=>x && x.homeScore!==undefined && x.awayScore!==undefined && x.homeScore!==null && x.awayScore!==null && x.homeScore!=='' && x.awayScore!=='').length || 0;
 }
-
-function adminToggleRealPenalty(id){
-  const h=$('res'+id+'h')?.value;
-  const a=$('res'+id+'a')?.value;
-  const box=$('res'+id+'penBox');
-  const sel=$('res'+id+'pen');
-  const isTie=h!=='' && a!=='' && h!==undefined && a!==undefined && Number(h)===Number(a);
-  if(box) box.classList.toggle('show', isTie);
-  if(sel && !isTie) sel.value='';
-}
-
 function renderAdminResults(){
   if(!isAdmin() || !$('adminResults')) return;
   const show=getKnockout16Matches().filter(hasBothTeams);
@@ -1802,24 +1786,18 @@ function renderAdminResults(){
     const openUsers=real.adminPronosticosAbiertos===true && !hasMatchStarted(m);
     const hs=hasScore ? (real.homeScore ?? real.marcadorA ?? '') : '';
     const as=hasScore ? (real.awayScore ?? real.marcadorB ?? '') : '';
+    const currentPenalty=real.penaltyWinner||real.ganadorPenales||'';
+    const showPenalty=(hs!=='' && as!=='' && Number(hs)===Number(as));
     const statusText=openUsers ? '🔓 Pronósticos abiertos por admin antes del inicio' : (final ? '🔒 Resultado real cerrado' : (String(real.status||'').toLowerCase()==='open' ? '🔓 Resultado abierto para editar' : '⏳ Pendiente de resultado real'));
-    return `<div class="admin-result-card" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
+    const penaltyBlock=`<div id="adminRealPen${m.id}" class="pedex-final-penalty ${showPenalty?'show':''}"><select id="adminRealPenSel${m.id}"><option value="">Empate: ¿quién ganó por penales?</option><option value="${m.home}" ${currentPenalty===m.home?'selected':''}>${m.home}</option><option value="${m.away}" ${currentPenalty===m.away?'selected':''}>${m.away}</option></select></div>`;
+    return `<div class="admin-result-card" data-admin-result-card="${m.id}" style="${final?'border-color:rgba(112,225,166,.55);background:rgba(112,225,166,.07)':''}">
       <div>
         <b>#${m.id} · ${teamLabel(m.home)} vs ${teamLabel(m.away)}</b><br>
         <small class="muted">${m.phase||getCurrentPhaseLabel()} · ${m.date||''} · ${m.time||''} CDMX · ${statusText}</small>
       </div>
-      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" oninput="adminToggleRealPenalty(${m.id})"></label>
-      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" oninput="adminToggleRealPenalty(${m.id})"></label>
-      <div class="admin-real-penalty ${Number(hs)===Number(as) && hs!=='' && as!=='' ? 'show' : ''}" id="res${m.id}penBox">
-        <label>Ganador en penales
-          <select id="res${m.id}pen">
-            <option value="">Selecciona quién avanzó</option>
-            <option value="${m.home}" ${String(real.penaltyWinner||real.ganadorPenales||'')===String(m.home)?'selected':''}>${teamLabel(m.home)}</option>
-            <option value="${m.away}" ${String(real.penaltyWinner||real.ganadorPenales||'')===String(m.away)?'selected':''}>${teamLabel(m.away)}</option>
-          </select>
-          <small>Este campo sólo es obligatorio si el marcador real termina empatado.</small>
-        </label>
-      </div>
+      <label>Local<input type="number" min="0" max="30" id="res${m.id}h" value="${hs}" placeholder="0" oninput="toggleAdminRealPenalty(${m.id})"></label>
+      <label>Visitante<input type="number" min="0" max="30" id="res${m.id}a" value="${as}" placeholder="0" oninput="toggleAdminRealPenalty(${m.id})"></label>
+      ${penaltyBlock}
       <div class="admin-result-actions">
         <button class="btn btn-gold" onclick="adminSaveResult(${m.id})">Guardar resultado real y cerrar</button>
         <button class="btn btn-outline" onclick="adminOpenResultOnly(${m.id})">Abrir solo resultado</button>
@@ -1829,6 +1807,13 @@ function renderAdminResults(){
   }).join('') || '<div class="admin-warning">Primero da de alta la llave manual de dieciseisavos para poder capturar resultados reales.</div>';
   renderAdminDashboard();
 }
+function toggleAdminRealPenalty(id){
+  const h=$('res'+id+'h'), a=$('res'+id+'a'), box=$('adminRealPen'+id);
+  if(!h || !a || !box) return;
+  const show=h.value!=='' && a.value!=='' && Number(h.value)===Number(a.value);
+  box.classList.toggle('show', show);
+  if(!show){ const sel=$('adminRealPenSel'+id); if(sel) sel.value=''; }
+}
 async function adminSaveResult(id){
   if(!isAdmin()) return;
   const m=getAllPublishedKnockoutMatches().find(x=>Number(x.id)===Number(id)) || getKnockout16Matches().find(x=>Number(x.id)===Number(id)) || matchById(id) || DATA.bracket.find(x=>Number(x.id)===Number(id));
@@ -1837,11 +1822,17 @@ async function adminSaveResult(id){
   if(Number(h)<0 || Number(a)<0 || Number.isNaN(Number(h)) || Number.isNaN(Number(a))) return alert('El marcador debe ser numérico y no puede ser negativo.');
   let penaltyWinner='';
   if(Number(h)===Number(a)){
-    penaltyWinner=($('res'+id+'pen')?.value || '').trim();
-    if(!penaltyWinner) return alert('El marcador está empatado. Selecciona el ganador en penales antes de guardar.');
+    const pen=$('adminRealPenSel'+id);
+    penaltyWinner=(pen?.value || '').trim();
+    if(!penaltyWinner){
+      toast('Empate: elige quién ganó por penales antes de guardar el resultado real.');
+      pen?.closest('.admin-result-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
     if(penaltyWinner!==m?.home && penaltyWinner!==m?.away) return alert('El ganador en penales debe ser uno de los dos equipos del partido.');
   }
-  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'} y se cerrarán los pronósticos de usuarios. El ganador avanzará automáticamente en la llave FIFA. ¿Continuar?`)) return;
+  const penText=penaltyWinner ? ` · Gana por penales: ${penaltyWinner}` : '';
+  if(!confirm(`Se guardará/corregirá el resultado oficial de #${id}: ${m?.home||'Local'} ${h} - ${a} ${m?.away||'Visitante'}${penText} y se cerrarán los pronósticos de usuarios. El ganador avanzará automáticamente en la llave. ¿Continuar?`)) return;
   const payload={partidoId:Number(id),homeScore:Number(h),awayScore:Number(a),marcadorA:Number(h),marcadorB:Number(a),penaltyWinner,ganadorPenales:penaltyWinner,status:'final',cerrado:true,adminPronosticosAbiertos:false,actualizado:serverTimestamp(),actualizadoPor:currentUser.email};
   try{
     await setDoc(doc(db,'resultados',String(id)),payload,{merge:true});
@@ -2073,6 +2064,8 @@ function winnerFromActualMatch(m){
   const h=Number(real.homeScore), a=Number(real.awayScore);
   if(h>a) return {team:m.home,flag:m.homeFlag||''};
   if(a>h) return {team:m.away,flag:m.awayFlag||''};
+  const pen=String(real.penaltyWinner||real.ganadorPenales||'').trim();
+  if(pen===m.away) return {team:m.away,flag:m.awayFlag||''};
   return {team:m.home,flag:m.homeFlag||''};
 }
 async function adminAutofillManualFromResults(){
@@ -2129,7 +2122,7 @@ async function adminClearManualBracket(){
   }catch(e){alert('No se pudo borrar la llave manual. Detalle: '+(e.message||e));}
 }
 
-window.adminToggleRealPenalty=adminToggleRealPenalty; window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminUserPredictions=renderAdminUserPredictions; window.renderAdminManualBracket=renderAdminManualBracket; window.adminSaveManualBracket=adminSaveManualBracket; window.adminPublishManualBracket=adminPublishManualBracket; window.adminAutofillManualFromResults=adminAutofillManualFromResults; window.adminLoadOfficialIntoManual=adminLoadOfficialIntoManual; window.adminClearManualBracket=adminClearManualBracket;
+window.toggleAdminRealPenalty=toggleAdminRealPenalty; window.adminSwitchPanel=adminSwitchPanel; window.renderAdminDashboard=renderAdminDashboard; window.renderAdminResults=renderAdminResults; window.adminSaveResult=adminSaveResult; window.adminOpenResultOnly=adminOpenResultOnly; window.adminOpenResultAndPredictions=adminOpenResultAndPredictions; window.renderAdminUserPredictions=renderAdminUserPredictions; window.renderAdminManualBracket=renderAdminManualBracket; window.adminSaveManualBracket=adminSaveManualBracket; window.adminPublishManualBracket=adminPublishManualBracket; window.adminAutofillManualFromResults=adminAutofillManualFromResults; window.adminLoadOfficialIntoManual=adminLoadOfficialIntoManual; window.adminClearManualBracket=adminClearManualBracket;
 
 
 
